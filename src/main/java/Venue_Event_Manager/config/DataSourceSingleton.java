@@ -6,6 +6,9 @@ import com.zaxxer.hikari.HikariDataSource;
 import javax.sql.DataSource;
 import java.io.IOException;
 
+/**
+ * DataSource for jdbc using singleton design pattern and Hikari
+ */
 public class DataSourceSingleton {
 
     //volatile instance to ensure to always use last updated value for all threads
@@ -26,9 +29,16 @@ public class DataSourceSingleton {
     private static final int initializationFailTimeout = 5000;
     private static final String poolName = "VenueEvent_Pool";
 
-
+    /**
+     * Empty constructor
+     */
     private DataSourceSingleton() {}
 
+    /**
+     * Singleton implementation
+     * @return DataSource instance if exists, new DataSource if not
+     * @throws IOException
+     */
     public static DataSource getInstance() throws IOException {
         if (instance == null) {
             synchronized (DataSourceSingleton.class) {
@@ -40,6 +50,11 @@ public class DataSourceSingleton {
         return instance;
     }
 
+    /**
+     * Sets up configuration for HikariDataSource and creates it
+     * @return new HikariDataSource
+     * @throws IOException
+     */
     private static HikariDataSource createDataSource() throws IOException {
         DbConfig config = DbConfig.load();
 
