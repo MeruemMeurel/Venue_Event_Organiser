@@ -61,7 +61,24 @@ public final class DbConfig {
 
     }
 
-    //Helpers---------------------
+    /**
+     * Get url with correct configs for jdbc
+     * @return jdbc url
+     */
+    public String getJdbcUrl(){
+        return String.format("jdbc:mysql://%s:%d/%s?sslmode=%s&currentSchema=%s"
+                , host, port, dbName,urlEncode(sslMode), urlEncode(schema));
+    }
+
+    //getters
+    public String getUser() {
+        return user;
+    }
+    public String getPassword() {
+        return password;
+    }
+
+    //-------------------Helpers---------------------
 
     /**
      * Create Properties object from resource
