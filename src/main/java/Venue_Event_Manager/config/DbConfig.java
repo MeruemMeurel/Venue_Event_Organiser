@@ -4,6 +4,9 @@ import java.io.InputStream;
 import java.util.Objects;
 import java.util.Properties;
 
+/**
+ * Handles database config and creates jdbc url
+ */
 public final class DbConfig {
     public final String host;
     private final int port;
