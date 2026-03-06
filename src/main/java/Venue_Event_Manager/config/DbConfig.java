@@ -52,8 +52,28 @@ public final class DbConfig {
         this.password = requireNonBlank(password, "db.password/DB_PASSWORD");
     }
 
-    public static DbConfig load() {
-        Properties props = loadPropertiesFromClasspath("");
+    /**
+     * Load Db config from application.properties file in project root
+     * @return new DbConfig object with configs from application.properties
+     * @throws IOException
+     */
+    public static DbConfig load() throws IOException {
+        Properties props = loadPropertiesFromClasspath("application.properties");
+
+        String host = props.getProperty("db.host");
+        String portStr = props.getProperty("db.port");
+        String Name = props.getProperty("db.name");
+        String user = props.getProperty("db.user");
+        String password = props.getProperty("db.password");
+        String sslMode = props.getProperty("db.sslMode");
+        String schema = props.getProperty("db.schema");
+
+        //TODO add env (environmental variables) if so decided
+
+        int port = parsePort(portStr);
+
+        return new DbConfig(host, port, Name, user, password, sslMode, schema);
+
     }
 
     //Helpers---------------------
