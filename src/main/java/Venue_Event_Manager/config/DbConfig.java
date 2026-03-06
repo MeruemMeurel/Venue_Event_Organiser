@@ -78,6 +78,12 @@ public final class DbConfig {
 
     //Helpers---------------------
 
+    /**
+     * Create Properties object from resource
+     * @param resourceName file containing properties
+     * @return properties object
+     * @throws IOException
+     */
     private static Properties loadPropertiesFromClasspath(String resourceName) throws IOException {
         Properties props = new Properties();
         try (InputStream in = DbConfig.class.getClassLoader().getResourceAsStream(resourceName)){
@@ -88,7 +94,13 @@ public final class DbConfig {
         return props;
     }
 
-    private static int parsePort(String portStr){
+    /**
+     * Parse port number from string, if null defaults to 5432
+     * @param portStr
+     * @return port number parsed from string
+     * @throws IllegalStateException if port number is not valid
+     */
+    private static int parsePort(String portStr) throws IllegalStateException {
         if(portStr == null || portStr.isBlank()) return 5432;//defailt port
         try{
             int port = Integer.parseInt(portStr.trim());
@@ -99,6 +111,11 @@ public final class DbConfig {
         }
     }
 
+    /**
+     * Encodes url from string
+     * @param s string to encode into url
+     * @return encoded url from string
+     */
     private static String urlEncode(String s){
         return Objects.requireNonNullElse(s, "").replace(" ", "%20");
     }
