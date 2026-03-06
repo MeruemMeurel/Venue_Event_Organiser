@@ -35,22 +35,7 @@ public final class DbConfig {
         this.schema = (schema == null || schema.isBlank()) ? "public" : schema.trim();
     }
 
-    /**
-     * DbConfig constructor without sslMode and schema
-     * @param host
-     * @param port
-     * @param dbName
-     * @param user
-     * @param password
-     * @throws IOException
-     */
-    public DbConfig(String host, int port, String dbName, String user, String password) throws IOException {
-        this.host = requireNonBlank(host, "db.host/DB_HOST");
-        this.port = port;
-        this.dbName = requireNonBlank(dbName, "db.name/DB_NAME");
-        this.user = requireNonBlank(user, "db.user/DB_USER");
-        this.password = requireNonBlank(password, "db.password/DB_PASSWORD");
-    }
+
 
     /**
      * Load Db config from application.properties file in project root
