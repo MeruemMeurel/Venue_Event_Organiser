@@ -52,7 +52,36 @@ public final class DbConfig {
         this.password = requireNonBlank(password, "db.password/DB_PASSWORD");
     }
 
+    public static DbConfig load() {
+        Properties props = loadPropertiesFromClasspath("");
+    }
 
+    //Helpers---------------------
+
+    private static Properties loadPropertiesFromClasspath(String resourceName) throws IOException {
+        Properties props = new Properties();
+        try (InputStream in = DbConfig.class.getClassLoader().getResourceAsStream(resourceName)){
+            if (in != null) props.load(in);
+        }catch (IOException e) {
+            throw new IllegalStateException("Impossible to read "+resourceName,e);
+        }
+        return props;
+    }
+
+    private static int parsePort(String portStr){
+        if(portStr == null || portStr.isBlank()) return 5432;//defailt port
+        try{
+            int port = Integer.parseInt(portStr.trim());
+            if(port < 1 || port > 65535) throw new NumberFormatException();
+            return port;
+        }catch (NumberFormatException e){
+            throw new IllegalStateException("Invalid port number "+portStr);
+        }
+    }
+
+    private static String urlEncode(String s){
+        return Objects.requireNonNullElse(s, "").replace(" ", "%20");
+    }
 
     /**
      * Checks if required label is blank
