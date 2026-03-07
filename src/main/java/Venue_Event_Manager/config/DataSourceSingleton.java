@@ -39,7 +39,7 @@ public class DataSourceSingleton {
      * @return DataSource instance if exists, new DataSource if not
      * @throws IOException
      */
-    public static HikariDataSource getInstance() throws IOException {
+    public static HikariDataSource getInstance() {
         if (instance == null) {
             synchronized (DataSourceSingleton.class) {
                 if (instance == null) {
@@ -55,7 +55,7 @@ public class DataSourceSingleton {
      * @return new HikariDataSource
      * @throws IOException
      */
-    private static HikariDataSource createDataSource() throws IOException {
+    private static HikariDataSource createDataSource() {
         DbConfig config = DbConfig.load();
 
         HikariConfig hikariConfig = new HikariConfig();

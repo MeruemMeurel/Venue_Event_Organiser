@@ -28,7 +28,7 @@ public final class DbConfig {
      * @throws IOException
      */
     public DbConfig(String host, int port, String dbName, String user, String password, String sslMode,
-                    String schema) throws IOException {
+                    String schema){
         this.host = requireNonBlank(host, "db.host/DB_HOST");
         this.port = port;
         this.dbName = requireNonBlank(dbName, "db.name/DB_NAME");
@@ -45,7 +45,7 @@ public final class DbConfig {
      * @return new DbConfig object with configs from application.properties
      * @throws IOException
      */
-    public static DbConfig load() throws IOException {
+    public static DbConfig load() {
         Properties props = loadPropertiesFromClasspath("application.properties");
 
         String host = props.getProperty("db.host");
@@ -89,7 +89,7 @@ public final class DbConfig {
      * @return properties object
      * @throws IOException
      */
-    private static Properties loadPropertiesFromClasspath(String resourceName) throws IOException {
+    private static Properties loadPropertiesFromClasspath(String resourceName) {
         Properties props = new Properties();
         try (InputStream in = DbConfig.class.getClassLoader().getResourceAsStream(resourceName)){
             if (in != null) props.load(in);
@@ -105,7 +105,7 @@ public final class DbConfig {
      * @return port number parsed from string
      * @throws IllegalStateException if port number is not valid
      */
-    private static int parsePort(String portStr) throws IllegalStateException {
+    private static int parsePort(String portStr) {
         if(portStr == null || portStr.isBlank()) return 5432;//defailt port
         try{
             int port = Integer.parseInt(portStr.trim());
@@ -129,10 +129,10 @@ public final class DbConfig {
      * Checks if required label is blank
      * @param string
      * @param label
-     * @exception IllegalStateException
+     * @throws IllegalStateException
      * @return string trimmed without spaces
      */
-    private static String requireNonBlank(String string, String label) throws IllegalArgumentException {
+    private static String requireNonBlank(String string, String label) {
         if(string == null || string.isEmpty()) {
             throw new IllegalStateException("Missing config: " + label);
         }

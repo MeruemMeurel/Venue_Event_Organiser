@@ -22,7 +22,7 @@ public class TransactionManager {
      * @return instance of transactionManager
      * @throws IOException
      */
-    public static TransactionManager getInstance() throws IOException {
+    public static TransactionManager getInstance() {
         if (instance == null) {
             synchronized (TransactionManager.class) {
                 if (instance == null) {
