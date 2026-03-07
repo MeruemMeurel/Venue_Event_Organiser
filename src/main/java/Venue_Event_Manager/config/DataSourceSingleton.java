@@ -39,7 +39,7 @@ public class DataSourceSingleton {
      * @return DataSource instance if exists, new DataSource if not
      * @throws IOException
      */
-    public static DataSource getInstance() throws IOException {
+    public static HikariDataSource getInstance() throws IOException {
         if (instance == null) {
             synchronized (DataSourceSingleton.class) {
                 if (instance == null) {
