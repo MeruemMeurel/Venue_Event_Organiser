@@ -1,15 +1,25 @@
 package Venue_Event_Manager.domain.model.venue;
 
+import java.util.Objects;
+
+/**
+ * Domain entity representing a physical Venue.
+ * Implemented as an immutable object.
+ */
 public class Venue {
 
+    //attributes
     private final long id;
     private final String name;
     private final String description;
     private final Address address;
 
-    public Venue(){
-        this(0,"","",null);
-    }
+
+    //costructors
+    /** Initializes an empty venue with default values. */
+    public Venue(){ this(0,"","",null); }
+
+    /** Master constructor for full initialization. */
     public Venue(long id, String name, String description, Address address){
         this.id = id;
         this.name = name;
@@ -17,4 +27,56 @@ public class Venue {
         this.address = address;
     }
 
+    /** Constructor for unsaved venues (ID defaults to 0). */
+    public Venue(String name, String description, Address address){
+        this(0, name, description, address);
+    }
+
+
+    // Getters and Withers
+    public long getId() { return id; }
+    public Venue withId(long newId){
+        return new Venue(newId, name, description, address);
+    }
+
+    public String getName(){ return name; }
+    public Venue withName(String newName){
+        return new Venue(id, newName, description, address);
+    }
+
+    public String getDescription(){ return description; }
+    public Venue withDescription(String newDescription){
+        return new Venue(id, name, newDescription, address);
+    }
+
+    public Address getAddress(){ return address; }
+    public Venue withAddress(Address newAddress){
+        return new Venue(id, name, description, newAddress);
+    }
+
+
+    @Override
+    public String toString(){
+        return "Venue{" +
+                "id=" + id + "; " +
+                "name=" + name + "; " +
+                "description=" + description + "; " +
+                address.toString() + ";" +
+                "}" ;
+    }
+
+    /** Compares venues based on ID or physical address uniqueness. */
+    @Override
+    public boolean equals(Object other){
+        if (this == other) return true;
+        if (other == null || getClass() != other.getClass()) return false;
+        Venue venue = (Venue) other;
+        if (id != 0 && venue.id != 0) {
+            return id == venue.id;
+        }
+        return Objects.equals(address, venue.address);
+    }
+
+    @Override
+    public int hashCode(){ return Objects.hash(id, address); }
 }
