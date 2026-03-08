@@ -4,7 +4,7 @@ import java.util.Objects;
 
 /**
  * Domain entity representing a physical Venue.
- * Implemented as an immutable object.
+ * Implemented as an immutable object, with multiple constructors to handle default and nullable fields.
  */
 public class Venue {
 

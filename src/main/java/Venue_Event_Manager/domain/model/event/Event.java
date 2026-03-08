@@ -6,8 +6,8 @@ import static Venue_Event_Manager.domain.model.event.EventStatus.*;
 import static Venue_Event_Manager.domain.model.event.EventVisibility.*;
 
 /**
- * Domain entity representing an Event.
- * Implements multiple constructors to handle nullable fields and default states.
+ * Domain entity representing a physical Venue.
+ * Implemented as an immutable object, with multiple constructors to handle default and nullable fields.
  */
 public class Event {
 
