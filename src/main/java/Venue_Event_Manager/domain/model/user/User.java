@@ -18,19 +18,19 @@ public class User {
     private final LocalDate birthday;
     private final String email;
     private final String phone;
-    private final boolean isAdmin;
+    private final Boolean isAdmin;
     private final AccountStatus accountStatus;
 
 
     //constructors
     /** Initializes an empty user with default values. */
     public User() {
-        this(0, "", "", "", null, "", "", false, ACTIVE);
+        this(0, "", "", "", null, "", "", null, null);
     }
 
     /** Master constructor for full initialization */
     public User(long id, String username, String firstname, String lastname, LocalDate birthday, String email,
-                String phone, boolean isAdmin, AccountStatus accountStatus) {
+                String phone, Boolean isAdmin, AccountStatus accountStatus) {
         this.id = id;
         this.username = username;
         this.firstname = firstname;
@@ -38,7 +38,7 @@ public class User {
         this.birthday = birthday;
         this.email = email;
         this.phone = phone;
-        this.isAdmin = isAdmin;
+        this.isAdmin = isAdmin != null ? isAdmin : false;
         this.accountStatus = accountStatus != null ? accountStatus : ACTIVE;
     }
 
@@ -48,43 +48,8 @@ public class User {
         this(0, username, firstname, lastname, birthday, email, phone, isAdmin, accountStatus);
     }
 
-    /** Constructor with default isAdmin value (false). */
-    public User(long id, String username, String firstname, String lastname, LocalDate birthday, String email,
-                String phone, AccountStatus accountStatus) {
-        this(id, username, firstname, lastname, birthday, email, phone, false, accountStatus);
-    }
 
-    /** Constructor for unsaved users with default isAdmin value (false). */
-    public User(String username, String firstname, String lastname, LocalDate birthday, String email, String phone,
-                AccountStatus accountStatus) {
-        this(username, firstname, lastname, birthday, email, phone, false, accountStatus);
-    }
-
-    /** Constructor with default ACTIVE status. */
-    public User(long id, String username, String firstname, String lastname, LocalDate birthday, String email,
-                String phone, boolean isAdmin) {
-        this(id, username, firstname, lastname, birthday, email, phone, isAdmin, ACTIVE);
-    }
-
-    /** Constructor for unsaved users with default ACTIVE status. */
-    public User(String username, String firstname, String lastname, LocalDate birthday, String email, String phone,
-                boolean isAdmin) {
-        this(username, firstname, lastname, birthday, email, phone, isAdmin, ACTIVE);
-    }
-
-    /** Constructor with default isAdmin (false) and ACTIVE status. */
-    public User(long id, String username, String firstname, String lastname, LocalDate birthday, String email,
-                String phone) {
-        this(id, username, firstname, lastname, birthday, email, phone, false, ACTIVE);
-    }
-
-    /** Constructor for unsaved users with default isAdmin (false) and ACTIVE status. */
-    public User(String username, String firstname, String lastname, LocalDate birthday, String email, String phone) {
-        this(username, firstname, lastname, birthday, email, phone, false, ACTIVE);
-    }
-
-
-    // Getters and Withers
+    //getters and withers
     public long getId() { return id; }
     public User withId(long newId) {
         return new User(newId, this.username, this.firstname, this.lastname, this.birthday, this.email, this.phone,

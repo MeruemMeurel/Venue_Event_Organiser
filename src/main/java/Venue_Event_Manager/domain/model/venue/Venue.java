@@ -33,7 +33,7 @@ public class Venue {
     }
 
 
-    // Getters and Withers
+    //getters and withers
     public long getId() { return id; }
     public Venue withId(long newId){
         return new Venue(newId, name, description, address);
