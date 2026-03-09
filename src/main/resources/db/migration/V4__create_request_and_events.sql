@@ -14,6 +14,7 @@ CREATE TABLE EVENT_REQUEST
     status         request_status NOT NULL DEFAULT 'PENDING',
     created_at     TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     closed_at      TIMESTAMP,
+    quote          NUMERIC(10, 2),
     CONSTRAINT fk_request_requester FOREIGN KEY (requester_id) REFERENCES "USER"(id) ON DELETE CASCADE,
     CONSTRAINT fk_request_handler FOREIGN KEY (handler_id) REFERENCES "USER"(id) ON DELETE SET NULL,
     CONSTRAINT fk_request_venue FOREIGN KEY (venue_id) REFERENCES VENUE(id) ON DELETE CASCADE
@@ -34,8 +35,8 @@ CREATE TABLE EVENT
     status          event_status NOT NULL DEFAULT 'CONFIRMED',
     visibility      visibility   NOT NULL DEFAULT 'PUBLIC',
     ticket_price    NUMERIC(10, 2),
-    published_at     TIMESTAMP,
+    published_at    TIMESTAMP,
     CONSTRAINT fk_event_venue FOREIGN KEY (venue_id) REFERENCES VENUE(id) ON DELETE CASCADE,
-    CONSTRAINT fk_event_organizer FOREIGN KEY (organizer_id) REFERENCES "USER"(id) ON DELETE SET NULL,
+    CONSTRAINT fk_event_organiser FOREIGN KEY (organiser_id) REFERENCES "USER"(id) ON DELETE SET NULL,
     CONSTRAINT fk_event_creator FOREIGN KEY (creator_id) REFERENCES "USER"(id)
 );
