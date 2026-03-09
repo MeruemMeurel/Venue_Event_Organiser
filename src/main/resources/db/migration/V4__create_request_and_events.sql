@@ -16,14 +16,14 @@ CREATE TABLE EVENT_REQUEST
     closed_at      TIMESTAMP,
     CONSTRAINT fk_request_requester FOREIGN KEY (requester_id) REFERENCES "USER"(id) ON DELETE CASCADE,
     CONSTRAINT fk_request_handler FOREIGN KEY (handler_id) REFERENCES "USER"(id) ON DELETE SET NULL,
-    CONSTRAINT fk_request_venue FOREIGN KEY (venue_id) REFERENCES VENUE(id) ON DELETE CASCADE,
+    CONSTRAINT fk_request_venue FOREIGN KEY (venue_id) REFERENCES VENUE(id) ON DELETE CASCADE
 );
 
 CREATE TABLE EVENT
 (
     id              SERIAL PRIMARY KEY,
     venue_id        INTEGER      NOT NULL,
-    organizer_id    INTEGER,
+    organiser_id    INTEGER,
     creator_id      INTEGER        NOT NULL,
     name            VARCHAR(100) NOT NULL,
     description     TEXT,
@@ -37,5 +37,5 @@ CREATE TABLE EVENT
     published_at     TIMESTAMP,
     CONSTRAINT fk_event_venue FOREIGN KEY (venue_id) REFERENCES VENUE(id) ON DELETE CASCADE,
     CONSTRAINT fk_event_organizer FOREIGN KEY (organizer_id) REFERENCES "USER"(id) ON DELETE SET NULL,
-    CONSTRAINT fk_event_creator FOREIGN KEY (creator_id) REFERENCES "USER"(id),
+    CONSTRAINT fk_event_creator FOREIGN KEY (creator_id) REFERENCES "USER"(id)
 );
