@@ -25,7 +25,7 @@ public class Equipment {
     /** Master constructor for full initialization. */
     public Equipment(long id, Long venue_id, String name, String description, int total_quantity){
         this.id = id;
-        this.venue_id = venue_id != null ? venue_id : 0;
+        this.venue_id = venue_id;
         this.name = name;
         this.description = description;
         this.total_quantity = total_quantity;
