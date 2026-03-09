@@ -160,12 +160,13 @@ public class EventRequest {
         EventRequest eventRequest = (EventRequest) other;
         if (id != 0 && eventRequest.id != 0) return id == eventRequest.id;
         return requester_id == eventRequest.requester_id && venue_id == eventRequest.venue_id &&
-                Objects.equals(name, eventRequest.name) && Objects.equals(begin_datetime, eventRequest.begin_datetime);
+                Objects.equals(name, eventRequest.name) && Objects.equals(begin_datetime, eventRequest.begin_datetime)
+                && Objects.equals(created_at, eventRequest.created_at);
     }
 
     public int hashCode(){
         if(id != 0) return Objects.hash(id);
-        return Objects.hash(requester_id, venue_id, name, begin_datetime);
+        return Objects.hash(requester_id, venue_id, name, begin_datetime, created_at);
     }
 
 }
