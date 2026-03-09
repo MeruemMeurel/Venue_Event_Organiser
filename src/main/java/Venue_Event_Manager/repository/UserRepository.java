@@ -17,6 +17,5 @@ public interface UserRepository {
 
     long insert(Connection conn, User user);
 
-    void updateAccountStatus(Connection conn, long userId, AccountStatus accountStatus);
-
+    public void updateAccountStatus(Connection conn, long userId, AccountStatus accountStatus);
 }
