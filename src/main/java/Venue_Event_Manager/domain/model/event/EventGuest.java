@@ -101,18 +101,14 @@ public class EventGuest {
         if (this == other) return true;
         if (other == null || getClass() != other.getClass()) return false;
         EventGuest eventGuest = (EventGuest) other;
-        if (id != 0 && eventGuest.id != 0) {
-            return id == eventGuest.id;
-        }
+        if (id != 0 && eventGuest.id != 0) return id == eventGuest.id;
         return event_id == eventGuest.event_id && Objects.equals(firstname, eventGuest.firstname) &&
                 Objects.equals(lastname, eventGuest.lastname);
     }
 
     @Override
     public int hashCode() {
-        if (id != 0) {
-            return Objects.hash(id);
-        }
+        if (id != 0) return Objects.hash(id);
         return Objects.hash(event_id, firstname, lastname);
     }
 
