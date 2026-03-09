@@ -17,6 +17,8 @@ public class PgUserRepository implements UserRepository {
     private static final String SQL_FIND_BY_EMAIL = "SELECT * FROM user WHERE email = ?";
     private static final String SQL_FIND_BY_USERNAME = "SELECT * FROM user WHERE username = ?";
     private static final String SQL_FIND_BY_PHONE = "SELECT * FROM user WHERE phone = ?";
+    private static final String SQL_INSERT = "INSERT INTO user (username, password, firstname, lastname, birthday ,email" +
+            "phone, is_admin, account_status) VALUES (?, ?, ?, ?,?,?,?,?,?)";
 
     /**
      * Lambda function to implement RowMapper interface
@@ -107,8 +109,30 @@ public class PgUserRepository implements UserRepository {
     }
 
     @Override
-    public long insert(Connection conn, User user) {
-        return 0;
+    public long insert(Connection conn, User user, String password) {
+        try (PreparedStatement ps = conn.prepareStatement(SQL_INSERT)){
+
+            ps.setString(1, user.getUsername());
+            ps.setString(2, password);
+            ps.setString(3, user.getFirstname());
+            ps.setString(4, user.getLastname());
+            ps.setString(5, user.getBirthday().toString());
+            ps.setString(6, user.getEmail());
+
+            JdbcUtils.setNullableString(ps, 7, user.getPhone());
+
+            ps.setBoolean(8, user.isAdmin());
+            ps.setString(9, user.getAccountStatus().name());
+
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                return rs.getLong(1);
+            }
+
+        } catch (SQLException e) {
+            throw new DaoException("Error while trying to insert user",e);
+        }
+
     }
 
     @Override

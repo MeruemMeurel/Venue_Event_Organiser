@@ -15,7 +15,7 @@ public interface UserRepository {
 
     Optional<User> findByPhone(Connection conn, String phone);
 
-    long insert(Connection conn, User user);
+    long insert(Connection conn, User user, String password);
 
     public void updateAccountStatus(Connection conn, long userId, AccountStatus accountStatus);
 }
