@@ -180,20 +180,20 @@ public class Event {
     @Override
     public String toString() {
         return "Event{" +
-                "id=" + id + " ;" +
-                "venue_id=" + venue_id + " ;" +
-                "creator_id=" + creator_id + " ;" +
-                "organiser_id=" + organiser_id + " ;" +
-                "name=" + name + " ;" +
-                "description=" + description + " ;" +
-                "begin_datetime=" + begin_datetime + " ;" +
-                "end_datetime=" + end_datetime + " ;" +
-                "poster_filepath=" + poster_filepath + " ;" +
-                "capacity=" + capacity + " ;" +
-                "status=" + status + " ;" +
-                "visibility=" + visibility + " ;" +
-                "ticket_price=" + ticket_price + " ;" +
-                "published_at=" + published_at + " ;" +
+                "id=" + id + "; " +
+                "venue_id=" + venue_id + "; " +
+                "creator_id=" + creator_id + "; " +
+                "organiser_id=" + organiser_id + "; " +
+                "name=" + name + "; " +
+                "description=" + description + "; " +
+                "begin_datetime=" + begin_datetime + "; " +
+                "end_datetime=" + end_datetime + "; " +
+                "poster_filepath=" + poster_filepath + "; " +
+                "capacity=" + capacity + "; " +
+                "status=" + status + "; " +
+                "visibility=" + visibility + "; " +
+                "ticket_price=" + ticket_price + "; " +
+                "published_at=" + published_at + ";" +
                 "}";
     }
 
