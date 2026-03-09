@@ -32,7 +32,7 @@ public class Report {
         this.admin_id = admin_id;
         this.event_id = event_id;
         this.severity = severity != null ? severity : MEDIUM;
-        this.comment = (comment == null) ? "" : comment;
+        this.comment = comment != null ? comment : "";
         this.created_at = created_at;
     }
 
