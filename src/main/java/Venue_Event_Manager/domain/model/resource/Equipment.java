@@ -19,13 +19,13 @@ public class Equipment {
     //costructors
     /** Initializes an empty equipment with default and empty values. */
     public Equipment(){
-        this(0, 0, "", "", 0);
+        this(0, null, "", "", 0);
     }
 
     /** Master constructor for full initialization. */
     public Equipment(long id, Long venue_id, String name, String description, int total_quantity){
         this.id = id;
-        this.venue_id = venue_id;
+        this.venue_id = venue_id != null ? venue_id : 0;
         this.name = name;
         this.description = description;
         this.total_quantity = total_quantity;
