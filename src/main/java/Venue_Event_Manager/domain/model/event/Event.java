@@ -203,18 +203,14 @@ public class Event {
         if (this == other) return true;
         if (other == null || getClass() != other.getClass()) return false;
         Event event = (Event) other;
-        if (id != 0 && event.id != 0) {
-            return id == event.id;
-        }
+        if (id != 0 && event.id != 0) return id == event.id;
         return Objects.equals(name, event.name) && venue_id == event.venue_id
                 && Objects.equals(begin_datetime, event.begin_datetime);
     }
 
     @Override
     public int hashCode() {
-        if (id != 0) {
-            return Objects.hash(id);
-        }
+        if (id != 0) return Objects.hash(id);
         return Objects.hash(name, venue_id, begin_datetime);
     }
 
