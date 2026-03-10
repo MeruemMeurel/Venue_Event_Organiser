@@ -19,6 +19,7 @@ public class PgUserRepository implements UserRepository {
     private static final String SQL_FIND_BY_PHONE = "SELECT * FROM user WHERE phone = ?";
     private static final String SQL_INSERT = "INSERT INTO user (username, password, firstname, lastname, birthday ,email" +
             "phone, is_admin, account_status) VALUES (?, ?, ?, ?,?,?,?,?,?)";
+    private static final String SQL_UPDATE_ACCOUNT_STATUS = "UPDATE user SET account_status = ? WHERE userid = ?";
 
     /**
      * Lambda function to implement RowMapper interface
@@ -137,6 +138,17 @@ public class PgUserRepository implements UserRepository {
 
     @Override
     public void updateAccountStatus(Connection conn, long userId, AccountStatus accountStatus) {
+        try(PreparedStatement ps = conn.prepareStatement(SQL_UPDATE_ACCOUNT_STATUS)){
 
+            ps.setString(1, accountStatus.name());
+            ps.setLong(2, userId);
+
+            int updated = ps.executeUpdate();
+
+            JdbcUtils.requireUpdatedExactly(updated,1,"updateAccountStatus(userId=)"+userId+")");
+
+        }catch(SQLException e){
+            throw new DaoException("Error while trying to update user with id " + userId, e);
+        }
     }
 }
