@@ -109,7 +109,7 @@ public class PgSpaceRepository implements SpaceRepository {
 
             ps.setLong(1, space.getVenueId());
             ps.setString(2, space.getName());
-            ps.setString(2, space.getDescription());
+            ps.setString(3, space.getDescription());
             ps.setLong(4, space.getId());
 
             int updated = ps.executeUpdate();
