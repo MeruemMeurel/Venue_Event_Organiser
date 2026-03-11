@@ -17,7 +17,7 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.7.4</version>
+            <version>42.7.7</version>
         </dependency>
 
         <dependency>
@@ -32,6 +32,12 @@
             <artifactId>HikariCP</artifactId>
             <version>5.1.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <version>9.22.3</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -42,6 +48,20 @@
                 <version>3.3.1</version>
                 <configuration>
                     <useModulePath>false</useModulePath>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-maven-plugin</artifactId>
+                <version>9.22.3</version>
+                <configuration>
+                    <url>jdbc:postgresql://localhost:5432/event_manager_db</url>
+                    <user>admin</user>
+                    <password>admin</password>
+                    <locations>
+                        <location>filesystem:src/main/resources/db/migration</location>
+                    </locations>
                 </configuration>
             </plugin>
         </plugins>
