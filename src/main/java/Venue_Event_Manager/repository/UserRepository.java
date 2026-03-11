@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface UserRepository {
 
-    ArrayList<User> findAllUsers(Connection conn);
+    ArrayList<User> findAll(Connection conn);
 
     Optional<User> findById(Connection conn, long userId);
 

@@ -48,7 +48,7 @@ public class PgUserRepository implements UserRepository {
     );
 
     @Override
-    public ArrayList<User> findAllUsers(Connection conn) {
+    public ArrayList<User> findAll(Connection conn) {
         ArrayList<User> users = new ArrayList<>();
 
         try(PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL)){
