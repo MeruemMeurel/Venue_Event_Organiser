@@ -162,6 +162,13 @@ public class PgUserRepository implements UserRepository {
         }
     }
 
+    /**
+     * Checks if a password provided for a user is correct
+     * @param conn the database connection
+     * @param userId the id of the user
+     * @param password the password to check
+     * @return true if password is correct, false otherwise
+     */
     @Override
     public boolean checkPassword(Connection conn, long userId, String password) {
         try(PreparedStatement ps = conn.prepareStatement(SQL_GET_PASSWORD)){
@@ -237,6 +244,13 @@ public class PgUserRepository implements UserRepository {
         }
     }
 
+    /**
+     * Changes password of a user, if the old password provided is correct
+     * @param conn the database connection
+     * @param userId the id of the user
+     * @param oldPassword the old password to change
+     * @param newPassword the new password to set
+     */
     @Override
     public void updatePassword(Connection conn, long userId, String oldPassword, String newPassword) {
 
