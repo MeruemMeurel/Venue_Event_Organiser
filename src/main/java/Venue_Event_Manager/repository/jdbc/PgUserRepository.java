@@ -178,8 +178,8 @@ public class PgUserRepository implements UserRepository {
                 if(!rs.next()) throw new DaoException("No user found with id " + userId);
                 String dbpassword = rs.getString("password");
 
-                if(!dbpassword.equals(password)) return false;
-                else return true;
+                if(dbpassword.equals(password)) return true;
+                else throw new AuthenticationException("Wrong password for user with id: " + userId);
 
             }
 
@@ -264,7 +264,7 @@ public class PgUserRepository implements UserRepository {
 
                 JdbcUtils.requireUpdatedExactly(updated,1,"updatePassword(userId="+userId+")");
 
-            }catch(SQLException e){
+            }catch(SQLException | AuthenticationException e){
                 throw new DaoException("Error while trying to update password of user with id " + userId, e);
             }
 
