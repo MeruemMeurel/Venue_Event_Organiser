@@ -5,7 +5,7 @@ import java.util.Objects;
 import static Venue_Event_Manager.domain.model.user.AccountStatus.*;
 
 /**
- * Domain entity representing a physical Venue.
+ * Domain entity representing a physical User.
  * Implemented as an immutable object, with multiple constructors to handle default and nullable fields.
  */
 public class User {
@@ -52,56 +52,47 @@ public class User {
     //getters and withers
     public long getId() { return id; }
     public User withId(long newId) {
-        return new User(newId, this.username, this.firstname, this.lastname, this.birthday, this.email, this.phone,
-                this.isAdmin, this.accountStatus);
+        return new User(newId, username, firstname, lastname, birthday, email, phone, isAdmin, accountStatus);
     }
 
     public String getUsername() { return username; }
     public User withUsername(String newUsername) {
-        return new User(this.id, newUsername, this.firstname, this.lastname, this.birthday, this.email, this.phone,
-                this.isAdmin, this.accountStatus);
+        return new User(id, newUsername, firstname, lastname, birthday, email, phone, isAdmin, accountStatus);
     }
 
     public String getFirstname() { return firstname; }
     public User withFirstName(String newFirstname) {
-        return new User(this.id, this.username, newFirstname, this.lastname, this.birthday, this.email, this.phone,
-                this.isAdmin, this.accountStatus);
+        return new User(id, username, newFirstname, lastname, birthday, email, phone, isAdmin, accountStatus);
     }
 
     public String getLastname() { return lastname; }
     public User withLastName(String newLastname) {
-        return new User(this.id, this.username, this.firstname, newLastname, this.birthday, this.email, this.phone,
-                this.isAdmin, this.accountStatus);
+        return new User(id, username, firstname, newLastname, birthday, email, phone, isAdmin, accountStatus);
     }
 
     public LocalDate getBirthday() { return birthday; }
     public User withBirthday(LocalDate newBirthday) {
-        return new User(this.id, this.username, this.firstname, this.lastname, newBirthday, this.email, this.phone,
-                this.isAdmin, this.accountStatus);
+        return new User(id, username, firstname, lastname, newBirthday, email, phone, isAdmin, accountStatus);
     }
 
     public String getEmail() { return email; }
     public User withEmail(String newEmail) {
-        return new User(this.id, this.username, this.firstname, this.lastname, this.birthday, newEmail, this.phone,
-                this.isAdmin, this.accountStatus);
+        return new User(id, username, firstname, lastname, birthday, newEmail, phone, isAdmin, accountStatus);
     }
 
     public String getPhone() { return phone; }
     public User withPhone(String newPhone) {
-        return new User(this.id, this.username, this.firstname, this.lastname, this.birthday, this.email, newPhone,
-                this.isAdmin, this.accountStatus);
+        return new User(id, username, firstname, lastname, birthday, email, newPhone, isAdmin, accountStatus);
     }
 
     public boolean isAdmin() { return isAdmin; }
     public User withIsAdmin(boolean newIsAdmin) {
-        return new User(this.id, this.username, this.firstname, this.lastname, this.birthday, this.email, this.phone,
-                newIsAdmin, this.accountStatus);
+        return new User(id, username, firstname, lastname, birthday, email, phone, newIsAdmin, accountStatus);
     }
 
     public AccountStatus getAccountStatus() { return accountStatus; }
     public User withAccountStatus(AccountStatus newAccountStatus) {
-        return new User(this.id, this.username, this.firstname, this.lastname, this.birthday, this.email, this.phone,
-                this.isAdmin, newAccountStatus);
+        return new User(id, username, firstname, lastname, birthday, email, phone, isAdmin, newAccountStatus);
     }
 
 

@@ -1,5 +1,6 @@
 package Venue_Event_Manager.domain.model.event;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import static Venue_Event_Manager.domain.model.event.EventStatus.*;
@@ -24,7 +25,7 @@ public class Event {
     private final int capacity;
     private final EventStatus status;
     private final EventVisibility visibility;
-    private final Double ticket_price; //NULLABLE
+    private final BigDecimal ticket_price; //NULLABLE
     private final LocalDateTime published_at; //NULLABLE
 
 
@@ -38,7 +39,7 @@ public class Event {
     /** Master constructor for full initialization. */
     public Event(long id, long venue_id, long creator_id, Long organiser_id, String name, String description,
                  LocalDateTime begin_datetime, LocalDateTime end_datetime, String poster_filepath, int capacity,
-                 EventStatus status, EventVisibility visibility, Double ticket_price, LocalDateTime published_at) {
+                 EventStatus status, EventVisibility visibility, BigDecimal ticket_price, LocalDateTime published_at) {
         this.id = id;
         this.venue_id = venue_id;
         this.creator_id = creator_id;
@@ -58,7 +59,7 @@ public class Event {
     /** Constructor for unsaved event (ID defaults to 0). */
     public Event(long venue_id, long creator_id, Long organiser_id, String name, String description,
                  LocalDateTime begin_datetime, LocalDateTime end_datetime, String poster_filepath, int capacity,
-                 EventStatus status, EventVisibility visibility, Double ticket_price, LocalDateTime published_at) {
+                 EventStatus status, EventVisibility visibility, BigDecimal ticket_price, LocalDateTime published_at) {
         this(0, venue_id, creator_id, organiser_id, name, description, begin_datetime, end_datetime, poster_filepath,
                 capacity, status, visibility, ticket_price, published_at);
     }
@@ -160,10 +161,10 @@ public class Event {
                 poster_filepath, capacity, status, newVisibility, ticket_price, published_at);
     }
 
-    public Double getTicketPrice() {
+    public BigDecimal getTicketPrice() {
         return ticket_price;
     }
-    public Event withTicketPrice(Double newTicketPrice) {
+    public Event withTicketPrice(BigDecimal newTicketPrice) {
         return new Event(id, venue_id, creator_id, organiser_id, name, description, begin_datetime, end_datetime,
                 poster_filepath, capacity, status, visibility, newTicketPrice, published_at);
     }

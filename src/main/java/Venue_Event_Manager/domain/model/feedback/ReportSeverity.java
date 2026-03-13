@@ -8,7 +8,7 @@ public enum ReportSeverity {
     LOW,
 
     /** Policy violations or disruptive behavior. */
-    MEDIUM,
+    MIDDLE,
 
     /** Severe violations, harassment, or security threats. */
     HIGH

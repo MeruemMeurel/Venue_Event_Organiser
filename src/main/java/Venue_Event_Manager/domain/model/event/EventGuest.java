@@ -1,6 +1,6 @@
 package Venue_Event_Manager.domain.model.event;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.Objects;
 import static Venue_Event_Manager.domain.model.event.EventGuestStatus.*;
 
@@ -15,7 +15,7 @@ public class EventGuest {
     private final long event_id; //reference to Event
     private final String firstname;
     private final String lastname;
-    private final LocalDateTime birthday; //NULLABLE
+    private final LocalDate birthday; //NULLABLE
     private final EventGuestStatus status;
     private final String note; //NULLABLE
 
@@ -27,7 +27,7 @@ public class EventGuest {
     }
 
     /** Master constructor for full initialization. */
-    public EventGuest(long id, long event_id, String firstname, String lastname, LocalDateTime birthday,
+    public EventGuest(long id, long event_id, String firstname, String lastname, LocalDate birthday,
                       EventGuestStatus status, String note){
         this.id = id;
         this.event_id = event_id;
@@ -39,7 +39,7 @@ public class EventGuest {
     }
 
     /** Constructor for unsaved event guest (ID defaults to 0). */
-    public EventGuest(long event_id, String firstname, String lastname, LocalDateTime birthday, EventGuestStatus status,
+    public EventGuest(long event_id, String firstname, String lastname, LocalDate birthday, EventGuestStatus status,
                       String note){
         this(0, event_id, firstname, lastname, birthday, status, note);
     }
@@ -66,8 +66,8 @@ public class EventGuest {
         return new EventGuest(id, event_id, firstname, newLastname, birthday, status, note);
     }
 
-    public LocalDateTime getBirthday(){ return birthday; }
-    public EventGuest withBirthday(LocalDateTime newBirthday){
+    public LocalDate getBirthday(){ return birthday; }
+    public EventGuest withBirthday(LocalDate newBirthday){
         return new EventGuest(id, event_id, firstname, lastname, newBirthday, status, note);
     }
 
