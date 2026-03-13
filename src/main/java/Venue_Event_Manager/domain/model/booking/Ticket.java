@@ -14,7 +14,7 @@ public class Ticket {
     private final long booking_id; //reference to Booking
     private final String firstname; //NULLABLE
     private final String lastname; //NULLABLE
-    private final LocalDateTime birthday; //NULLABLE
+    private final LocalDateTime startsAt; //NULLABLE
 
 
     //constructors
@@ -22,44 +22,44 @@ public class Ticket {
     public Ticket(){ this(0, 0, "", "", null); }
 
     /** Master constructor for full initialization. */
-    public Ticket(long id, long booking_id, String firstname, String lastname, LocalDateTime birthday){
+    public Ticket(long id, long booking_id, String firstname, String lastname, LocalDateTime startsAt){
         this.id = id;
         this.booking_id = booking_id;
         this.firstname = firstname;
         this.lastname = lastname;
-        this.birthday = birthday;
+        this.startsAt = startsAt;
     }
 
     /** Constructor for unsaved ticket (ID defaults to 0). */
-    public Ticket(long booking_id, String firstname, String lastname, LocalDateTime birthday){
-        this(0, booking_id, firstname, lastname, birthday);
+    public Ticket(long booking_id, String firstname, String lastname, LocalDateTime startsAt){
+        this(0, booking_id, firstname, lastname, startsAt);
     }
 
 
     //getters and withers
     public long getId(){ return id; }
     public Ticket withId(long newId){
-        return new Ticket(newId, booking_id, firstname, lastname, birthday);
+        return new Ticket(newId, booking_id, firstname, lastname, startsAt);
     }
 
     public long getBookingId(){ return booking_id; }
     public Ticket withBookingId(long newBookingId){
-        return new Ticket(id, newBookingId, firstname, lastname, birthday);
+        return new Ticket(id, newBookingId, firstname, lastname, startsAt);
     }
 
     public String getFirstname(){ return firstname; }
     public Ticket withFirstname(String newFirstname){
-        return new Ticket(id, booking_id, newFirstname, lastname, birthday);
+        return new Ticket(id, booking_id, newFirstname, lastname, startsAt);
     }
 
     public String getLastname(){ return lastname; }
     public Ticket withLastname(String newLastname){
-        return new Ticket(id, booking_id, firstname, newLastname, birthday);
+        return new Ticket(id, booking_id, firstname, newLastname, startsAt);
     }
 
-    public LocalDateTime getBirthday(){ return birthday; }
-    public Ticket withBirthday(LocalDateTime newBirthday){
-        return new Ticket(id, booking_id, firstname, lastname, newBirthday);
+    public LocalDateTime getBirthday(){ return startsAt; }
+    public Ticket withBirthday(LocalDateTime newStartsAt){
+        return new Ticket(id, booking_id, firstname, lastname, newStartsAt);
     }
 
 
@@ -70,7 +70,7 @@ public class Ticket {
                 "booking_id=" + booking_id + "; " +
                 "firstname=" + firstname + "; " +
                 "lastname=" + lastname + "; " +
-                "birthday=" + birthday + ";" +
+                "startsAt=" + startsAt + ";" +
                 "}";
     }
 

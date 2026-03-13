@@ -5,7 +5,7 @@ import java.util.Objects;
 import static Venue_Event_Manager.domain.model.user.AccountStatus.*;
 
 /**
- * Domain entity representing a physical Venue.
+ * Domain entity representing a physical User.
  * Implemented as an immutable object, with multiple constructors to handle default and nullable fields.
  */
 public class User {
