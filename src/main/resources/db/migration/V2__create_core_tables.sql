@@ -8,7 +8,7 @@ CREATE TABLE "USER"
     username       VARCHAR(50)    NOT NULL UNIQUE,
     firstname      VARCHAR(100)   NOT NULL,
     lastname       VARCHAR(100)   NOT NULL,
-    birthday       DATE           NOT NULL,
+    birthday       DATE           NOT NULL, -- TODO Change in timestamp
     email          VARCHAR(100)   NOT NULL UNIQUE,
     phone          VARCHAR(20),
     is_admin       BOOLEAN        NOT NULL DEFAULT FALSE,
@@ -21,6 +21,10 @@ CREATE TABLE VENUE
     id          SERIAL PRIMARY KEY,
     name        VARCHAR(100) NOT NULL,
     description TEXT,
-    address     VARCHAR(200) NOT NULL
+    address     VARCHAR(200) NOT NULL -- TODO manage multivalor attribute
+                                      -- sostituisci address VARCHAR(200)
+                                      -- con colonne tipo street, street_number,
+                                      -- city, postal_code, country, additional_info
+                                      -- (tutte con nullability coerente col dominio)
 );
 

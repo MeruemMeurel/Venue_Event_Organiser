@@ -17,7 +17,7 @@ public class Report {
     private final Long event_id;    //reference to Venue, NULLABLE
     private final ReportSeverity severity;
     private final String comment;    //NULLABLE, default value is " "
-    private final LocalDateTime created_at;
+    private final LocalDateTime created_at; // TODO gestire valori null
 
 
     //constructors

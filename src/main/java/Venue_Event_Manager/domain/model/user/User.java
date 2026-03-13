@@ -15,7 +15,7 @@ public class User {
     private final String username;
     private final String firstname;
     private final String lastname;
-    private final LocalDate birthday;
+    private final LocalDate birthday; // TODO change in localDateTime, can't be null
     private final String email;
     private final String phone;
     private final Boolean isAdmin;

@@ -1,7 +1,7 @@
 -- V6__create_ticketing.sql
 -- Creazione tabelle di ticketing BOOKING, TICKET ed EVENT_GUEST
 
-CREATE TABLE BOOKING
+CREATE TABLE BOOKING -- TODO add total_price NUMERIC(10,2) NOT NULL DEFAULT 0
 (
     id         SERIAL PRIMARY KEY,
     user_id    INTEGER        NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE TICKET
     booking_id INTEGER NOT NULL,
     firstname  VARCHAR(100),
     lastname   VARCHAR(100),
-    birthday   DATE,
+    birthday   DATE, -- TODO modify in birthday DATE → starts_at TIMESTAMP
     CONSTRAINT fk_ticket_booking FOREIGN KEY (booking_id) REFERENCES BOOKING (id) ON DELETE CASCADE
 );
 
