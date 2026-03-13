@@ -31,7 +31,7 @@ public class Report {
         this.user_id = user_id;
         this.admin_id = admin_id;
         this.event_id = event_id;
-        this.severity = severity != null ? severity : MEDIUM;
+        this.severity = severity != null ? severity : MIDDLE;
         this.comment = comment != null ? comment : "";
         this.created_at = created_at;
     }
