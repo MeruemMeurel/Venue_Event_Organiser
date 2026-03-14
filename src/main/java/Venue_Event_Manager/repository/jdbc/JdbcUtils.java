@@ -1,5 +1,6 @@
 package Venue_Event_Manager.repository.jdbc;
 
+import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -61,6 +62,18 @@ public class JdbcUtils {
     public static void setNullableDouble(PreparedStatement ps, int index, Double value) throws SQLException {
         if(value == null) ps.setNull(index, Types.DOUBLE);
         else ps.setDouble(index, value);
+    }
+
+    /**
+     * Sets value to statement, and correctly sets null if value == null
+     * @param ps Prepared SQL Statement
+     * @param index index of the variable in sql statement
+     * @param value value to set
+     * @throws SQLException
+     */
+    public static void setNullableBigDecimal(PreparedStatement ps, int index, BigDecimal value) throws SQLException {
+        if(value == null) ps.setNull(index, Types.NUMERIC);
+        else ps.setBigDecimal(index, value);
     }
 
     /**
