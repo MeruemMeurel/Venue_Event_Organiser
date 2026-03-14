@@ -11,7 +11,7 @@ public interface EquipmentRepository {
 
     Optional<Equipment> findById(Connection conn, long equipmentId);
 
-    List<Equipment> findAllByVenue(Connection conn, long venueId);
+    List<Equipment> findAllByVenueId(Connection conn, long venueId);
 
     long insert(Connection conn,Equipment equipment);
 

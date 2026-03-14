@@ -11,7 +11,7 @@ public interface SpaceRepository {
 
     Optional<Space> findById(Connection conn, long spaceId);
 
-    List<Space> findAllByVenue(Connection conn, long venueId);
+    List<Space> findAllByVenueId(Connection conn, long venueId);
 
     long insert(Connection conn, Space space);
 
