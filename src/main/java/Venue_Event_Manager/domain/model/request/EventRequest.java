@@ -21,7 +21,7 @@ public class EventRequest {
     private final LocalDateTime begin_datetime;
     private final LocalDateTime end_datetime;
     private final EventRequestStatus status;
-    private final LocalDateTime created_at;
+    private final LocalDateTime created_at; // TODO gestire valori null?
     private final LocalDateTime closed_at; //NULLABLE
     private final Double quote; //NULLABLE
 

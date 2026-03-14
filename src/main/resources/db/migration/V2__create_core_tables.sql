@@ -8,7 +8,7 @@ CREATE TABLE "USER"
     username       VARCHAR(50)    NOT NULL UNIQUE,
     firstname      VARCHAR(100)   NOT NULL,
     lastname       VARCHAR(100)   NOT NULL,
-    birthday       DATE           NOT NULL,
+    birthday       DATE           NOT NULL, -- TODO Change in timestamp?
     email          VARCHAR(100)   NOT NULL UNIQUE,
     phone          VARCHAR(20),
     is_admin       BOOLEAN        NOT NULL DEFAULT FALSE,
