@@ -6,11 +6,11 @@ package Venue_Event_Manager.domain.model.venue;
  */
 public record Address(
         String street,
-        String streetNumber,
+        String street_number,
         String city,
-        String postalCode,
+        String postal_code,
         String country,
-        String additionalInfo
+        String additional_info
 ) {
 
     /** Creates an empty address with null fields. */
@@ -19,29 +19,29 @@ public record Address(
     }
 
     /** Creates an address without optional additional info. */
-    public Address(String street, String streetNumber, String city, String postalCode, String country){
-        this(street, streetNumber, city, postalCode, country, null);
+    public Address(String street, String street_number, String city, String postal_code, String country){
+        this(street, street_number, city, postal_code, country, null);
     }
 
 
     //Wither methods for state transitions
     public Address withStreet(String newStreet){
-        return new Address(newStreet,streetNumber,city,postalCode,country,additionalInfo);
+        return new Address(newStreet, street_number, city, postal_code, country, additional_info);
     }
     public Address withStreetNumber(String newStreetNumber){
-        return new Address(street,newStreetNumber,city,postalCode,country,additionalInfo);
+        return new Address(street, newStreetNumber, city, postal_code, country, additional_info);
     }
     public Address withCity(String newCity){
-        return new Address(street,streetNumber,newCity,postalCode,country,additionalInfo);
+        return new Address(street, street_number, newCity, postal_code, country, additional_info);
     }
     public Address withPostalCode(String newPostalCode){
-        return new Address(street,streetNumber,city,newPostalCode,country,additionalInfo);
+        return new Address(street, street_number, city, newPostalCode, country, additional_info);
     }
     public Address withCountry(String newCountry){
-        return new Address(street,streetNumber,city,postalCode,newCountry,additionalInfo);
+        return new Address(street, street_number, city, postal_code, newCountry, additional_info);
     }
     public Address withAdditionalInfo(String newAdditionalInfo){
-        return new Address(street,streetNumber,city,postalCode,country,newAdditionalInfo);
+        return new Address(street, street_number, city, postal_code, country, newAdditionalInfo);
     }
 
 
@@ -49,11 +49,11 @@ public record Address(
     public String toString(){
         return "Address{" +
                 "street=" + street + "; " +
-                "streetNumber=" + streetNumber + "; " +
+                "streetNumber=" + street_number + "; " +
                 "city=" + city + "; " +
-                "postalCode=" + postalCode + "; " +
+                "postalCode=" + postal_code + "; " +
                 "country=" + country + "; " +
-                "additionalInfo=" + additionalInfo + ";" +
+                "additionalInfo=" + additional_info + ";" +
                 "}";
     }
 
