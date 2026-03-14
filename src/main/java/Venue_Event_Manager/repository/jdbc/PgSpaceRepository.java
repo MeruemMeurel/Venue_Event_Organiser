@@ -76,7 +76,7 @@ public class PgSpaceRepository implements SpaceRepository {
      * @return List<Space> object
      */
     @Override
-    public List<Space> findAllByVenue(Connection conn, long venueId) {
+    public List<Space> findAllByVenueId(Connection conn, long venueId) {
         List<Space> spaces = new ArrayList<>();
         try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL_BY_VENUE)) {
             ps.setLong(1, venueId);

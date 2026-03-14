@@ -77,7 +77,7 @@ public class PgEquipmentRepository implements EquipmentRepository {
      * @return List<Equipment> object
      */
     @Override
-    public List<Equipment> findAllByVenue(Connection conn, long venueId) {
+    public List<Equipment> findAllByVenueId(Connection conn, long venueId) {
         List<Equipment> equipments = new ArrayList<>();
         try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL_BY_VENUE)) {
             ps.setLong(1, venueId);
