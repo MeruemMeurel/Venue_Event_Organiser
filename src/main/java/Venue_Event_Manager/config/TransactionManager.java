@@ -66,6 +66,42 @@ public class TransactionManager {
     }
 
     /**
+     * Execute-around design pattern used to handle read only transactions
+     * @param work lambda function with Connection as input and T as output
+     * @return T object
+     * @param <T>
+     */
+    public <T> T inReadOnly(Function<Connection,T> work){
+
+        try(Connection conn = dataSource.getConnection()){
+
+            boolean oldAutoCommit = conn.getAutoCommit();
+            boolean oldReadOnly = conn.isReadOnly();
+
+            conn.setReadOnly(true);
+            conn.setAutoCommit(true);
+
+            try{
+                T result = work.apply(conn);
+                conn.rollback();
+                return result;
+            }catch(RuntimeException | Error e){
+                safeRollback(conn);
+                throw e;
+            }catch (Exception e){
+                safeRollback(conn);
+                throw new TransactionException("Checked error in read-only transaction",e);
+            }finally {
+                safeSetAutoCommit(conn,oldAutoCommit);
+                safeSetReadOnly(conn,oldReadOnly);
+            }
+        }catch (SQLException e){
+            throw new TransactionException("Couldn't open connection or handle read-only transaction",e);
+        }
+
+    }
+
+    /**
      * Executes a rollback avoiding problems due to new possible exceptions covering original problem
      * @param conn
      */
@@ -84,6 +120,17 @@ public class TransactionManager {
         try {
             conn.setAutoCommit(value);
         } catch (SQLException e) {}
+    }
+
+    /**
+     * Sets read only in connection to value
+     * @param conn
+     * @param value
+     */
+    private static void safeSetReadOnly(Connection conn, boolean value){
+        try{
+            conn.setReadOnly(value);
+        }catch (SQLException e){} //ignore
     }
 
 }
