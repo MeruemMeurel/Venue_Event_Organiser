@@ -18,8 +18,8 @@ public class User {
     private final LocalDate birthday;
     private final String email;
     private final String phone;
-    private final Boolean isAdmin;
-    private final AccountStatus accountStatus;
+    private final Boolean is_admin;
+    private final AccountStatus account_status;
 
 
     //constructors
@@ -30,7 +30,7 @@ public class User {
 
     /** Master constructor for full initialization */
     public User(long id, String username, String firstname, String lastname, LocalDate birthday, String email,
-                String phone, Boolean isAdmin, AccountStatus accountStatus) {
+                String phone, Boolean is_admin, AccountStatus account_status) {
         this.id = id;
         this.username = username;
         this.firstname = firstname;
@@ -38,61 +38,61 @@ public class User {
         this.birthday = birthday;
         this.email = email;
         this.phone = phone;
-        this.isAdmin = isAdmin != null ? isAdmin : false;
-        this.accountStatus = accountStatus != null ? accountStatus : ACTIVE;
+        this.is_admin = is_admin != null ? is_admin : false;
+        this.account_status = account_status != null ? account_status : ACTIVE;
     }
 
     /** Constructor for unsaved user (ID defaults to 0). */
     public User(String username, String firstname, String lastname, LocalDate birthday, String email, String phone,
-                boolean isAdmin, AccountStatus accountStatus) {
-        this(0, username, firstname, lastname, birthday, email, phone, isAdmin, accountStatus);
+                boolean is_admin, AccountStatus account_status) {
+        this(0, username, firstname, lastname, birthday, email, phone, is_admin, account_status);
     }
 
 
     //getters and withers
     public long getId() { return id; }
     public User withId(long newId) {
-        return new User(newId, username, firstname, lastname, birthday, email, phone, isAdmin, accountStatus);
+        return new User(newId, username, firstname, lastname, birthday, email, phone, is_admin, account_status);
     }
 
     public String getUsername() { return username; }
     public User withUsername(String newUsername) {
-        return new User(id, newUsername, firstname, lastname, birthday, email, phone, isAdmin, accountStatus);
+        return new User(id, newUsername, firstname, lastname, birthday, email, phone, is_admin, account_status);
     }
 
     public String getFirstname() { return firstname; }
     public User withFirstName(String newFirstname) {
-        return new User(id, username, newFirstname, lastname, birthday, email, phone, isAdmin, accountStatus);
+        return new User(id, username, newFirstname, lastname, birthday, email, phone, is_admin, account_status);
     }
 
     public String getLastname() { return lastname; }
     public User withLastName(String newLastname) {
-        return new User(id, username, firstname, newLastname, birthday, email, phone, isAdmin, accountStatus);
+        return new User(id, username, firstname, newLastname, birthday, email, phone, is_admin, account_status);
     }
 
     public LocalDate getBirthday() { return birthday; }
     public User withBirthday(LocalDate newBirthday) {
-        return new User(id, username, firstname, lastname, newBirthday, email, phone, isAdmin, accountStatus);
+        return new User(id, username, firstname, lastname, newBirthday, email, phone, is_admin, account_status);
     }
 
     public String getEmail() { return email; }
     public User withEmail(String newEmail) {
-        return new User(id, username, firstname, lastname, birthday, newEmail, phone, isAdmin, accountStatus);
+        return new User(id, username, firstname, lastname, birthday, newEmail, phone, is_admin, account_status);
     }
 
     public String getPhone() { return phone; }
     public User withPhone(String newPhone) {
-        return new User(id, username, firstname, lastname, birthday, email, newPhone, isAdmin, accountStatus);
+        return new User(id, username, firstname, lastname, birthday, email, newPhone, is_admin, account_status);
     }
 
-    public boolean isAdmin() { return isAdmin; }
+    public boolean isAdmin() { return is_admin; }
     public User withIsAdmin(boolean newIsAdmin) {
-        return new User(id, username, firstname, lastname, birthday, email, phone, newIsAdmin, accountStatus);
+        return new User(id, username, firstname, lastname, birthday, email, phone, newIsAdmin, account_status);
     }
 
-    public AccountStatus getAccountStatus() { return accountStatus; }
+    public AccountStatus getAccountStatus() { return account_status; }
     public User withAccountStatus(AccountStatus newAccountStatus) {
-        return new User(id, username, firstname, lastname, birthday, email, phone, isAdmin, newAccountStatus);
+        return new User(id, username, firstname, lastname, birthday, email, phone, is_admin, newAccountStatus);
     }
 
 
@@ -106,8 +106,8 @@ public class User {
                 "birthday=" + birthday + "; " +
                 "email=" + email + "; " +
                 "phone=" + phone + "; " +
-                "isAdmin=" + isAdmin + "; " +
-                "accountStatus=" + accountStatus + ";" +
+                "isAdmin=" + is_admin + "; " +
+                "accountStatus=" + account_status + ";" +
                 "}";
     }
 
