@@ -2,27 +2,19 @@ package Venue_Event_Manager.repository.jdbc;
 
 import Venue_Event_Manager.domain.model.resource.Equipment;
 import Venue_Event_Manager.repository.EquipmentRepository;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class PgEquipmentRepository implements EquipmentRepository {
 
-    private final static String SQL_FIND_ALL = "SELECT id,venue_id,name,description,total_quantity FROM equipment";
-    private final static String SQL_FIND_BY_ID = "SELECT id,venue_id,name,description,total_quantity FROM equipment WHERE id = ?";
-    private final static String SQL_FIND_BY_VENUE = "SELECT id,venue_id,name,description,total_quantity FROM equipment WHERE venue_id = ?";
-
-    private final static String SQL_INSERT = "INSERT INTO equipment (venue_id,name,description,total_quantity) VALUES (?,?,?,?)";
-
-    private final static String SQL_UPDATE = "UPDATE equipment SET venueId=?, name=?, description=?, total_quantity=? WHERE id=?";
-
-    private final static String SQL_DELETE =  "DELETE FROM equipment WHERE id=?";
-
-
+    /**
+     * Lambda function to implement RowMapper interface
+     */
     private static final RowMapper<Equipment> equipment_mapper = rs -> new Equipment(
             rs.getLong("id"),
             rs.getLong("venue_id"),
@@ -31,11 +23,17 @@ public class PgEquipmentRepository implements EquipmentRepository {
             rs.getInt("total_quantity")
     );
 
-    @Override
-    public ArrayList<Equipment> findAll(Connection conn) {
-        try(PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL)){
 
-            ArrayList<Equipment> equipments = new ArrayList<>();
+    private final static String SQL_FIND_ALL = "SELECT id, venue_id, name, description, total_quantity FROM equipment";
+    /**
+     * Executes query to database to get all Equipments
+     * @param conn The database connection used
+     * @return List<Equipment> object
+     */
+    @Override
+    public List<Equipment> findAll(Connection conn) {
+        List<Equipment> equipments = new ArrayList<>();
+        try(PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL)){
 
             try(ResultSet rs = ps.executeQuery()){
                 while(rs.next()){
@@ -46,32 +44,43 @@ public class PgEquipmentRepository implements EquipmentRepository {
         }catch (SQLException e){
             throw new DaoException("Error while trying to find all equipments", e);
         }
-
     }
 
-    @Override
-    public Optional<Equipment> findById(Connection conn, long id) {
-        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_ID)){
 
-            ps.setLong(1, id);
+    private final static String SQL_FIND_BY_ID = SQL_FIND_ALL + " WHERE id = ?";
+    /**
+     * Executes query to database to get Equipment from its id
+     * @param conn The database connection used
+     * @param equipmentId the id of the equipment
+     * @return Optional<Equipment> object. Empty if not found
+     */
+    @Override
+    public Optional<Equipment> findById(Connection conn, long equipmentId) {
+        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_ID)){
+            ps.setLong(1, equipmentId);
 
             try (ResultSet rs = ps.executeQuery()){
                 if(!rs.next()) return Optional.empty();
-                else return Optional.of(equipment_mapper.mapRow(rs));
+                return Optional.of(equipment_mapper.mapRow(rs));
             }
-
         }catch (SQLException e){
-            throw new DaoException("Error while trying to find equipment with id: "+id, e);
+            throw new DaoException("Error while trying to find equipment with id: " + equipmentId, e);
         }
     }
 
+
+    private final static String SQL_FIND_ALL_BY_VENUE = SQL_FIND_ALL + " WHERE venue_id = ?";
+    /**
+     * Executes query to database to get all Equipments belonging to a venue
+     * @param conn The database connection used
+     * @param venueId the id of the venue
+     * @return List<Equipment> object
+     */
     @Override
-    public ArrayList<Equipment> findByVenue(Connection conn, long venueId) {
-        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_VENUE)) {
-
+    public List<Equipment> findAllByVenue(Connection conn, long venueId) {
+        List<Equipment> equipments = new ArrayList<>();
+        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL_BY_VENUE)) {
             ps.setLong(1, venueId);
-
-            ArrayList<Equipment> equipments = new ArrayList<>();
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -84,58 +93,72 @@ public class PgEquipmentRepository implements EquipmentRepository {
         }
     }
 
+
+    private final static String SQL_INSERT = "INSERT INTO equipment (venue_id, name, description, total_quantity) " +
+                                             "VALUES (?, ?, ?, ?) RETURNING id";
+    /**
+     * Executes SQL Query to insert a new equipment to database
+     * @param conn the connection to database
+     * @param equipment the equipment object to insert
+     * @return long id of the new equipment created
+     */
     @Override
     public long insert(Connection conn, Equipment equipment) {
         try(PreparedStatement ps = conn.prepareStatement(SQL_INSERT)){
-
             ps.setLong(1, equipment.getVenueId());
             ps.setString(2, equipment.getName());
             JdbcUtils.setNullableString(ps, 3, equipment.getDescription());
+            ps.setInt(4, equipment.getTotalQuantity()); // Assicurati che il metodo si chiami così nel domain
 
             try(ResultSet rs = ps.executeQuery()){
-                rs.next();
-                return rs.getLong(1);
+                if (rs.next()) return rs.getLong(1);
+                throw new DaoException("Insert failed: no ID returned for equipment");
             }
-
-
         }catch (SQLException e){
-            throw new DaoException("Error while trying to insert equipment with id: "+equipment.getId(), e);
+            throw new DaoException("Error while trying to insert equipment: " + equipment.getName(), e);
         }
-
     }
 
+
+    private final static String SQL_UPDATE = "UPDATE equipment SET venue_id = ?, name = ?, description = ?, " +
+                                             "total_quantity = ? WHERE id = ?";
+    /**
+     * Executes SQL Query to update an existing equipment's information
+     * @param conn the connection to database
+     * @param equipment the equipment object with updated data
+     */
     @Override
     public void update(Connection conn, Equipment equipment) {
         try(PreparedStatement ps = conn.prepareStatement(SQL_UPDATE)){
-
             ps.setLong(1, equipment.getVenueId());
             ps.setString(2, equipment.getName());
             JdbcUtils.setNullableString(ps, 3, equipment.getDescription());
-            ps.setInt(4, equipment.getTotal_quantity());
-            ps.setLong(4, equipment.getId());
+            ps.setInt(4, equipment.getTotalQuantity());
+            ps.setLong(5, equipment.getId()); // Corretto l'indice da 4 a 5
 
             int updated = ps.executeUpdate();
-
-            JdbcUtils.requireUpdatedExactly(updated,1,"update(Equipment="+equipment.toString()+")");
-
+            JdbcUtils.requireUpdatedExactly(updated, 1, "updateEquipment(id=" + equipment.getId() + ")");
         }catch (SQLException e){
-            throw new DaoException("Error while trying to update equipment: "+equipment.toString(), e);
+            throw new DaoException("Error while trying to update equipment: " + equipment.getName(), e);
         }
-
     }
 
+
+    private final static String SQL_DELETE = "DELETE FROM equipment WHERE id = ?";
+    /**
+     * Deletes an equipment record from database by its id
+     * @param conn the database connection
+     * @param equipmentId the id of the equipment to delete
+     */
     @Override
-    public void deleteById(Connection conn, long id) {
+    public void deleteById(Connection conn, long equipmentId) {
         try(PreparedStatement ps = conn.prepareStatement(SQL_DELETE)){
-            ps.setLong(1, id);
+            ps.setLong(1, equipmentId);
 
             int updated = ps.executeUpdate();
-
-            JdbcUtils.requireUpdatedExactly(updated,1,"delete(id="+id+")");
-
+            JdbcUtils.requireUpdatedExactly(updated, 1, "deleteEquipment(id=" + equipmentId + ")");
         }catch (SQLException e){
-            throw new DaoException("Error while trying to delete equipment with id: "+id, e);
+            throw new DaoException("Error while trying to delete equipment with id: " + equipmentId, e);
         }
-
     }
 }
