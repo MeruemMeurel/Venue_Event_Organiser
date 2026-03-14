@@ -1,34 +1,39 @@
 package Venue_Event_Manager.repository;
 
-import Venue_Event_Manager.domain.model.user.*;
-
+import Venue_Event_Manager.domain.model.user.User;
+import Venue_Event_Manager.domain.model.user.AccountStatus;
 import java.sql.Connection;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository {
 
-    ArrayList<User> findAll(Connection conn);
+    List<User> findAll(Connection conn);
 
     Optional<User> findById(Connection conn, long userId);
 
-    Optional<User> findByEmail(Connection conn, String email);
+    Optional<User> findByUsername(Connection conn, String userUsername);
 
-    Optional<User> findByUsername(Connection conn, String username);
+    Optional<User> findByEmail(Connection conn, String userEmail);
 
-    Optional<User> findByPhone(Connection conn, String phone);
+    Optional<User> findByPhone(Connection conn, String userPhone);
+
+    List<User> findByIsAdmin(Connection conn, boolean userIsAdmin);
+
+    List<User> findByAccountStatus(Connection conn, AccountStatus userStatus);
+
+    Optional<Integer> getAverageReview(Connection conn, long userId);
 
     boolean checkPassword(Connection conn, long userId, String password);
 
     long insert(Connection conn, User user, String password);
 
-    void updateAccountStatus(Connection conn, long userId, AccountStatus accountStatus);
+    void update(Connection conn, User user, String password);
 
-    void updatePassword (Connection conn, long userId, String oldPassword, String newPassword);
+    void updateAccountStatus(Connection conn, long userId, AccountStatus newAccountStatus);
 
-    Optional<Integer> getAverageReview(Connection conn, long userId);
+    void updatePassword (Connection conn, long userId, String password, String newPassword);
 
-
-
+    void deleteById(Connection conn, long userId, String password);
 
 }
