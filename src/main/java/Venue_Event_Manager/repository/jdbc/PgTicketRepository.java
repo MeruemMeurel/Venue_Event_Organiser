@@ -66,7 +66,7 @@ public class PgTicketRepository implements TicketRepository {
     }
 
 
-    private final static String SQL_FIND_BY_BOOKING_ID = SQL_FIND_ALL + " WHERE booking_id = ?";
+    private final static String SQL_FIND_ALL_BY_BOOKING_ID = SQL_FIND_ALL + " WHERE booking_id = ?";
     /**
      * Executes SQL query to get all tickets for a specific booking
      * @param conn the db connection
@@ -75,7 +75,7 @@ public class PgTicketRepository implements TicketRepository {
      */
     @Override
     public List<Ticket> findAllByBookingId(Connection conn, long bookingId) {
-        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_BOOKING_ID)) {
+        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL_BY_BOOKING_ID)) {
             ps.setLong(1, bookingId);
             List<Ticket> tickets = new ArrayList<>();
 
