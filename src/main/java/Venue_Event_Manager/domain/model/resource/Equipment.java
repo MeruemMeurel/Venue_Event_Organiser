@@ -58,7 +58,7 @@ public class Equipment {
         return new Equipment(id, venue_id, name, newDescription, total_quantity);
     }
 
-    public int getTotal_quantity(){ return total_quantity; }
+    public int getTotalQuantity(){ return total_quantity; }
     public Equipment withTotalQuantity(int newTotalQuantity){
         return new Equipment(id, venue_id, name, description, newTotalQuantity);
     }

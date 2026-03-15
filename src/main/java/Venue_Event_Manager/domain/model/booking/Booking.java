@@ -1,5 +1,6 @@
 package Venue_Event_Manager.domain.model.booking;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import static Venue_Event_Manager.domain.model.booking.BookingStatus.*;
@@ -16,16 +17,16 @@ public class Booking {
     private final long event_id; //reference to Event
     private final LocalDateTime created_at;
     private final BookingStatus status;
-    private final double total_price;
+    private final BigDecimal total_price;
 
 
     //constructors
     /** Initializes an empty booking with default and empty values. */
-    public Booking(){ this(0, 0, 0, null, null, 0); }
+    public Booking(){ this(0, 0, 0, null, null, null); }
 
     /** Master constructor for full initialization. */
     public Booking(long id, long user_id, long event_id, LocalDateTime created_at, BookingStatus status,
-                   double total_price){
+                   BigDecimal total_price){
         this.id = id;
         this.user_id = user_id;
         this.event_id = event_id;
@@ -35,7 +36,7 @@ public class Booking {
     }
 
     /** Constructor for unsaved booking (ID defaults to 0). */
-    public Booking(long user_id, long event_id, LocalDateTime created_at, BookingStatus status, double total_price){
+    public Booking(long user_id, long event_id, LocalDateTime created_at, BookingStatus status, BigDecimal total_price){
         this(0, user_id, event_id, created_at, status, total_price);
     }
 
@@ -66,8 +67,8 @@ public class Booking {
         return new Booking(id, user_id, event_id, created_at, newStatus, total_price);
     }
 
-    public double getTotalPrice(){ return total_price; }
-    public Booking withTotalPrice(double newTotalPrice){
+    public BigDecimal getTotalPrice(){ return total_price; }
+    public Booking withTotalPrice(BigDecimal newTotalPrice){
         return new Booking(id, user_id, event_id, created_at, status, newTotalPrice);
     }
 
