@@ -25,7 +25,7 @@ public class PgEventRepository implements EventRepository {
                 rs.getLong("id"),
                 rs.getLong("venue_id"),
                 rs.getLong("creator_id"),
-                organiser_id != null ? organiser_id : null,
+                organiser_id,
                 rs.getString("name"),
                 rs.getString("description"),
                 rs.getTimestamp("begin_datetime").toLocalDateTime(),
