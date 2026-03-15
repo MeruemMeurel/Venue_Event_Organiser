@@ -75,7 +75,7 @@ public class PgEventGuestRepository implements EventGuestRepository {
     }
 
 
-    private final static String SQL_FIND_BY_EVENT_ID = SQL_FIND_ALL + " WHERE event_id = ?";
+    private final static String SQL_FIND_ALL_BY_EVENT_ID = SQL_FIND_ALL + " WHERE event_id = ?";
     /**
      * Executes SQL query to get all guests for a specific event
      * @param conn the db connection
@@ -84,7 +84,7 @@ public class PgEventGuestRepository implements EventGuestRepository {
      */
     @Override
     public List<EventGuest> findAllByEventId(Connection conn, long eventId) {
-        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_EVENT_ID)) {
+        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL_BY_EVENT_ID)) {
             ps.setLong(1, eventId);
             List<EventGuest> guests = new ArrayList<>();
 
@@ -100,7 +100,7 @@ public class PgEventGuestRepository implements EventGuestRepository {
     }
 
 
-    private final static String SQL_FIND_BY_STATUS = SQL_FIND_ALL + " WHERE status = ?";
+    private final static String SQL_FIND_ALL_BY_STATUS = SQL_FIND_ALL + " WHERE status = ?";
     /**
      * Executes SQL query to get all guests with a specific status
      * @param conn the db connection
@@ -109,7 +109,7 @@ public class PgEventGuestRepository implements EventGuestRepository {
      */
     @Override
     public List<EventGuest> findAllByStatus(Connection conn, EventGuestStatus status) {
-        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_STATUS)) {
+        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL_BY_STATUS)) {
             ps.setString(1, status.name());
             List<EventGuest> guests = new ArrayList<>();
 
@@ -125,7 +125,7 @@ public class PgEventGuestRepository implements EventGuestRepository {
     }
 
 
-    private final static String SQL_FIND_BY_EVENT_AND_STATUS = SQL_FIND_ALL + " WHERE event_id = ? AND status = ?";
+    private final static String SQL_FIND_ALL_BY_EVENT_AND_STATUS = SQL_FIND_ALL + " WHERE event_id = ? AND status = ?";
     /**
      * Executes SQL query to get guests for an event filtered by status
      * @param conn the db connection
@@ -135,7 +135,7 @@ public class PgEventGuestRepository implements EventGuestRepository {
      */
     @Override
     public List<EventGuest> findAllByEventIdAndStatus(Connection conn, long eventId, EventGuestStatus status) {
-        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_EVENT_AND_STATUS)) {
+        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL_BY_EVENT_AND_STATUS)) {
             ps.setLong(1, eventId);
             ps.setString(2, status.name());
             List<EventGuest> guests = new ArrayList<>();
