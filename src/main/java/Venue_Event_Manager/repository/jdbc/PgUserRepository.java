@@ -140,7 +140,7 @@ public class PgUserRepository implements UserRepository {
     }
 
 
-    private static final String SQL_ALL_BY_IS_ADMIN = SQL_FIND_ALL + " WHERE is_admin = ?";
+    private static final String SQL_FIND_ALL_BY_IS_ADMIN = SQL_FIND_ALL + " WHERE is_admin = ?";
     /**
      * Executes query to database to get all Users filtered by admin status
      * @param conn The database connection used
@@ -150,7 +150,7 @@ public class PgUserRepository implements UserRepository {
     @Override
     public List<User> findAllByIsAdmin(Connection conn, boolean isAdmin) {
         List<User> users = new ArrayList<>();
-        try(PreparedStatement ps = conn.prepareStatement(SQL_ALL_BY_IS_ADMIN)){
+        try(PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL_BY_IS_ADMIN)){
             ps.setBoolean(1, isAdmin);
             
             try(ResultSet rs = ps.executeQuery()){
@@ -163,7 +163,7 @@ public class PgUserRepository implements UserRepository {
     }
 
 
-    private static final String SQL_ALL_BY_ACCOUNT_STATUS = SQL_FIND_ALL + " WHERE account_status = ?";
+    private static final String SQL_FIND_ALL_BY_ACCOUNT_STATUS = SQL_FIND_ALL + " WHERE account_status = ?";
     /**
      * Executes query to database to get all Users filtered by account status
      * @param conn The database connection used
@@ -173,7 +173,7 @@ public class PgUserRepository implements UserRepository {
     @Override
     public List<User> findAllByAccountStatus(Connection conn, AccountStatus accountStatus) {
         List<User> users = new ArrayList<>();
-        try(PreparedStatement ps = conn.prepareStatement(SQL_ALL_BY_ACCOUNT_STATUS)){
+        try(PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL_BY_ACCOUNT_STATUS)){
             ps.setString(1, accountStatus.name());
             
             try(ResultSet rs = ps.executeQuery()){
@@ -190,7 +190,7 @@ public class PgUserRepository implements UserRepository {
      * Calculates the average review score for a specific user
      * @param conn the database connection
      * @param userId the id of the user
-     * @return Optional<Integer> with the average score
+     * @return Optional<Double> with the average score
      */
     @Override
     public Optional<Double> getAverageReview(Connection conn, long userId) {
