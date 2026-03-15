@@ -15,14 +15,16 @@ public class PgEquipmentRepository implements EquipmentRepository {
     /**
      * Lambda function to implement RowMapper interface
      */
-    private static final RowMapper<Equipment> equipment_mapper = rs -> new Equipment(
-            rs.getLong("id"),
-            rs.getLong("venue_id"),
-            rs.getString("name"),
-            rs.getString("description"),
-            rs.getInt("total_quantity")
-    );
-
+    private static final RowMapper<Equipment> equipment_mapper = rs -> {
+        Long venue_id=rs.getLong("venue_id");
+        return new Equipment(
+                rs.getLong("id"),
+                venue_id != null ? venue_id : null,
+                rs.getString("name"),
+                rs.getString("description"),
+                rs.getInt("total_quantity")
+        );
+    };
 
     private final static String SQL_FIND_ALL = "SELECT id, venue_id, name, description, total_quantity FROM equipment";
     /**
