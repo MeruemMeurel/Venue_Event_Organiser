@@ -13,15 +13,19 @@ public class PgReportRepository implements ReportRepository {
     /**
      * Lambda function to map report sql results to a Report object
      */
-    private static final RowMapper<Report> report_mapper = rs -> new Report(
-            rs.getLong("id"),
-            rs.getLong("user_id"),
-            rs.getLong("admin_id"),
-            rs.getLong("event_id"),
-            ReportSeverity.valueOf(rs.getString("severity").toUpperCase()),
-            rs.getString("comment"),
-            rs.getTimestamp("created_at").toLocalDateTime()
-    );
+    private static final RowMapper<Report> report_mapper = rs -> {
+        Long event_id = rs.getLong("event_id");
+
+        return new Report(
+                rs.getLong("id"),
+                rs.getLong("user_id"),
+                rs.getLong("admin_id"),
+                event_id != null ? event_id : null,
+                ReportSeverity.valueOf(rs.getString("severity").toUpperCase()),
+                rs.getString("comment"),
+                rs.getTimestamp("created_at").toLocalDateTime()
+        );
+    };
 
 
     private static final String SQL_FIND_ALL = "SELECT id, user_id, admin_id, event_id, severity, comment, created_at " +
