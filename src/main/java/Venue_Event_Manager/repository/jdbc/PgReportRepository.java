@@ -20,7 +20,7 @@ public class PgReportRepository implements ReportRepository {
                 rs.getLong("id"),
                 rs.getLong("user_id"),
                 rs.getLong("admin_id"),
-                event_id != null ? event_id : null,
+                event_id,
                 ReportSeverity.valueOf(rs.getString("severity").toUpperCase()),
                 rs.getString("comment"),
                 rs.getTimestamp("created_at").toLocalDateTime()
