@@ -14,15 +14,19 @@ public class PgEventGuestRepository implements EventGuestRepository {
     /**
      * Lambda function to map event_guest sql results to an EventGuest object
      */
-    private static final RowMapper<EventGuest> guest_mapper = rs -> new EventGuest(
+    private static final RowMapper<EventGuest> guest_mapper = rs -> {
+        Date birthday = rs.getDate("birthday");
+
+        return new EventGuest(
                 rs.getLong("id"),
                 rs.getLong("event_id"),
                 rs.getString("firstname"),
                 rs.getString("lastname"),
-                rs.getDate("birthday").toLocalDate(),
+                birthday != null ? birthday.toLocalDate() : null,
                 EventGuestStatus.valueOf(rs.getString("status").toUpperCase()),
                 rs.getString("note")
-    );
+        );
+    };
 
 
     private final static String SQL_FIND_ALL = "SELECT id, event_id, firstname, lastname, birthday, status, note " +
@@ -162,11 +166,7 @@ public class PgEventGuestRepository implements EventGuestRepository {
             ps.setLong(1, guest.getEventId());
             ps.setString(2, guest.getFirstname());
             ps.setString(3, guest.getLastname());
-            if (guest.getBirthday() == null) {
-                ps.setNull(4, Types.DATE);
-            } else {
-                ps.setDate(4, Date.valueOf(guest.getBirthday()));
-            }
+            JdbcUtils.setNullableLocalDate(ps, 4, guest.getBirthday());
             ps.setString(5, guest.getStatus().name());
             JdbcUtils.setNullableString(ps, 6, guest.getNote());
 
@@ -193,11 +193,7 @@ public class PgEventGuestRepository implements EventGuestRepository {
             ps.setLong(1, guest.getEventId());
             ps.setString(2, guest.getFirstname());
             ps.setString(3, guest.getLastname());
-            if (guest.getBirthday() == null) {
-                ps.setNull(4, Types.DATE);
-            } else {
-                ps.setDate(4, Date.valueOf(guest.getBirthday()));
-            }
+            JdbcUtils.setNullableLocalDate(ps, 4, guest.getBirthday());
             ps.setString(5, guest.getStatus().name());
             JdbcUtils.setNullableString(ps, 6, guest.getNote());
             ps.setLong(7, guest.getId());
