@@ -2,6 +2,7 @@ package Venue_Event_Manager.repository.jdbc;
 
 import Venue_Event_Manager.domain.model.user.AccountStatus;
 import Venue_Event_Manager.domain.model.user.User;
+import Venue_Event_Manager.repository.ReviewRepository;
 import Venue_Event_Manager.repository.UserRepository;
 import java.sql.*;
 import java.util.ArrayList;
@@ -192,9 +193,10 @@ public class PgUserRepository implements UserRepository {
      * @return Optional<Integer> with the average score
      */
     @Override
-    public Optional<Integer> getAverageReview(Connection conn, long userId) {
-        // TODO: Integrate with ReviewRepository logic
-        return Optional.empty();
+    public Optional<Double> getAverageReview(Connection conn, long userId) {
+        ReviewRepository reviewRepository = new PgReviewRepository();
+        double average = reviewRepository.getAverageRatingByUser(conn, userId);
+        return average != 0.0 ? Optional.of(average) : Optional.empty();
     }
 
 
