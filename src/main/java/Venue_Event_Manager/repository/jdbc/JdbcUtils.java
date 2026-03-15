@@ -1,11 +1,9 @@
 package Venue_Event_Manager.repository.jdbc;
 
 import java.math.BigDecimal;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Types;
+import java.sql.*;
 import java.time.LocalDate;
-import java.sql.Date;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 /**
@@ -86,6 +84,18 @@ public class JdbcUtils {
     public static void setNullableLocalDate(PreparedStatement ps, int index, LocalDate value) throws SQLException {
         if(value == null) ps.setNull(index, Types.DATE);
         else ps.setDate(index, Date.valueOf(value));
+    }
+
+    /**
+     * Sets value to statement, and correctly sets null if value == null
+     * @param ps Prepared SQL Statement
+     * @param index index of the variable in sql statement
+     * @param value value to set
+     * @throws SQLException
+     */
+    public static void setNullableLocalDateTime(PreparedStatement ps, int index, LocalDateTime value) throws SQLException {
+        if(value == null) ps.setNull(index, Types.TIMESTAMP);
+        else ps.setTimestamp(index, Timestamp.valueOf(value));
     }
 
     /**
