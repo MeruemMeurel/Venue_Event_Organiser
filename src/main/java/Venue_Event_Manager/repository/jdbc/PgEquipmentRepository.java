@@ -19,7 +19,7 @@ public class PgEquipmentRepository implements EquipmentRepository {
         Long venue_id=rs.getLong("venue_id");
         return new Equipment(
                 rs.getLong("id"),
-                venue_id != null ? venue_id : null,
+                venue_id,
                 rs.getString("name"),
                 rs.getString("description"),
                 rs.getInt("total_quantity")
