@@ -46,7 +46,7 @@ public class PgBookingRepository implements BookingRepository {
     }
 
 
-    public static final String SQL_FIND_ALL_BY_ID = SQL_FIND_ALL + " WHERE id = ?";
+    public static final String SQL_FIND_BY_ID = SQL_FIND_ALL + " WHERE id = ?";
     /**
      * Executes SQL query to get booking with specific id
      * @param conn the db connection
@@ -55,7 +55,7 @@ public class PgBookingRepository implements BookingRepository {
      */
     @Override
     public Optional<Booking> findById(Connection conn, long bookingId) {
-        try(PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL_BY_ID)){
+        try(PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_ID)){
             ps.setLong(1, bookingId);
 
             try (ResultSet rs = ps.executeQuery()){
@@ -68,7 +68,7 @@ public class PgBookingRepository implements BookingRepository {
     }
 
 
-    public static final String SQL_FIND_BY_USER_ID = SQL_FIND_ALL + " WHERE user_id = ?";
+    public static final String SQL_FIND_ALL_BY_USER_ID = SQL_FIND_ALL + " WHERE user_id = ?";
     /**
      * Executes SQL query to get all bookings made by specific User
      * @param conn the db connection
@@ -78,7 +78,7 @@ public class PgBookingRepository implements BookingRepository {
     @Override
     public List<Booking> findAllByUserId(Connection conn, long userId) {
         List<Booking> bookings = new ArrayList<>();
-        try(PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_USER_ID)){
+        try(PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL_BY_USER_ID)){
             ps.setLong(1, userId);
 
             try (ResultSet rs = ps.executeQuery()){
@@ -93,7 +93,7 @@ public class PgBookingRepository implements BookingRepository {
     }
 
 
-    public static final String SQL_FIND_BY_EVENT_ID = SQL_FIND_ALL + " WHERE event_id = ?";
+    public static final String SQL_FIND_ALL_BY_EVENT_ID = SQL_FIND_ALL + " WHERE event_id = ?";
     /**
      * Executes SQL query to get all bookings for an event
      * @param conn the db connection
@@ -103,7 +103,7 @@ public class PgBookingRepository implements BookingRepository {
     @Override
     public List<Booking> findAllByEventId(Connection conn, long eventId) {
         List<Booking> bookings = new ArrayList<>();
-        try(PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_EVENT_ID)){
+        try(PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL_BY_EVENT_ID)){
             ps.setLong(1, eventId);
 
             try (ResultSet rs = ps.executeQuery()){
@@ -118,7 +118,7 @@ public class PgBookingRepository implements BookingRepository {
     }
 
 
-    public static final String SQL_FIND_BY_STATUS = SQL_FIND_ALL + " WHERE status = ?";
+    public static final String SQL_FIND_ALL_BY_STATUS = SQL_FIND_ALL + " WHERE status = ?";
     /**
      * Executes SQL query to get all bookings with specific status
      * @param conn the db connection
@@ -128,7 +128,7 @@ public class PgBookingRepository implements BookingRepository {
     @Override
     public List<Booking> findAllByStatus(Connection conn, BookingStatus status) {
         List<Booking> bookings = new ArrayList<>();
-        try(PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_STATUS)){
+        try(PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL_BY_STATUS)){
             ps.setString(1, status.name());
 
             try (ResultSet rs = ps.executeQuery()){
@@ -143,7 +143,7 @@ public class PgBookingRepository implements BookingRepository {
     }
 
 
-    public static final String SQL_FIND_BY_USER_AND_STATUS = SQL_FIND_ALL + " WHERE user_id = ? AND status = ?";
+    public static final String SQL_FIND_ALL_BY_USER_AND_STATUS = SQL_FIND_ALL + " WHERE user_id = ? AND status = ?";
     /**
      * Executes SQL query to get all bookings with specific status from a user
      * @param conn the db connection
@@ -154,7 +154,7 @@ public class PgBookingRepository implements BookingRepository {
     @Override
     public List<Booking> findAllByUserIdAndStatus(Connection conn, long userId, BookingStatus status) {
         List<Booking> bookings = new ArrayList<>();
-        try(PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_USER_AND_STATUS)){
+        try(PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL_BY_USER_AND_STATUS)){
             ps.setLong(1, userId);
             ps.setString(2, status.name());
 
@@ -170,7 +170,7 @@ public class PgBookingRepository implements BookingRepository {
     }
 
 
-    public static final String SQL_FIND_BY_EVENT_AND_STATUS = SQL_FIND_ALL + " WHERE event_id = ? AND status = ?";
+    public static final String SQL_FIND_ALL_BY_EVENT_AND_STATUS = SQL_FIND_ALL + " WHERE event_id = ? AND status = ?";
     /**
      * Executes SQL query to get all bookings with specific status for an event
      * @param conn the db connection
@@ -181,7 +181,7 @@ public class PgBookingRepository implements BookingRepository {
     @Override
     public List<Booking> findAllByEventIdAndStatus(Connection conn, long eventId, BookingStatus status) {
         List<Booking> bookings = new ArrayList<>();
-        try(PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_EVENT_AND_STATUS)){
+        try(PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL_BY_EVENT_AND_STATUS)){
             ps.setLong(1, eventId);
             ps.setString(2, status.name());
 
@@ -197,7 +197,7 @@ public class PgBookingRepository implements BookingRepository {
     }
 
 
-    public static final String SQL_FIND_BY_USER_AND_EVENT = SQL_FIND_ALL + " WHERE user_id = ? AND event_id = ?";
+    public static final String SQL_FIND_ALL_BY_USER_AND_EVENT = SQL_FIND_ALL + " WHERE user_id = ? AND event_id = ?";
     /**
      * Executes SQL query to get all bookings from a user for an event
      * @param conn the db connection
@@ -208,7 +208,7 @@ public class PgBookingRepository implements BookingRepository {
     @Override
     public List<Booking> findAllByUserIdAndEventId(Connection conn, long userId, long eventId) {
         List<Booking> bookings = new ArrayList<>();
-        try(PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_USER_AND_EVENT)){
+        try(PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL_BY_USER_AND_EVENT)){
             ps.setLong(1, userId);
             ps.setLong(2, eventId);
 
