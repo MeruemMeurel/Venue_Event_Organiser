@@ -74,7 +74,7 @@ public class PgReportRepository implements ReportRepository {
     }
 
 
-    private static final String SQL_FIND_BY_USER_ID = SQL_FIND_ALL + " WHERE user_id = ?";
+    private static final String SQL_FIND_ALL_BY_USER_ID = SQL_FIND_ALL + " WHERE user_id = ?";
     /**
      * Executes SQL query to get all reports from a specific user
      * @param conn the db connection
@@ -83,7 +83,7 @@ public class PgReportRepository implements ReportRepository {
      */
     @Override
     public List<Report> findAllByUserId(Connection conn, long userId) {
-        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_USER_ID)) {
+        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL_BY_USER_ID)) {
             ps.setLong(1, userId);
             List<Report> reports = new ArrayList<>();
 
@@ -99,7 +99,7 @@ public class PgReportRepository implements ReportRepository {
     }
 
 
-    private static final String SQL_FIND_BY_ADMIN_ID = SQL_FIND_ALL + " WHERE admin_id = ?";
+    private static final String SQL_FIND_ALL_BY_ADMIN_ID = SQL_FIND_ALL + " WHERE admin_id = ?";
     /**
      * Executes SQL query to get all reports created by a specific admin
      * @param conn the db connection
@@ -108,7 +108,7 @@ public class PgReportRepository implements ReportRepository {
      */
     @Override
     public List<Report> findAllByAdminId(Connection conn, long adminId) {
-        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_ADMIN_ID)) {
+        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL_BY_ADMIN_ID)) {
             ps.setLong(1, adminId);
             List<Report> reports = new ArrayList<>();
 
@@ -124,7 +124,7 @@ public class PgReportRepository implements ReportRepository {
     }
 
 
-    private static final String SQL_FIND_BY_EVENT_ID = SQL_FIND_ALL + " WHERE event_id = ?";
+    private static final String SQL_FIND_ALL_BY_EVENT_ID = SQL_FIND_ALL + " WHERE event_id = ?";
     /**
      * Executes SQL query to get all reports for a specific event
      * @param conn the db connection
@@ -133,7 +133,7 @@ public class PgReportRepository implements ReportRepository {
      */
     @Override
     public List<Report> findAllByEventId(Connection conn, long eventId) {
-        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_EVENT_ID)) {
+        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL_BY_EVENT_ID)) {
             ps.setLong(1, eventId);
             List<Report> reports = new ArrayList<>();
 
@@ -149,7 +149,7 @@ public class PgReportRepository implements ReportRepository {
     }
 
 
-    private static final String SQL_FIND_BY_SEVERITY = SQL_FIND_ALL + " WHERE severity = ?";
+    private static final String SQL_FIND_ALL_BY_SEVERITY = SQL_FIND_ALL + " WHERE severity = ?";
     /**
      * Executes SQL query to get all reports with specific severity
      * @param conn the db connection
@@ -158,7 +158,7 @@ public class PgReportRepository implements ReportRepository {
      */
     @Override
     public List<Report> findAllBySeverity(Connection conn, ReportSeverity severity) {
-        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_SEVERITY)) {
+        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL_BY_SEVERITY)) {
             ps.setString(1, severity.name());
             List<Report> reports = new ArrayList<>();
 
@@ -198,7 +198,7 @@ public class PgReportRepository implements ReportRepository {
     }
 
 
-    private static final String SQL_FIND_BY_ADMIN_AND_EVENT = SQL_FIND_ALL + " WHERE admin_id = ? AND event_id = ?";
+    private static final String SQL_FIND_ALL_BY_ADMIN_AND_EVENT = SQL_FIND_ALL + " WHERE admin_id = ? AND event_id = ?";
     /**
      * Executes SQL query to get all reports from an admin for a specific event
      * @param conn the db connection
@@ -208,7 +208,7 @@ public class PgReportRepository implements ReportRepository {
      */
     @Override
     public List<Report> findAllByAdminIdAndEventId(Connection conn, long adminId, long eventId) {
-        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_ADMIN_AND_EVENT)) {
+        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL_BY_ADMIN_AND_EVENT)) {
             ps.setLong(1, adminId);
             ps.setLong(2, eventId);
             List<Report> reports = new ArrayList<>();
