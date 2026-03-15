@@ -67,7 +67,7 @@ public class PgReviewRepository implements ReviewRepository {
     }
 
 
-    private static final String SQL_FIND_BY_USER_ID = SQL_FIND_ALL + " WHERE user_id = ?";
+    private static final String SQL_FIND_ALL_BY_USER_ID = SQL_FIND_ALL + " WHERE user_id = ?";
     /**
      * Executes query to database to get all reviews from a specific user
      * @param conn The database connection used
@@ -77,7 +77,7 @@ public class PgReviewRepository implements ReviewRepository {
     @Override
     public List<Review> findAllByUserId(Connection conn, long userId) {
         List<Review> reviews = new ArrayList<>();
-        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_USER_ID)) {
+        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL_BY_USER_ID)) {
             ps.setLong(1, userId);
 
             try (ResultSet rs = ps.executeQuery()) {
@@ -92,7 +92,7 @@ public class PgReviewRepository implements ReviewRepository {
     }
 
 
-    private static final String SQL_FIND_BY_EVENT_ID = SQL_FIND_ALL + " WHERE event_id = ?";
+    private static final String SQL_FIND_ALL_BY_EVENT_ID = SQL_FIND_ALL + " WHERE event_id = ?";
     /**
      * Executes query to database to get all reviews for a specific event
      * @param conn The database connection used
@@ -102,7 +102,7 @@ public class PgReviewRepository implements ReviewRepository {
     @Override
     public List<Review> findAllByEventId(Connection conn, long eventId) {
         List<Review> reviews = new ArrayList<>();
-        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_EVENT_ID)) {
+        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL_BY_EVENT_ID)) {
             ps.setLong(1, eventId);
 
             try (ResultSet rs = ps.executeQuery()) {
@@ -117,7 +117,7 @@ public class PgReviewRepository implements ReviewRepository {
     }
 
 
-    private static final String SQL_FIND_BY_RATING = SQL_FIND_ALL + " WHERE rating = ?";
+    private static final String SQL_FIND_ALL_BY_RATING = SQL_FIND_ALL + " WHERE rating = ?";
     /**
      * Executes query to database to get all reviews with a specific rating
      * @param conn The database connection used
@@ -127,7 +127,7 @@ public class PgReviewRepository implements ReviewRepository {
     @Override
     public List<Review> findAllByRating(Connection conn, int rating) {
         List<Review> reviews = new ArrayList<>();
-        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_RATING)) {
+        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL_BY_RATING)) {
             ps.setInt(1, rating);
 
             try (ResultSet rs = ps.executeQuery()) {
