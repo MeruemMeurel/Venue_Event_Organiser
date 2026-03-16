@@ -24,16 +24,16 @@ public interface UserRepository {
 
     Optional<Integer> getAverageReview(Connection conn, long userId);
 
-    boolean checkPassword(Connection conn, long userId, String password);
+    Optional<String> getPasswordById(Connection conn, long userId);
 
     long insert(Connection conn, User user, String password);
 
-    void update(Connection conn, User user, String password);
+    void update(Connection conn, User user);
 
-    void updateAccountStatus(Connection conn, long userId, String password, AccountStatus newAccountStatus);
+    void updateAccountStatus(Connection conn, long userId, AccountStatus newAccountStatus);
 
-    void updatePassword (Connection conn, long userId, String password, String newPassword);
+    void updatePassword (Connection conn, long userId, String newPassword);
 
-    void deleteById(Connection conn, long userId, String password);
+    void deleteById(Connection conn, long userId);
 
 }

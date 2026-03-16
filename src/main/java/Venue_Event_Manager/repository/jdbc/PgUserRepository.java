@@ -199,23 +199,24 @@ public class PgUserRepository implements UserRepository {
 
 
     private static final String SQL_GET_PASSWORD = "SELECT password FROM user WHERE id = ?";
+
+
     /**
-     * Checks if a password provided for a user is correct
-     * @param conn the database connection
+     * Executes query to get password of a user
+     * @param conn the db connection
      * @param userId the id of the user
-     * @param password the password to check
-     * @return true if password is correct, false otherwise
+     * @return Optional object containing the password if found
      */
-    @Override
-    public boolean checkPassword(Connection conn, long userId, String password) {
+    public Optional<String> getPasswordById(Connection conn, long userId) {
         try(PreparedStatement ps = conn.prepareStatement(SQL_GET_PASSWORD)){
             ps.setLong(1, userId);
-            
+
             try(ResultSet rs = ps.executeQuery()) {
-                if(!rs.next()) return false;
-                return rs.getString("password").equals(password);
+                if(!rs.next()) return Optional.empty();
+                else return Optional.of(rs.getString("password"));
             }
-        } catch(SQLException e){
+
+        }catch(SQLException e){
             throw new DaoException("Error while checking password for user with id " + userId, e);
         }
     }
@@ -262,29 +263,24 @@ public class PgUserRepository implements UserRepository {
      * Executes SQL Query to update a user's profile information
      * @param conn the connection to database
      * @param user the user object with updated data
-     * @param password the password to verify the operation
      */
     @Override
-    public void update(Connection conn, User user, String password) {
-        if (checkPassword(conn, user.getId(), password)) {
-            try (PreparedStatement ps = conn.prepareStatement(SQL_UPDATE)) {
-                ps.setString(1, user.getUsername());
-                ps.setString(2, user.getFirstname());
-                ps.setString(3, user.getLastname());
-                ps.setDate(4, Date.valueOf(user.getBirthday()));
-                ps.setString(5, user.getEmail());
-                ps.setString(6, user.getPhone());
-                ps.setBoolean(7, user.isAdmin());
-                ps.setString(8, user.getAccountStatus().name());
-                ps.setLong(9, user.getId());
+    public void update(Connection conn, User user) {
+        try (PreparedStatement ps = conn.prepareStatement(SQL_UPDATE)) {
+            ps.setString(1, user.getUsername());
+            ps.setString(2, user.getFirstname());
+            ps.setString(3, user.getLastname());
+            ps.setDate(4, Date.valueOf(user.getBirthday()));
+            ps.setString(5, user.getEmail());
+            ps.setString(6, user.getPhone());
+            ps.setBoolean(7, user.isAdmin());
+            ps.setString(8, user.getAccountStatus().name());
+            ps.setLong(9, user.getId());
 
-                int updated = ps.executeUpdate();
-                JdbcUtils.requireUpdatedExactly(updated, 1, "updateUser(id=" + user.getId() + ")");
-            } catch (SQLException e) {
-                throw new DaoException("Error while trying to update user with id " + user.getId(), e);
-            }
-        } else {
-            throw new DaoException("Authentication failed: wrong password for update");
+            int updated = ps.executeUpdate();
+            JdbcUtils.requireUpdatedExactly(updated, 1, "updateUser(id=" + user.getId() + ")");
+        } catch (SQLException e) {
+            throw new DaoException("Error while trying to update user with id " + user.getId(), e);
         }
     }
 
@@ -297,19 +293,15 @@ public class PgUserRepository implements UserRepository {
      * @param accountStatus the status to update to
      */
     @Override
-    public void updateAccountStatus(Connection conn, long userId, String password, AccountStatus accountStatus) {
-        if (checkPassword(conn, userId, password)) {
-            try(PreparedStatement ps = conn.prepareStatement(SQL_UPDATE_ACCOUNT_STATUS)){
-                ps.setString(1, accountStatus.name());
-                ps.setLong(2, userId);
+    public void updateAccountStatus(Connection conn, long userId, AccountStatus accountStatus) {
+        try(PreparedStatement ps = conn.prepareStatement(SQL_UPDATE_ACCOUNT_STATUS)){
+            ps.setString(1, accountStatus.name());
+            ps.setLong(2, userId);
 
-                int updated = ps.executeUpdate();
-                JdbcUtils.requireUpdatedExactly(updated, 1, "updateAccountStatus(userId=" + userId + ")");
-            } catch(SQLException e){
-                throw new DaoException("Error while trying to update account status for user " + userId, e);
-            }
-        } else {
-            throw new DaoException("Authentication failed: wrong password for update");
+            int updated = ps.executeUpdate();
+            JdbcUtils.requireUpdatedExactly(updated, 1, "updateAccountStatus(userId=" + userId + ")");
+        } catch(SQLException e){
+            throw new DaoException("Error while trying to update account status for user " + userId, e);
         }
     }
 
@@ -319,23 +311,18 @@ public class PgUserRepository implements UserRepository {
      * Changes password of a user, if the old password provided is correct
      * @param conn the database connection
      * @param userId the id of the user
-     * @param oldPassword the old password to check
      * @param newPassword the new password to set
      */
     @Override
-    public void updatePassword(Connection conn, long userId, String oldPassword, String newPassword) {
-        if(checkPassword(conn, userId, oldPassword)) {
-            try (PreparedStatement ps = conn.prepareStatement(SQL_UPDATE_PASSWORD)){
-                ps.setString(1, newPassword);
-                ps.setLong(2, userId);
+    public void updatePassword(Connection conn, long userId, String newPassword) {
+        try (PreparedStatement ps = conn.prepareStatement(SQL_UPDATE_PASSWORD)){
+            ps.setString(1, newPassword);
+            ps.setLong(2, userId);
                 
-                int updated = ps.executeUpdate();
-                JdbcUtils.requireUpdatedExactly(updated, 1, "updatePassword(userId=" + userId + ")");
-            } catch(SQLException e){
-                throw new DaoException("Error while trying to update password for user " + userId, e);
-            }
-        } else {
-            throw new DaoException("Authentication failed: wrong old password");
+            int updated = ps.executeUpdate();
+            JdbcUtils.requireUpdatedExactly(updated, 1, "updatePassword(userId=" + userId + ")");
+        } catch(SQLException e){
+            throw new DaoException("Error while trying to update password for user " + userId, e);
         }
     }
 
@@ -345,21 +332,16 @@ public class PgUserRepository implements UserRepository {
      * Deletes a user from database if the password is correct
      * @param conn the database connection
      * @param userId the id of the user to delete
-     * @param password the password to verify the operation
      */
     @Override
-    public void deleteById(Connection conn, long userId, String password) {
-        if (checkPassword(conn, userId, password)) {
-            try (PreparedStatement ps = conn.prepareStatement(SQL_DELETE)) {
-                ps.setLong(1, userId);
+    public void deleteById(Connection conn, long userId) {
+        try (PreparedStatement ps = conn.prepareStatement(SQL_DELETE)) {
+            ps.setLong(1, userId);
                 
-                int deleted = ps.executeUpdate();
-                JdbcUtils.requireUpdatedExactly(deleted, 1, "deleteById(userId=" + userId + ")");
-            } catch (SQLException e) {
-                throw new DaoException("Error while trying to delete user " + userId, e);
-            }
-        } else {
-            throw new DaoException("Authentication failed: wrong password for deletion");
+            int deleted = ps.executeUpdate();
+            JdbcUtils.requireUpdatedExactly(deleted, 1, "deleteById(userId=" + userId + ")");
+        } catch (SQLException e) {
+            throw new DaoException("Error while trying to delete user " + userId, e);
         }
     }
 }
