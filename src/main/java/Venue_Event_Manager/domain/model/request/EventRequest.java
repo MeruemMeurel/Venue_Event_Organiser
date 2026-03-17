@@ -22,7 +22,7 @@ public class EventRequest {
     private final LocalDateTime begin_datetime;
     private final LocalDateTime end_datetime;
     private final EventRequestStatus status;
-    private final LocalDateTime created_at;
+    private final LocalDateTime created_at; // TODO gestire valori null?
     private final LocalDateTime closed_at; //NULLABLE
     private final BigDecimal quote; //NULLABLE
 
@@ -98,13 +98,13 @@ public class EventRequest {
                 end_datetime, status, created_at, closed_at, quote);
     }
 
-    public LocalDateTime getBeginDateTime() { return begin_datetime; }
+    public LocalDateTime getBeginDatetime() { return begin_datetime; }
     public EventRequest withBeginDateTime(LocalDateTime newBeginDateTime) {
         return new EventRequest(id, requester_id, handler_id, venue_id, name, description, newBeginDateTime,
                 end_datetime, status, created_at, closed_at, quote);
     }
 
-    public LocalDateTime getEndDateTime() { return end_datetime; }
+    public LocalDateTime getEndDatetime() { return end_datetime; }
     public EventRequest withEndDateTime(LocalDateTime newEndDateTime) {
         return new EventRequest(id, requester_id, handler_id, venue_id, name, description, begin_datetime,
                 newEndDateTime, status, created_at, closed_at, quote);

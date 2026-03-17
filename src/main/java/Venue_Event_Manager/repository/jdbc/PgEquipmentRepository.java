@@ -15,16 +15,19 @@ public class PgEquipmentRepository implements EquipmentRepository {
     /**
      * Lambda function to implement RowMapper interface
      */
-    private static final RowMapper<Equipment> equipment_mapper = rs -> new Equipment(
-            rs.getLong("id"),
-            rs.getLong("venue_id"),
-            rs.getString("name"),
-            rs.getString("description"),
-            rs.getInt("total_quantity")
-    );
+    private static final RowMapper<Equipment> equipment_mapper = rs -> {
+        Long venue_id=rs.getLong("venue_id");
+        return new Equipment(
+                rs.getLong("id"),
+                venue_id,
+                rs.getString("name"),
+                rs.getString("description"),
+                rs.getInt("total_quantity")
+        );
+    };
 
-
-    private final static String SQL_FIND_ALL = "SELECT id, venue_id, name, description, total_quantity FROM equipment";
+    private final static String SQL_FIND_ALL = "SELECT id, venue_id, name, description, total_quantity " +
+                                               "FROM equipment";
     /**
      * Executes query to database to get all Equipments
      * @param conn The database connection used
@@ -120,8 +123,9 @@ public class PgEquipmentRepository implements EquipmentRepository {
     }
 
 
-    private final static String SQL_UPDATE = "UPDATE equipment SET venue_id = ?, name = ?, description = ?, " +
-                                             "total_quantity = ? WHERE id = ?";
+    private final static String SQL_UPDATE = "UPDATE equipment " +
+                                             "SET venue_id = ?, name = ?, description = ?, total_quantity = ? " +
+                                             "WHERE id = ?";
     /**
      * Executes SQL Query to update an existing equipment's information
      * @param conn the connection to database
@@ -144,7 +148,8 @@ public class PgEquipmentRepository implements EquipmentRepository {
     }
 
 
-    private final static String SQL_DELETE = "DELETE FROM equipment WHERE id = ?";
+    private final static String SQL_DELETE = "DELETE FROM equipment " +
+                                             "WHERE id = ?";
     /**
      * Deletes an equipment record from database by its id
      * @param conn the database connection

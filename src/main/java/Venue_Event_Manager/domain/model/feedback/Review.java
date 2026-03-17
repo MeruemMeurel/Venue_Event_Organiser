@@ -15,7 +15,7 @@ public class Review {
     private final long event_id; //reference to Event
     private final int rating;
     private final String comment; //NULLABLE, default value is " "
-    private final LocalDateTime created_at;
+    private final LocalDateTime created_at; // TODO gestire valori null?
 
 
     //constructors

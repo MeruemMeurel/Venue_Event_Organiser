@@ -23,7 +23,8 @@ public class PgSpaceRepository implements SpaceRepository {
     );
 
 
-    private final static String SQL_FIND_ALL = "SELECT id, venue_id, name, description FROM space";
+    private final static String SQL_FIND_ALL = "SELECT id, venue_id, name, description " +
+                                               "FROM space";
     /**
      * Executes query to database to get all Spaces
      * @param conn The database connection used
@@ -118,7 +119,9 @@ public class PgSpaceRepository implements SpaceRepository {
     }
 
 
-    private final static String SQL_UPDATE = "UPDATE space SET venue_id = ?, name = ?, description = ? WHERE id = ?";
+    private final static String SQL_UPDATE = "UPDATE space " +
+                                             "SET venue_id = ?, name = ?, description = ? " +
+                                             "WHERE id = ?";
     /**
      * Executes SQL Query to update an existing space's information
      * @param conn the connection to database
@@ -140,7 +143,8 @@ public class PgSpaceRepository implements SpaceRepository {
     }
 
 
-    private final static String SQL_DELETE = "DELETE FROM space WHERE id = ?";
+    private final static String SQL_DELETE = "DELETE FROM space " +
+                                             "WHERE id = ?";
     /**
      * Deletes a space from database by its id
      * @param conn the database connection

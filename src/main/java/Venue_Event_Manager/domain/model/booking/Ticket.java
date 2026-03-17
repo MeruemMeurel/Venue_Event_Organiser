@@ -14,7 +14,7 @@ public class Ticket {
     private final long booking_id; //reference to Booking
     private final String firstname; //NULLABLE
     private final String lastname; //NULLABLE
-    private final LocalDateTime starts_at; //NULLABLE
+    private final LocalDateTime starts_at;
 
 
     //constructors

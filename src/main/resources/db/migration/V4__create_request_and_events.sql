@@ -31,7 +31,7 @@ CREATE TABLE EVENT
     begin_datetime  TIMESTAMP    NOT NULL,
     end_datetime    TIMESTAMP    NOT NULL,
     poster_filepath TEXT,
-    CAPACITY        INTEGER      NOT NULL CHECK (CAPACITY > 0),
+    capacity        INTEGER      NOT NULL CHECK (CAPACITY > 0),
     status          event_status NOT NULL DEFAULT 'CONFIRMED',
     visibility      visibility   NOT NULL DEFAULT 'PUBLIC',
     ticket_price    NUMERIC(10, 2),

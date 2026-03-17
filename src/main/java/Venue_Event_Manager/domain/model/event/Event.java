@@ -22,7 +22,7 @@ public class Event {
     private final LocalDateTime begin_datetime;
     private final LocalDateTime end_datetime;
     private final String poster_filepath; //NULLABLE
-    private final int capacity;
+    private final int capacity; // TODO capacity needs to be > 0
     private final EventStatus status;
     private final EventVisibility visibility;
     private final BigDecimal ticket_price; //NULLABLE
@@ -113,7 +113,7 @@ public class Event {
                 poster_filepath, capacity, status, visibility, ticket_price, published_at);
     }
 
-    public LocalDateTime getBeginDateTime() {
+    public LocalDateTime getBeginDatetime() {
         return begin_datetime;
     }
     public Event withBeginDateTime(LocalDateTime newBeginDateTime) {
@@ -121,7 +121,7 @@ public class Event {
                 poster_filepath, capacity, status, visibility, ticket_price, published_at);
     }
 
-    public LocalDateTime getEndDateTime() {
+    public LocalDateTime getEndDatetime() {
         return end_datetime;
     }
     public Event withEndDateTime(LocalDateTime newEndDateTime) {

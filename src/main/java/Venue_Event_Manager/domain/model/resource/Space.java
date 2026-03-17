@@ -6,52 +6,38 @@ import java.util.Objects;
  * Domain entity representing a physical Space within a Venue.
  * Implemented as an immutable object, with multiple constructors to handle default and nullable fields.
  */
-public class Space {
-
-    //attributes
-    private final long id;
-    private final long venue_id; //reference to Venue
-    private final String name;
-    private final String description;
-
+public class Space extends Resource {
 
     //costructors
     /** Initializes an empty space with default and empty values. */
     public Space(){
-        this(0, 0, "", "");
+        super();
     }
 
     /** Master constructor for full initialization. */
     public Space(long id, long venue_id, String name, String description){
-        this.id = id;
-        this.venue_id = venue_id;
-        this.name = name;
-        this.description = description;
+        super(id, venue_id, name, description);
     }
 
     /** Constructor for unsaved space (ID defaults to 0). */
     public Space(long venue_id, String name, String description){
-        this(0, venue_id, name, description);
+        super(venue_id, name, description);
     }
 
 
-    //getters and whiters
-    public long getId(){ return id; }
+    //whiters
     public Space withId(long newId){
         return new Space(newId, venue_id, name, description);
     }
 
-    public long getVenueId(){ return venue_id; }
-    public Space withVenueId(long newVenueId){
+    public Space withVenueId(Long newVenueId){
         return new Space(id, newVenueId, name, description);
     }
 
-    public String getName(){ return name; }
     public Space withName(String newName){
         return new Space(id, venue_id, newName, description);
     }
 
-    public String getDescription(){ return description; }
     public Space withDescription(String newDescription){
         return new Space(id, venue_id, name, newDescription);
     }

@@ -22,7 +22,7 @@ public interface UserRepository {
 
     List<User> findAllByAccountStatus(Connection conn, AccountStatus accountStatus);
 
-    Optional<Integer> getAverageReview(Connection conn, long userId);
+    Optional<Double> getAverageReview(Connection conn, long userId);
 
     Optional<String> getPasswordById(Connection conn, long userId);
 

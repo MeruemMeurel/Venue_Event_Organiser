@@ -2,6 +2,7 @@ package Venue_Event_Manager.repository.jdbc;
 
 import Venue_Event_Manager.domain.model.user.AccountStatus;
 import Venue_Event_Manager.domain.model.user.User;
+import Venue_Event_Manager.repository.ReviewRepository;
 import Venue_Event_Manager.repository.UserRepository;
 import java.sql.*;
 import java.util.ArrayList;
@@ -26,9 +27,9 @@ public class PgUserRepository implements UserRepository {
     );
 
 
-    private static final String SQL_FIND_ALL =
-            "SELECT id, username, firstname, lastname, birthday, email, phone, is_admin, account_status " +
-            "FROM user";
+    private static final String SQL_FIND_ALL = "SELECT id, username, firstname, lastname, birthday, email, phone, " +
+                                                      "is_admin, account_status " +
+                                               "FROM user";
     /**
      * Executes query to database to get all Users
      * @param conn The database connection used
@@ -139,7 +140,7 @@ public class PgUserRepository implements UserRepository {
     }
 
 
-    private static final String SQL_ALL_BY_IS_ADMIN = SQL_FIND_ALL + " WHERE is_admin = ?";
+    private static final String SQL_FIND_ALL_BY_IS_ADMIN = SQL_FIND_ALL + " WHERE is_admin = ?";
     /**
      * Executes query to database to get all Users filtered by admin status
      * @param conn The database connection used
@@ -149,7 +150,7 @@ public class PgUserRepository implements UserRepository {
     @Override
     public List<User> findAllByIsAdmin(Connection conn, boolean isAdmin) {
         List<User> users = new ArrayList<>();
-        try(PreparedStatement ps = conn.prepareStatement(SQL_ALL_BY_IS_ADMIN)){
+        try(PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL_BY_IS_ADMIN)){
             ps.setBoolean(1, isAdmin);
             
             try(ResultSet rs = ps.executeQuery()){
@@ -162,7 +163,7 @@ public class PgUserRepository implements UserRepository {
     }
 
 
-    private static final String SQL_ALL_BY_ACCOUNT_STATUS = SQL_FIND_ALL + " WHERE account_status = ?";
+    private static final String SQL_FIND_ALL_BY_ACCOUNT_STATUS = SQL_FIND_ALL + " WHERE account_status = ?";
     /**
      * Executes query to database to get all Users filtered by account status
      * @param conn The database connection used
@@ -172,7 +173,7 @@ public class PgUserRepository implements UserRepository {
     @Override
     public List<User> findAllByAccountStatus(Connection conn, AccountStatus accountStatus) {
         List<User> users = new ArrayList<>();
-        try(PreparedStatement ps = conn.prepareStatement(SQL_ALL_BY_ACCOUNT_STATUS)){
+        try(PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL_BY_ACCOUNT_STATUS)){
             ps.setString(1, accountStatus.name());
             
             try(ResultSet rs = ps.executeQuery()){
@@ -189,18 +190,19 @@ public class PgUserRepository implements UserRepository {
      * Calculates the average review score for a specific user
      * @param conn the database connection
      * @param userId the id of the user
-     * @return Optional<Integer> with the average score
+     * @return Optional<Double> with the average score
      */
     @Override
-    public Optional<Integer> getAverageReview(Connection conn, long userId) {
-        // TODO: Integrate with ReviewRepository logic
-        return Optional.empty();
+    public Optional<Double> getAverageReview(Connection conn, long userId) {
+        ReviewRepository reviewRepository = new PgReviewRepository();
+        double average = reviewRepository.getAverageRatingByUser(conn, userId);
+        return average != 0.0 ? Optional.of(average) : Optional.empty();
     }
 
 
-    private static final String SQL_GET_PASSWORD = "SELECT password FROM user WHERE id = ?";
-
-
+    private static final String SQL_GET_PASSWORD = "SELECT password " +
+                                                   "FROM user " +
+                                                   "WHERE id = ?";
     /**
      * Executes query to get password of a user
      * @param conn the db connection
@@ -222,9 +224,9 @@ public class PgUserRepository implements UserRepository {
     }
 
 
-    private static final String SQL_INSERT =
-            "INSERT INTO user (username, password, firstname, lastname, birthday, email, phone, is_admin, account_status) " +
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id";
+    private static final String SQL_INSERT = "INSERT INTO user (username, password, firstname, lastname, birthday, email, " +
+                                                               "phone, is_admin, account_status) " +
+                                             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id";
     /**
      * Executes SQL Query to insert user object to database
      * @param conn the connection to database
@@ -255,10 +257,10 @@ public class PgUserRepository implements UserRepository {
     }
 
 
-    private static final String SQL_UPDATE =
-            "UPDATE user " +
-            "SET username = ?, firstname = ?, lastname = ?, birthday = ?, email = ?, phone = ?, is_admin = ?, " +
-                "account_status = ? WHERE id = ?";
+    private static final String SQL_UPDATE = "UPDATE user " +
+                                             "SET username = ?, firstname = ?, lastname = ?, birthday = ?, email = ?, " +
+                                                 "phone = ?, is_admin = ?, account_status = ? " +
+                                             "WHERE id = ?";
     /**
      * Executes SQL Query to update a user's profile information
      * @param conn the connection to database
@@ -285,7 +287,9 @@ public class PgUserRepository implements UserRepository {
     }
 
 
-    private static final String SQL_UPDATE_ACCOUNT_STATUS = "UPDATE user SET account_status = ? WHERE id = ?";
+    private static final String SQL_UPDATE_ACCOUNT_STATUS = "UPDATE user " +
+                                                            "SET account_status = ? " +
+                                                            "WHERE id = ?";
     /**
      * Executes SQL Query to update a user's Account Status
      * @param conn the connection to database
@@ -306,7 +310,9 @@ public class PgUserRepository implements UserRepository {
     }
 
 
-    private static final String SQL_UPDATE_PASSWORD = "UPDATE user SET password = ? WHERE id = ?";
+    private static final String SQL_UPDATE_PASSWORD = "UPDATE user " +
+                                                      "SET password = ? " +
+                                                      "WHERE id = ?";
     /**
      * Changes password of a user, if the old password provided is correct
      * @param conn the database connection
@@ -327,7 +333,8 @@ public class PgUserRepository implements UserRepository {
     }
 
 
-    private static final String SQL_DELETE = "DELETE FROM user WHERE id = ?";
+    private static final String SQL_DELETE = "DELETE FROM user " +
+                                             "WHERE id = ?";
     /**
      * Deletes a user from database if the password is correct
      * @param conn the database connection

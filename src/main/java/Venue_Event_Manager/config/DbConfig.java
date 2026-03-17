@@ -48,19 +48,17 @@ public final class DbConfig {
     public static DbConfig load() {
         Properties props = loadPropertiesFromClasspath("application.properties");
 
-        String host = props.getProperty("db.host");
-        String portStr = props.getProperty("db.port");
-        String Name = props.getProperty("db.name");
-        String user = props.getProperty("db.user");
-        String password = props.getProperty("db.password");
-        String sslMode = props.getProperty("db.sslMode");
-        String schema = props.getProperty("db.schema");
-
-        //TODO add env (environmental variables) if so decided
+        String host = envOrProp("DB_HOST", props, "db.host");
+        String portStr = envOrProp("DB_PORT", props, "db.port");
+        String name = envOrProp("DB_NAME", props, "db.name");
+        String user = envOrProp("DB_USER", props, "db.user");
+        String password = envOrProp("DB_PASSWORD", props, "db.password");
+        String sslMode = envOrProp("DB_SSLMODE", props, "db.sslMode");
+        String schema = envOrProp("DB_SCHEMA", props, "db.schema");
 
         int port = parsePort(portStr);
 
-        return new DbConfig(host, port, Name, user, password, sslMode, schema);
+        return new DbConfig(host, port, name, user, password, sslMode, schema);
 
     }
 
@@ -69,8 +67,8 @@ public final class DbConfig {
      * @return jdbc url
      */
     public String getJdbcUrl(){
-        return String.format("jdbc:mysql://%s:%d/%s?sslmode=%s&currentSchema=%s"
-                , host, port, dbName,urlEncode(sslMode), urlEncode(schema));
+        return String.format("jdbc:postgresql://%s:%d/%s?sslmode=%s&currentSchema=%s",
+                host, port, dbName, urlEncode(sslMode), urlEncode(schema));
     }
 
     //getters
@@ -137,6 +135,19 @@ public final class DbConfig {
             throw new IllegalStateException("Missing config: " + label);
         }
         return string.trim();
+    }
+
+    /**
+     * Get value from environment variable or properties file
+     * @param envKey environment variable key
+     * @param props properties object
+     * @param propKey properties key
+     * @return value from environment variable or properties file
+     */
+    private static String envOrProp(String envKey, Properties props, String propKey) {
+        String env = System.getenv(envKey);
+        if (env != null && !env.isBlank()) return env.trim();
+        return props.getProperty(propKey);
     }
 
 }
