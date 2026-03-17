@@ -22,7 +22,8 @@ public class PgReviewRepository implements ReviewRepository {
     );
 
 
-    private static final String SQL_FIND_ALL = "SELECT id, user_id, event_id, rating, comment, created_at FROM review";
+    private static final String SQL_FIND_ALL = "SELECT id, user_id, event_id, rating, comment, created_at " +
+                                               "FROM review";
     /**
      * Executes query to database to get all reviews
      * @param conn The database connection used
@@ -166,7 +167,9 @@ public class PgReviewRepository implements ReviewRepository {
     }
 
 
-    private static final String SQL_AVG_BY_USER = "SELECT AVG(rating) FROM review WHERE user_id = ?";
+    private static final String SQL_AVG_BY_USER = "SELECT AVG(rating) " +
+                                                  "FROM review " +
+                                                  "WHERE user_id = ?";
     /**
      * Calculates the average rating given by a user
      * @param conn The database connection used
@@ -188,7 +191,9 @@ public class PgReviewRepository implements ReviewRepository {
     }
 
 
-    private static final String SQL_AVG_BY_EVENT = "SELECT AVG(rating) FROM review WHERE event_id = ?";
+    private static final String SQL_AVG_BY_EVENT = "SELECT AVG(rating) " +
+                                                   "FROM review " +
+                                                   "WHERE event_id = ?";
     /**
      * Calculates the average rating received by an event
      * @param conn The database connection used
@@ -237,8 +242,9 @@ public class PgReviewRepository implements ReviewRepository {
     }
 
 
-    private static final String SQL_UPDATE = "UPDATE review SET user_id = ?, event_id = ?, rating = ?, comment = ?, " +
-                                             "created_at = ? WHERE id = ?";
+    private static final String SQL_UPDATE = "UPDATE review " +
+                                             "SET user_id = ?, event_id = ?, rating = ?, comment = ?, created_at = ? " +
+                                             "WHERE id = ?";
     /**
      * Executes SQL Query to update an existing review
      * @param conn the connection to database
@@ -262,7 +268,8 @@ public class PgReviewRepository implements ReviewRepository {
     }
 
 
-    private static final String SQL_DELETE = "DELETE FROM review WHERE id = ?";
+    private static final String SQL_DELETE = "DELETE FROM review " +
+                                             "WHERE id = ?";
     /**
      * Deletes a review from database by its id
      * @param conn the database connection
