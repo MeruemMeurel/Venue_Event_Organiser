@@ -153,7 +153,8 @@ public class PgEventGuestRepository implements EventGuestRepository {
 
 
     private final static String SQL_INSERT = "INSERT INTO event_guest (event_id, firstname, lastname, birthday, " +
-                                             "status, note) VALUES (?, ?, ?, ?, ?, ?) RETURNING id";
+                                                                      "status, note) " +
+                                             "VALUES (?, ?, ?, ?, ?, ?) RETURNING id";
     /**
      * Executes SQL query to insert a new event guest
      * @param conn the db connection
@@ -180,8 +181,10 @@ public class PgEventGuestRepository implements EventGuestRepository {
     }
 
 
-    private final static String SQL_UPDATE = "UPDATE event_guest SET event_id = ?, firstname = ?, lastname = ?, " +
-                                             "birthday = ?, status = ?, note = ? WHERE id = ?";
+    private final static String SQL_UPDATE = "UPDATE event_guest " +
+                                             "SET event_id = ?, firstname = ?, lastname = ?, birthday = ?, status = ?, " +
+                                                 "note = ? " +
+                                             "WHERE id = ?";
     /**
      * Executes SQL query to update an existing event guest
      * @param conn the db connection
@@ -206,7 +209,9 @@ public class PgEventGuestRepository implements EventGuestRepository {
     }
 
 
-    private final static String SQL_UPDATE_STATUS = "UPDATE event_guest SET status = ? WHERE id = ?";
+    private final static String SQL_UPDATE_STATUS = "UPDATE event_guest " +
+                                                    "SET status = ? " +
+                                                    "WHERE id = ?";
     /**
      * Executes SQL query to update only the status of an event guest
      * @param conn the db connection
@@ -227,7 +232,8 @@ public class PgEventGuestRepository implements EventGuestRepository {
     }
 
 
-    private final static String SQL_DELETE = "DELETE FROM event_guest WHERE id = ?";
+    private final static String SQL_DELETE = "DELETE FROM event_guest " +
+                                             "WHERE id = ?";
     /**
      * Executes SQL query to delete an event guest by id
      * @param conn the db connection
