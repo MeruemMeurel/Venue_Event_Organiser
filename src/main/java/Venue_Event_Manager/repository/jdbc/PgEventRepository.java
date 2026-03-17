@@ -392,9 +392,11 @@ public class PgEventRepository implements EventRepository {
     }
 
 
-    private final static String SQL_UPDATE = "UPDATE event SET venue_id = ?, creator_id = ?, organiser_id = ?, " +
-            "name = ?, description = ?, begin_datetime = ?, end_datetime = ?, poster_filepath = ?, " +
-            "capacity = ?, status = ?, visibility = ?, ticket_price = ?, published_at = ? WHERE id = ?";
+    private final static String SQL_UPDATE = "UPDATE event " +
+                                             "SET venue_id = ?, creator_id = ?, organiser_id = ?, name = ?, description = ?, " +
+                                                 "begin_datetime = ?, end_datetime = ?, poster_filepath = ?, capacity = ?, " +
+                                                 "status = ?, visibility = ?, ticket_price = ?, published_at = ? " +
+                                             "WHERE id = ?";
     /**
      * Executes SQL query to update an existing event
      * @param conn the db connection
@@ -426,7 +428,9 @@ public class PgEventRepository implements EventRepository {
     }
 
 
-    private final static String SQL_UPDATE_STATUS = "UPDATE event SET status = ? WHERE id = ?";
+    private final static String SQL_UPDATE_STATUS = "UPDATE event " +
+                                                    "SET status = ? " +
+                                                    "WHERE id = ?";
     /**
      * Executes SQL query to update only the status of an event
      * @param conn the db connection
@@ -447,7 +451,9 @@ public class PgEventRepository implements EventRepository {
     }
 
 
-    private final static String SQL_UPDATE_VISIBILITY = "UPDATE event SET visibility = ? WHERE id = ?";
+    private final static String SQL_UPDATE_VISIBILITY = "UPDATE event " +
+                                                        "SET visibility = ? " +
+                                                        "WHERE id = ?";
     /**
      * Updates only the visibility level of an event
      * @param conn the db connection
@@ -468,7 +474,8 @@ public class PgEventRepository implements EventRepository {
     }
 
 
-    private final static String SQL_DELETE = "DELETE FROM event WHERE id = ?";
+    private final static String SQL_DELETE = "DELETE FROM event " +
+                                             "WHERE id = ?";
     /**
      * Deletes an event by id
      * @param conn the db connection
