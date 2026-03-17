@@ -75,5 +75,4 @@ public abstract class Resource {
         if (id == 0) return super.hashCode();
         return Objects.hash(id);
     }
-
 }

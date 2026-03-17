@@ -26,7 +26,7 @@ public class Equipment extends Resource {
     }
 
     /** Constructor for unsaved equipment (ID defaults to 0). */
-    public Equipment(long venue_id, String name, String description, int total_quantity){
+    public Equipment(Long venue_id, String name, String description, int total_quantity){
         super(venue_id, name, description);
         this.total_quantity = total_quantity;
     }
