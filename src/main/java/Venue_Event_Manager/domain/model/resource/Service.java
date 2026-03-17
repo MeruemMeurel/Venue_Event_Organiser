@@ -5,45 +5,34 @@ import java.util.Objects;
 /**
  * Domain entity representing a Service available for events.
  */
-public class Service {
-
-    //attributes
-    private final long id;
-    private final String name;
-    private final String description;
-
+public class Service extends Resource {
 
     //costructors
     /** Initializes an empty service with default and empty values. */
     public Service(){
-        this(0, "", "");
+        super();
     }
 
     /** Master constructor for full initialization. */
     public Service(long id, String name, String description){
-        this.id = id;
-        this.name = name;
-        this.description = description;
+        super(id, null, name, description);
     }
 
     /** Constructor for unsaved service (ID defaults to 0). */
     public Service(String name, String description){
-        this(0, name, description);
+        super(null, name, description);
     }
 
 
-    //getters and whiters
-    public long getId(){ return id; }
+    //whiters
     public Service withId(long newId){
         return new Service(newId, name, description);
     }
 
-    public String getName(){ return name; }
     public Service withName(String newName){
         return new Service(id, newName, description);
     }
 
-    public String getDescription(){ return description; }
     public Service withDescription(String newDescription){
         return new Service(id, name, newDescription);
     }
