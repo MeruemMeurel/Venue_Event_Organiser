@@ -21,7 +21,8 @@ public class PgTicketRepository implements TicketRepository {
     );
 
 
-    private final static String SQL_FIND_ALL = "SELECT id, booking_id, firstname, lastname, starts_at FROM ticket";
+    private final static String SQL_FIND_ALL = "SELECT id, booking_id, firstname, lastname, starts_at " +
+                                               "FROM ticket";
     /**
      * Executes SQL query to get all tickets
      * @param conn the connection to db
@@ -117,8 +118,9 @@ public class PgTicketRepository implements TicketRepository {
     }
 
 
-    private final static String SQL_UPDATE = "UPDATE ticket SET booking_id = ?, firstname = ?, lastname = ?, " +
-                                             "starts_at = ? WHERE id = ?";
+    private final static String SQL_UPDATE = "UPDATE ticket " +
+                                             "SET booking_id = ?, firstname = ?, lastname = ?, starts_at = ? " +
+                                             "WHERE id = ?";
     /**
      * Executes SQL query to update an existing ticket
      * @param conn the db connection
@@ -141,7 +143,8 @@ public class PgTicketRepository implements TicketRepository {
     }
 
 
-    private final static String SQL_DELETE = "DELETE FROM ticket WHERE id = ?";
+    private final static String SQL_DELETE = "DELETE FROM ticket " +
+                                             "WHERE id = ?";
     /**
      * Executes SQL query to delete a ticket by id
      * @param conn the db connection
