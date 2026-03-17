@@ -1,0 +1,79 @@
+package Venue_Event_Manager.domain.model.resource;
+
+import java.util.Objects;
+
+/**
+ * Abstract base class representing a generic resource (Space, Service, or Equipment)
+ */
+public abstract class Resource {
+
+    //attributes
+    protected final long id;
+    protected final Long venue_id; //reference to Venue, NULLABLE for Equipment, everytime null for Service
+    protected final String name;
+    protected final String description;
+
+
+    //constructors
+    /** Initializes an empty resource with default and empty values. */
+    public Resource(){
+        this(0, null, "", "");
+    }
+
+    /** Master constructor for full initialization. */
+    protected Resource(long id, Long venue_id, String name, String description) {
+        this.id = id;
+        this.venue_id = venue_id;
+        this.name = Objects.requireNonNull(name, "Resource name cannot be null");
+        this.description = description;
+    }
+
+    /** Constructor for unsaved resource (ID defaults to 0). */
+    public Resource(Long venue_id, String name, String description){
+        this(0, venue_id, name, description);
+    }
+
+
+    //getters
+    public long getId() {
+        return id;
+    }
+    public Long getVenueId() {
+        return venue_id;
+    }
+    public String getName() {
+        return name;
+    }
+    public String getDescription() {
+        return description;
+    }
+
+
+    @Override
+    public String toString() {
+        return "Resource{" +
+                "class="  + this.getClass() + "; " +
+                "id=" + id + "; " +
+                "venue_id=" + venue_id + "; " +
+                "name=" + name + "; " +
+                "description=" + description + ";" +
+                "}";
+    }
+
+    /** Compares equipment based on ID uniqueness */
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) return true;
+        if (other == null || getClass() != other.getClass()) return false;
+        Resource resource = (Resource) other;
+        if (id == 0 && resource.id == 0) return false;
+        return id == resource.id;
+    }
+
+    @Override
+    public int hashCode() {
+        if (id == 0) return super.hashCode();
+        return Objects.hash(id);
+    }
+
+}
