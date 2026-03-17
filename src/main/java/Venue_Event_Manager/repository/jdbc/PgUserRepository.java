@@ -27,9 +27,9 @@ public class PgUserRepository implements UserRepository {
     );
 
 
-    private static final String SQL_FIND_ALL =
-            "SELECT id, username, firstname, lastname, birthday, email, phone, is_admin, account_status " +
-            "FROM user";
+    private static final String SQL_FIND_ALL = "SELECT id, username, firstname, lastname, birthday, email, phone, " +
+                                                      "is_admin, account_status " +
+                                               "FROM user";
     /**
      * Executes query to database to get all Users
      * @param conn The database connection used
@@ -200,9 +200,9 @@ public class PgUserRepository implements UserRepository {
     }
 
 
-    private static final String SQL_GET_PASSWORD = "SELECT password FROM user WHERE id = ?";
-
-
+    private static final String SQL_GET_PASSWORD = "SELECT password " +
+                                                   "FROM user " +
+                                                   "WHERE id = ?";
     /**
      * Executes query to get password of a user
      * @param conn the db connection
@@ -224,9 +224,9 @@ public class PgUserRepository implements UserRepository {
     }
 
 
-    private static final String SQL_INSERT =
-            "INSERT INTO user (username, password, firstname, lastname, birthday, email, phone, is_admin, account_status) " +
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id";
+    private static final String SQL_INSERT = "INSERT INTO user (username, password, firstname, lastname, birthday, email, " +
+                                                               "phone, is_admin, account_status) " +
+                                             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id";
     /**
      * Executes SQL Query to insert user object to database
      * @param conn the connection to database
@@ -257,10 +257,10 @@ public class PgUserRepository implements UserRepository {
     }
 
 
-    private static final String SQL_UPDATE =
-            "UPDATE user " +
-            "SET username = ?, firstname = ?, lastname = ?, birthday = ?, email = ?, phone = ?, is_admin = ?, " +
-                "account_status = ? WHERE id = ?";
+    private static final String SQL_UPDATE = "UPDATE user " +
+                                             "SET username = ?, firstname = ?, lastname = ?, birthday = ?, email = ?, " +
+                                                 "phone = ?, is_admin = ?, account_status = ? " +
+                                             "WHERE id = ?";
     /**
      * Executes SQL Query to update a user's profile information
      * @param conn the connection to database
@@ -287,7 +287,9 @@ public class PgUserRepository implements UserRepository {
     }
 
 
-    private static final String SQL_UPDATE_ACCOUNT_STATUS = "UPDATE user SET account_status = ? WHERE id = ?";
+    private static final String SQL_UPDATE_ACCOUNT_STATUS = "UPDATE user " +
+                                                            "SET account_status = ? " +
+                                                            "WHERE id = ?";
     /**
      * Executes SQL Query to update a user's Account Status
      * @param conn the connection to database
@@ -308,7 +310,9 @@ public class PgUserRepository implements UserRepository {
     }
 
 
-    private static final String SQL_UPDATE_PASSWORD = "UPDATE user SET password = ? WHERE id = ?";
+    private static final String SQL_UPDATE_PASSWORD = "UPDATE user " +
+                                                      "SET password = ? " +
+                                                      "WHERE id = ?";
     /**
      * Changes password of a user, if the old password provided is correct
      * @param conn the database connection
@@ -329,7 +333,8 @@ public class PgUserRepository implements UserRepository {
     }
 
 
-    private static final String SQL_DELETE = "DELETE FROM user WHERE id = ?";
+    private static final String SQL_DELETE = "DELETE FROM user " +
+                                             "WHERE id = ?";
     /**
      * Deletes a user from database if the password is correct
      * @param conn the database connection
