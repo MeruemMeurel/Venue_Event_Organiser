@@ -1,5 +1,6 @@
 package Venue_Event_Manager.domain.model.request;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import static Venue_Event_Manager.domain.model.request.EventRequestStatus.*;
@@ -23,7 +24,7 @@ public class EventRequest {
     private final EventRequestStatus status;
     private final LocalDateTime created_at; // TODO gestire valori null?
     private final LocalDateTime closed_at; //NULLABLE
-    private final Double quote; //NULLABLE
+    private final BigDecimal quote; //NULLABLE
 
 
     //constructors
@@ -36,7 +37,7 @@ public class EventRequest {
     /** Master constructor for full initialization. */
     public EventRequest(long id, long requester_id, Long handler_id, long venue_id, String name, String description,
                         LocalDateTime begin_datetime, LocalDateTime end_datetime, EventRequestStatus status,
-                        LocalDateTime created_at, LocalDateTime closed_at, Double quote){
+                        LocalDateTime created_at, LocalDateTime closed_at, BigDecimal quote){
         this.id = id;
         this.requester_id = requester_id;
         this.handler_id = handler_id;
@@ -54,7 +55,7 @@ public class EventRequest {
     /** Constructor for unsaved ticket (ID defaults to 0). */
     public EventRequest(long requester_id, Long handler_id, long venue_id, String name, String description,
                         LocalDateTime begin_datetime, LocalDateTime end_datetime, EventRequestStatus status,
-                        LocalDateTime created_at, LocalDateTime closed_at, Double quote){
+                        LocalDateTime created_at, LocalDateTime closed_at, BigDecimal quote){
         this(0, requester_id, handler_id, venue_id, name, description, begin_datetime, end_datetime, status,
                 created_at, closed_at, quote);
     }
@@ -97,13 +98,13 @@ public class EventRequest {
                 end_datetime, status, created_at, closed_at, quote);
     }
 
-    public LocalDateTime getBeginDateTime() { return begin_datetime; }
+    public LocalDateTime getBeginDatetime() { return begin_datetime; }
     public EventRequest withBeginDateTime(LocalDateTime newBeginDateTime) {
         return new EventRequest(id, requester_id, handler_id, venue_id, name, description, newBeginDateTime,
                 end_datetime, status, created_at, closed_at, quote);
     }
 
-    public LocalDateTime getEndDateTime() { return end_datetime; }
+    public LocalDateTime getEndDatetime() { return end_datetime; }
     public EventRequest withEndDateTime(LocalDateTime newEndDateTime) {
         return new EventRequest(id, requester_id, handler_id, venue_id, name, description, begin_datetime,
                 newEndDateTime, status, created_at, closed_at, quote);
@@ -127,8 +128,8 @@ public class EventRequest {
                 end_datetime, status, created_at, newClosedAt, quote);
     }
 
-    public Double getQuote() { return quote; }
-    public EventRequest withQuote(Double newQuote) {
+    public BigDecimal getQuote() { return quote; }
+    public EventRequest withQuote(BigDecimal newQuote) {
         return new EventRequest(id, requester_id, handler_id, venue_id, name, description, begin_datetime,
                 end_datetime, status, created_at, closed_at, newQuote);
     }

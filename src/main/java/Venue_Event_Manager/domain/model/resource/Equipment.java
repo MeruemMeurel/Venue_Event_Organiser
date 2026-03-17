@@ -6,59 +6,50 @@ import java.util.Objects;
  * Domain entity representing Equipment.
  * Can be generic (venue_id is null) or specific to a Venue.
  */
-public class Equipment {
+public class Equipment extends Resource {
 
     //attributes
-    private final long id;
-    private final Long venue_id; //reference to Venue, NULLABLE
-    private final String name;
-    private final String description;
     private final int total_quantity;
 
 
     //costructors
     /** Initializes an empty equipment with default and empty values. */
     public Equipment(){
-        this(0, null, "", "", 0);
+        super();
+        this.total_quantity = 0;
     }
 
     /** Master constructor for full initialization. */
     public Equipment(long id, Long venue_id, String name, String description, int total_quantity){
-        this.id = id;
-        this.venue_id = venue_id;
-        this.name = name;
-        this.description = description;
+        super(id, venue_id, name, description);
         this.total_quantity = total_quantity;
     }
 
     /** Constructor for unsaved equipment (ID defaults to 0). */
-    public Equipment(long venue_id, String name, String description, int total_quantity){
-        this(0, venue_id, name, description, total_quantity);
+    public Equipment(Long venue_id, String name, String description, int total_quantity){
+        super(venue_id, name, description);
+        this.total_quantity = total_quantity;
     }
 
 
     //getters and whiters
-    public long getId(){ return id; }
     public Equipment withId(long newId){
         return new Equipment(newId, venue_id, name, description, total_quantity);
     }
 
-    public long getVenueId(){ return venue_id; }
     public Equipment withVenueId(long newVenueId){
         return new Equipment(id, newVenueId, name, description, total_quantity);
     }
 
-    public String getName(){ return name; }
     public Equipment withName(String newName){
         return new Equipment(id, venue_id, newName, description, total_quantity);
     }
 
-    public String getDescription(){ return description; }
     public Equipment withDescription(String newDescription){
         return new Equipment(id, venue_id, name, newDescription, total_quantity);
     }
 
-    public int getTotal_quantity(){ return total_quantity; }
+    public int getTotalQuantity(){ return total_quantity; }
     public Equipment withTotalQuantity(int newTotalQuantity){
         return new Equipment(id, venue_id, name, description, newTotalQuantity);
     }
@@ -75,7 +66,7 @@ public class Equipment {
                 "}";
     }
 
-    /** Compares equipment based on ID or name and venue_id uniqueness. */
+    /** Compares equipment based on ID or venue_id and name uniqueness */
     @Override
     public boolean equals(Object other){
         if (this == other) return true;
