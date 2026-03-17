@@ -22,7 +22,8 @@ public class PgServiceRepository implements ServiceRepository {
     );
 
 
-    private final static String SQL_FIND_ALL = "SELECT id, name, description FROM service";
+    private final static String SQL_FIND_ALL = "SELECT id, name, description " +
+                                               "FROM service";
     /**
      * Executes query to database to get all Services
      * @param conn The database connection used
@@ -65,7 +66,8 @@ public class PgServiceRepository implements ServiceRepository {
     }
 
 
-    private final static String SQL_INSERT = "INSERT INTO service (name, description) VALUES (?, ?) RETURNING id";
+    private final static String SQL_INSERT = "INSERT INTO service (name, description) " +
+                                             "VALUES (?, ?) RETURNING id";
     /**
      * Executes SQL Query to insert a new service to database
      * @param conn the connection to database
@@ -88,7 +90,9 @@ public class PgServiceRepository implements ServiceRepository {
     }
 
 
-    private final static String SQL_UPDATE = "UPDATE service SET name = ?, description = ? WHERE id = ?";
+    private final static String SQL_UPDATE = "UPDATE service " +
+                                             "SET name = ?, description = ? " +
+                                             "WHERE id = ?";
     /**
      * Executes SQL Query to update an existing service's information
      * @param conn the connection to database
@@ -109,7 +113,8 @@ public class PgServiceRepository implements ServiceRepository {
     }
 
 
-    private final static String SQL_DELETE = "DELETE FROM service WHERE id = ?";
+    private final static String SQL_DELETE = "DELETE FROM service " +
+                                             "WHERE id = ?";
     /**
      * Deletes a service from database by its id
      * @param conn the database connection
