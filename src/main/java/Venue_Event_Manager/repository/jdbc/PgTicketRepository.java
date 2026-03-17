@@ -91,6 +91,57 @@ public class PgTicketRepository implements TicketRepository {
         }
     }
 
+    public static String SQL_FIND_ALL_BY_EVENT = SQL_FIND_ALL + "WHERE event = ?";
+
+    /**
+     * Executes SQL Query to get all tickets for a specific event
+     * @param conn the db connection
+     * @param eventId the id of the event
+     * @return List of Tickets found
+     * @throws DaoException daoException
+     */
+    @Override
+    public List<Ticket> findAllByEventId(Connection conn, long eventId) {
+        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL_BY_EVENT)) {
+            ps.setLong(1, eventId);
+            List<Ticket> tickets = new ArrayList<>();
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    tickets.add(ticket_mapper.mapRow(rs));
+                }
+            }
+            return tickets;
+        } catch (SQLException e) {
+            throw new DaoException("Error while trying to find tickets for event id = " + eventId, e);
+        }    }
+
+    public static String SQL_COUNT_TICKETS =    "SELECT count(t.booking_id) AS total_tickets " +
+                                                "FROM ticket t" +
+                                                "INNER JOIN booking b ON b.id = t.booking_id" +
+                                                "WHERE b.event_id = ? AND (b.status = PENDING_PAYMENT OR status = CONFIRMED)" +
+                                                "GROUP BY b.event_id";
+
+    /**
+     * Executes SQL query to count the tickets for an event that are pending a payment or are confirmed
+     * @param conn the db connection
+     * @param eventId the id of the event
+     * @return Optional object with the result
+     * @throws DaoException daoException
+     */
+    @Override
+    public Optional<Integer> countTicketsForEvent(Connection conn, long eventId) {
+        try(PreparedStatement ps = conn.prepareStatement(SQL_COUNT_TICKETS)){
+            ps.setLong(1, eventId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) return Optional.empty();
+                else return Optional.of(rs.getInt("total_tickets"));
+            }
+        }catch (SQLException e){
+            throw new DaoException("Error while trying to count tickets for event id = " + eventId, e);
+        }
+    }
 
     private final static String SQL_INSERT = "INSERT INTO ticket (booking_id, firstname, lastname, starts_at) " +
                                              "VALUES (?, ?, ?, ?) RETURNING id";
