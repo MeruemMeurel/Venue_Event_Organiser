@@ -361,7 +361,9 @@ public class PgEventRequestRepository implements EventRequestRepository {
     }
 
 
-    private final static String SQL_UPDATE_STATUS = "UPDATE event_request SET status = ? WHERE id = ?";
+    private final static String SQL_UPDATE_STATUS = "UPDATE event_request " +
+                                                    "SET status = ? " +
+                                                    "WHERE id = ?";
     /**
      * Executes SQL query to update only the status of a specific request
      * @param conn the db connection
@@ -382,7 +384,8 @@ public class PgEventRequestRepository implements EventRequestRepository {
     }
 
 
-    private final static String SQL_DELETE = "DELETE FROM event_request WHERE id = ?";
+    private final static String SQL_DELETE = "DELETE FROM event_request " +
+                                             "WHERE id = ?";
     /**
      * Executes SQL query to delete an event request from the database
      * @param conn the db connection
