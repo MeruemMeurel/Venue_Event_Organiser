@@ -69,8 +69,8 @@ public final class DbConfig {
      * @return jdbc url
      */
     public String getJdbcUrl(){
-        return String.format("jdbc:mysql://%s:%d/%s?sslmode=%s&currentSchema=%s"
-                , host, port, dbName,urlEncode(sslMode), urlEncode(schema));
+        return String.format("jdbc:postgresql://%s:%d/%s?sslmode=%s&currentSchema=%s",
+                host, port, dbName, urlEncode(sslMode), urlEncode(schema));
     }
 
     //getters
