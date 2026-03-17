@@ -226,8 +226,9 @@ public class PgReportRepository implements ReportRepository {
     }
 
 
-    private static final String SQL_INSERT = "INSERT INTO report (user_id, admin_id, event_id, severity, " +
-                                             "comment, created_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id";
+    private static final String SQL_INSERT = "INSERT INTO report (user_id, admin_id, event_id, severity, comment, " +
+                                                                 "created_at) " +
+                                             "VALUES (?, ?, ?, ?, ?, ?) RETURNING id";
     /**
      * Executes SQL query to insert a new report
      * @param conn the db connection
@@ -254,8 +255,10 @@ public class PgReportRepository implements ReportRepository {
     }
 
 
-    private static final String SQL_UPDATE = "UPDATE report SET user_id = ?, admin_id = ?, event_id = ?, severity = ?, " +
-                                             "comment = ?, created_at = ? WHERE id = ?";
+    private static final String SQL_UPDATE = "UPDATE report " +
+                                             "SET user_id = ?, admin_id = ?, event_id = ?, severity = ?, comment = ?, " +
+                                                 "created_at = ? " +
+                                             "WHERE id = ?";
     /**
      * Executes SQL query to update an existing report
      * @param conn the db connection
@@ -280,7 +283,8 @@ public class PgReportRepository implements ReportRepository {
     }
 
 
-    private static final String SQL_DELETE = "DELETE FROM report WHERE id = ?";
+    private static final String SQL_DELETE = "DELETE FROM report " +
+                                             "WHERE id = ?";
     /**
      * Executes SQL query to delete a report by id
      * @param conn the db connection
