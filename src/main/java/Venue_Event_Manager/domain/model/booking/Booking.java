@@ -15,7 +15,7 @@ public class Booking {
     private final long id;
     private final long user_id; //reference to User
     private final long event_id; //reference to Event
-    private final LocalDateTime created_at;
+    private final LocalDateTime created_at; // TODO gestire valori null?
     private final BookingStatus status;
     private final BigDecimal total_price;
 
