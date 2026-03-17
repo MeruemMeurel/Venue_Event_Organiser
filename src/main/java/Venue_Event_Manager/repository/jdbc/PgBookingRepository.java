@@ -23,7 +23,8 @@ public class PgBookingRepository implements BookingRepository {
     );
 
 
-    public static final String SQL_FIND_ALL = "SELECT id, user_id, event_id, created_at, status, total_price FROM booking";
+    public static final String SQL_FIND_ALL = "SELECT id, user_id, event_id, created_at, status, total_price " +
+                                              "FROM booking";
     /**
      * Executes SQL query to get all bookings
      * @param conn the connection to db
@@ -251,8 +252,9 @@ public class PgBookingRepository implements BookingRepository {
     }
 
 
-    public static final String SQL_UPDATE = "UPDATE booking SET user_id = ?, event_id = ?, created_at = ?, status = ?, " +
-                                            "total_price = ? WHERE id = ?";
+    public static final String SQL_UPDATE = "UPDATE booking " +
+                                            "SET user_id = ?, event_id = ?, created_at = ?, status = ?, total_price = ? " +
+                                            "WHERE id = ?";
     /**
      * Executes SQL Query to update booking and save it to db
      * @param conn the db connection
@@ -276,7 +278,9 @@ public class PgBookingRepository implements BookingRepository {
     }
 
 
-    public static final String SQL_UPDATE_STATUS = "UPDATE booking SET status = ? WHERE id = ?";
+    public static final String SQL_UPDATE_STATUS = "UPDATE booking " +
+                                                   "SET status = ? " +
+                                                   "WHERE id = ?";
     /**
      * Executes SQL Query to update status of a booking
      * @param conn the db connection
@@ -297,7 +301,8 @@ public class PgBookingRepository implements BookingRepository {
     }
 
 
-    public static final String SQL_DELETE = "DELETE FROM booking WHERE id = ?";
+    public static final String SQL_DELETE = "DELETE FROM booking " +
+                                            "WHERE id = ?";
     /**
      * Executes SQL Query to delete booking from db from its id
      * @param conn the db connection
