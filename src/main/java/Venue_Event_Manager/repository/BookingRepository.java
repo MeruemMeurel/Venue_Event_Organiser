@@ -25,6 +25,8 @@ public interface BookingRepository {
 
     List<Booking> findAllByUserIdAndEventId(Connection conn, long userId, long eventId);
 
+    Optional<Integer> countBookingsForEvent(Connection conn, long eventId);
+
     long insert(Connection conn, Booking booking);
 
     void update(Connection conn, Booking booking);

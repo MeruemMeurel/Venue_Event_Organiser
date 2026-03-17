@@ -224,6 +224,23 @@ public class PgBookingRepository implements BookingRepository {
         }
     }
 
+    public static final String SQL_COUNT_BOOKINGS_FOR_EVENT =   "SELECT COUNT(id) AS total_bookings" +
+                                                                "FROM booking" +
+                                                                "WHERE event_id = ? AND (status = PENDING_PAYMENT OR status = CONFIRMED)";
+    @Override
+    public Optional<Integer> countBookingsForEvent(Connection conn, long eventId) {
+        try(PreparedStatement ps = conn.prepareStatement(SQL_COUNT_BOOKINGS_FOR_EVENT)){
+            ps.setLong(1,eventId);
+
+            try(ResultSet rs = ps.executeQuery()){
+                if(!rs.next()) return Optional.empty();
+                else return Optional.of(rs.getInt("total_bookings"));
+            }
+
+        }catch (SQLException e){
+            throw new DaoException("Error while trying to count bookings for eventId = " + eventId, e);
+        }
+    }
 
     public static final String SQL_INSERT = "INSERT INTO booking (user_id, event_id, created_at, status, total_price) " +
                                             "VALUES (?, ?, ?, ?, ?) RETURNING id";
