@@ -14,6 +14,8 @@ public interface EventRepository {
 
     Optional<Event> findById(Connection conn, long eventId);
 
+    Optional<Event> findByIdForUpdate(Connection conn, long eventId);
+
     List<Event> findAllByVenueId(Connection conn, long venueId);
 
     List<Event> findAllByCreatorId(Connection conn, long creatorId);
