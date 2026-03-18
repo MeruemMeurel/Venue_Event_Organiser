@@ -5,9 +5,11 @@ import Venue_Event_Manager.domain.model.booking.Booking;
 import Venue_Event_Manager.domain.model.booking.BookingStatus;
 import Venue_Event_Manager.domain.model.booking.Ticket;
 import Venue_Event_Manager.domain.model.event.Event;
+import Venue_Event_Manager.domain.model.event.EventVisibility;
 import Venue_Event_Manager.exception.ConflictException;
 import Venue_Event_Manager.exception.ForbiddenException;
 import Venue_Event_Manager.exception.NotFoundException;
+import Venue_Event_Manager.exception.ValidationException;
 import Venue_Event_Manager.repository.BookingRepository;
 import Venue_Event_Manager.repository.EquipmentRepository;
 import Venue_Event_Manager.repository.EventRepository;
@@ -120,10 +122,15 @@ public class BookingService {
      * @throws ConflictException if overbooking is happening
      */
     public Booking book(long userId, long eventId, List<Ticket> tickets){
+
+        validateManyTickets(tickets);
+
         return transactionManager.inTransaction(conn->{
 
             Event event = eventRepository.findByIdForUpdate(conn,eventId)
                     .orElseThrow(() -> new NotFoundException("No event with such id exists"));
+
+            validateEventToBook(event);
 
             int alreadyReserved = ticketRepository.countTicketsForEvent(conn,eventId);
 
@@ -177,6 +184,27 @@ public class BookingService {
             bookingRepository.delete(conn,bookingId);
             return null;
         });
+    }
+
+    public void validateEventToBook(Event event){
+        if(event == null) throw new ValidationException("Event is null");
+        if(event.getEndDatetime().isBefore(LocalDateTime.now())) throw new ValidationException("Event has ended");
+        if(!(event.getVisibility() == EventVisibility.PUBLIC))  throw new ValidationException("Event is not public");
+    }
+
+    public void validateManyTickets(List<Ticket> tickets){
+        if(tickets.isEmpty() || tickets == null) throw new ValidationException("No tickets found");
+        for(Ticket ticket : tickets){
+            validateTicketForInsert(ticket);
+        }
+    }
+
+    public void validateTicketForInsert(Ticket ticket){
+
+        if (ticket == null) throw new ValidationException("Ticket is null");
+        if(ticket.getBookingId() != 0) throw new ValidationException("Ticket has already been booked");
+        if(ticket.getFirstname() == null || ticket.getLastname() == null) throw new ValidationException("Firstname or Lastname is null");
+        if(ticket.getFirstname().isEmpty() || ticket.getLastname().isEmpty()) throw new ValidationException("Firstname or Lastname is empty");
     }
 
 
