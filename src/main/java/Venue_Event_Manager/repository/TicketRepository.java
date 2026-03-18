@@ -19,6 +19,8 @@ public interface TicketRepository {
 
     long insert(Connection conn, Ticket ticket);
 
+    void insertMany(Connection conn, List<Ticket> tickets);
+
     void update(Connection conn, Ticket ticket);
 
     void deleteById(Connection conn, long ticketId);

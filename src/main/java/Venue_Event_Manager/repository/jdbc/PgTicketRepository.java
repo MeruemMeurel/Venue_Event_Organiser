@@ -167,6 +167,18 @@ public class PgTicketRepository implements TicketRepository {
         }
     }
 
+    /**
+     * Executes multiple sql queries to insert a list of tickets
+     * @param conn the db connection
+     * @param tickets the list of tickets
+     * @throws DaoException dao exception
+     */
+    @Override
+    public void insertMany(Connection conn, List<Ticket> tickets) {
+        for (Ticket ticket : tickets) {
+            insert(conn, ticket);
+        }
+    }
 
     private final static String SQL_UPDATE = "UPDATE ticket " +
                                              "SET booking_id = ?, firstname = ?, lastname = ?, starts_at = ? " +
