@@ -35,6 +35,11 @@ public class Ticket {
         this(0, booking_id, firstname, lastname, startsAt);
     }
 
+    /** Constructor for ticket not yet booked.     */
+    public Ticket(String firstname, String lastname) {
+        this.firstname = firstname;
+        this.lastname = lastname;
+    }
 
     //getters and withers
     public long getId(){ return id; }
@@ -58,7 +63,7 @@ public class Ticket {
     }
 
     public LocalDateTime getStartsAt(){ return starts_at; }
-    public Ticket withBirthday(LocalDateTime newStartsAt){
+    public Ticket withStartsAt(LocalDateTime newStartsAt){
         return new Ticket(id, booking_id, firstname, lastname, newStartsAt);
     }
 
