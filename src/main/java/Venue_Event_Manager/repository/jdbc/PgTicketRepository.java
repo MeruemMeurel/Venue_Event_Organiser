@@ -175,11 +175,20 @@ public class PgTicketRepository implements TicketRepository {
      */
     @Override
     public void insertMany(Connection conn, List<Ticket> tickets) {
-        for(int i=0;i<tickets.size();i++){
-            tickets.set(i,tickets.get(i).withId(
-                    insert(conn,tickets.get(i))
-            ));
+        try(PreparedStatement ps = conn.prepareStatement(SQL_INSERT)){
+            for(Ticket ticket : tickets){
+                ps.setLong(1, ticket.getBookingId());
+                ps.setString(2, ticket.getFirstname());
+                ps.setString(3, ticket.getLastname());
+                ps.setTimestamp(4, Timestamp.valueOf(ticket.getStartsAt()));
+                ps.addBatch();
+            }
+            ps.executeBatch();
+
+        }catch (SQLException e) {
+            throw new DaoException("Error while trying to insert multiple tickets: ", e);
         }
+
     }
 
     private final static String SQL_UPDATE = "UPDATE ticket " +
