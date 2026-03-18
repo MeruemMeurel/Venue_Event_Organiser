@@ -94,7 +94,7 @@ public class UserService {
             throw new ForbiddenException("Wrong password");
         }
         transactionManager.inTransaction(conn -> {
-                userRepository.insert(conn,user,password);
+                userRepository.update(conn,user);
                 return null;
         });
     }
