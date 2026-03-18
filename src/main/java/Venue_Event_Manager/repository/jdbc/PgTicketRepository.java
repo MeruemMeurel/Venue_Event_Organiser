@@ -91,7 +91,7 @@ public class PgTicketRepository implements TicketRepository {
         }
     }
 
-    public static String SQL_FIND_ALL_BY_EVENT = SQL_FIND_ALL + "WHERE event = ?";
+    public static String SQL_FIND_ALL_BY_EVENT = SQL_FIND_ALL + " WHERE event = ?";
 
     /**
      * Executes SQL Query to get all tickets for a specific event
@@ -120,7 +120,7 @@ public class PgTicketRepository implements TicketRepository {
                                                 "FROM ticket t " +
                                                 "INNER JOIN booking b ON b.id = t.booking_id " +
                                                 "WHERE b.event_id = ? " +
-                                                "AND b.status IN ('PENDING_PAYMENT','CANCELLED') ";
+                                                "AND b.status IN ('PENDING_PAYMENT','CONFIRMED') ";
     /**
      * Executes SQL query to count the tickets for an event that are pending a payment or are confirmed
      * @param conn    the db connection
