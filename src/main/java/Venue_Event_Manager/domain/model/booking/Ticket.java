@@ -37,8 +37,11 @@ public class Ticket {
 
     /** Constructor for ticket not yet booked.     */
     public Ticket(String firstname, String lastname) {
+        this.id=0;
+        this.booking_id=0;
         this.firstname = firstname;
         this.lastname = lastname;
+        this.starts_at = LocalDateTime.of(1900,1,1,1,1);
     }
 
     //getters and withers
