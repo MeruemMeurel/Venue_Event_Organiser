@@ -175,8 +175,10 @@ public class PgTicketRepository implements TicketRepository {
      */
     @Override
     public void insertMany(Connection conn, List<Ticket> tickets) {
-        for (Ticket ticket : tickets) {
-            insert(conn, ticket);
+        for(int i=0;i<tickets.size();i++){
+            tickets.set(i,tickets.get(i).withId(
+                    insert(conn,tickets.get(i))
+            ));
         }
     }
 
