@@ -15,7 +15,7 @@ public interface TicketRepository {
 
     List<Ticket> findAllByEventId(Connection conn, long eventId);
 
-    Optional<Integer> countTicketsForEvent(Connection conn, long eventId);
+    int countTicketsForEvent(Connection conn, long eventId);
 
     long insert(Connection conn, Ticket ticket);
 

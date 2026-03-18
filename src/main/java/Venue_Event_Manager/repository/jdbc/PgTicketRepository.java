@@ -116,27 +116,26 @@ public class PgTicketRepository implements TicketRepository {
             throw new DaoException("Error while trying to find tickets for event id = " + eventId, e);
         }    }
 
-    public static String SQL_COUNT_TICKETS =    "SELECT count(t.booking_id) AS total_tickets " +
-                                                "FROM ticket t" +
-                                                "INNER JOIN booking b ON b.id = t.booking_id" +
-                                                "WHERE b.event_id = ? AND (b.status = PENDING_PAYMENT OR status = CONFIRMED)" +
-                                                "GROUP BY b.event_id";
-
+    public static String SQL_COUNT_TICKETS =    "SELECT COUNT(*) AS total_tickets " +
+                                                "FROM ticket t " +
+                                                "INNER JOIN booking b ON b.id = t.booking_id " +
+                                                "WHERE b.event_id = ? " +
+                                                "AND b.status IN ('PENDING_PAYMENT','CANCELLED') ";
     /**
      * Executes SQL query to count the tickets for an event that are pending a payment or are confirmed
-     * @param conn the db connection
+     * @param conn    the db connection
      * @param eventId the id of the event
-     * @return Optional object with the result
+     * @return int number of tickets counted (if none = 0)
      * @throws DaoException daoException
      */
     @Override
-    public Optional<Integer> countTicketsForEvent(Connection conn, long eventId) {
+    public int countTicketsForEvent(Connection conn, long eventId) {
         try(PreparedStatement ps = conn.prepareStatement(SQL_COUNT_TICKETS)){
             ps.setLong(1, eventId);
 
             try (ResultSet rs = ps.executeQuery()) {
-                if (!rs.next()) return Optional.empty();
-                else return Optional.of(rs.getInt("total_tickets"));
+                rs.next();
+                return rs.getInt("total_tickets");
             }
         }catch (SQLException e){
             throw new DaoException("Error while trying to count tickets for event id = " + eventId, e);
