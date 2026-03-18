@@ -77,15 +77,15 @@ public class BookingService {
     }
 
     public List<Booking> getConfirmedBookingsMadeByUser(long userId){
-        return getBookingsWithStatus(BookingStatus.CONFIRMED);
+        return getBookingsByUserWithStatus(userId,BookingStatus.CONFIRMED);
     }
 
     public List<Booking> getPendingBookingsMadeByUser(long userId){
-        return getBookingsWithStatus(BookingStatus.PENDING_PAYMENT);
+        return getBookingsByUserWithStatus(userId,BookingStatus.PENDING_PAYMENT);
     }
 
     public List<Booking> getCancelledBookingsMadeByUser(long userId){
-        return getBookingsWithStatus(BookingStatus.CANCELLED);
+        return getBookingsByUserWithStatus(userId,BookingStatus.CANCELLED);
     }
 
     public List<Booking> getBookingsForEventWithStatus(long eventId, BookingStatus bookingStatus){
