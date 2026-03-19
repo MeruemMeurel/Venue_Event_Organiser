@@ -1,6 +1,8 @@
 package Venue_Event_Manager.repository;
 
 import Venue_Event_Manager.domain.model.resource.Service;
+import Venue_Event_Manager.domain.model.resource.Space;
+
 import java.sql.Connection;
 import java.util.List;
 import java.util.Optional;
@@ -10,6 +12,8 @@ public interface ServiceRepository {
     List<Service> findAll(Connection conn);
 
     Optional<Service> findById(Connection conn, long serviceId);
+
+    List<Service> searchByName(Connection conn, String name);
 
     long insert(Connection conn,Service service);
 

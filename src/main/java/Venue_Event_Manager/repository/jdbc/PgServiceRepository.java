@@ -65,6 +65,31 @@ public class PgServiceRepository implements ServiceRepository {
         }
     }
 
+    private final static String SQL_SEARCH_BY_NAME = SQL_FIND_ALL + " WHERE LOWER(name) LIKE LOWER(?)";
+    /**
+     * Searches in database a name like the parameter name
+     * @param conn the db connection
+     * @param name the name to search
+     * @return List<Service> results of query
+     * @throws DaoException daoException
+     */
+    @Override
+    public List<Service> searchByName(Connection conn, String name) {
+        try(PreparedStatement ps = conn.prepareStatement(SQL_SEARCH_BY_NAME)){
+            ps.setString(1, "%" + name + "%");
+            ArrayList<Service> services = new ArrayList<>();
+
+            try (ResultSet rs = ps.executeQuery()){
+                while(rs.next()){
+                    services.add(service_mapper.mapRow(rs));
+                }
+            }
+            return services;
+        }catch (SQLException e) {
+            throw new DaoException("Error while trying to find services with name: " + name, e);
+        }
+    }
+
 
     private final static String SQL_INSERT = "INSERT INTO service (name, description) " +
                                              "VALUES (?, ?) RETURNING id";

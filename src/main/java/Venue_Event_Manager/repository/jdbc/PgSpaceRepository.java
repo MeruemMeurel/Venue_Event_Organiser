@@ -93,6 +93,30 @@ public class PgSpaceRepository implements SpaceRepository {
         }
     }
 
+    private final static String SQL_SEARCH_BY_NAME = SQL_FIND_ALL + " WHERE LOWER(name) LIKE LOWER(?)";
+    /**
+     * Searches in database a name like the parameter name
+     * @param conn the db connection
+     * @param name the name to search
+     * @return List<Space> results of query
+     * @throws DaoException daoException
+     */
+    @Override
+    public List<Space> searchByName(Connection conn, String name) {
+        try(PreparedStatement ps = conn.prepareStatement(SQL_SEARCH_BY_NAME)){
+            ps.setString(1, "%" + name + "%");
+            ArrayList<Space> spaces = new ArrayList<>();
+
+            try (ResultSet rs = ps.executeQuery()){
+                while(rs.next()){
+                    spaces.add(space_mapper.mapRow(rs));
+                }
+            }
+            return spaces;
+        }catch (SQLException e) {
+            throw new DaoException("Error while trying to find spaces with name: " + name, e);
+        }
+    }
 
     private final static String SQL_INSERT = "INSERT INTO space (venue_id, name, description) " +
                                              "VALUES (?, ?, ?) RETURNING id";

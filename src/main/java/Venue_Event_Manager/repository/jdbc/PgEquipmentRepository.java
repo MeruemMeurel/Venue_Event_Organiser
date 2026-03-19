@@ -96,6 +96,31 @@ public class PgEquipmentRepository implements EquipmentRepository {
         }
     }
 
+    private final static String SQL_SEARCH_BY_NAME = SQL_FIND_ALL + " WHERE LOWER(name) LIKE LOWER(?)";
+    /**
+     * Searches in database a name like the parameter name
+     * @param conn the db connection
+     * @param name the name to search
+     * @return List<Equipment> results of query
+     * @throws DaoException daoException
+     */
+    @Override
+    public List<Equipment> searchByName(Connection conn, String name) {
+        try(PreparedStatement ps = conn.prepareStatement(SQL_SEARCH_BY_NAME)){
+            ps.setString(1, "%" + name + "%");
+            ArrayList<Equipment> equipments = new ArrayList<>();
+
+            try (ResultSet rs = ps.executeQuery()){
+                while(rs.next()){
+                    equipments.add(equipment_mapper.mapRow(rs));
+                }
+            }
+            return equipments;
+        }catch (SQLException e) {
+            throw new DaoException("Error while trying to find equipments with name: " + name, e);
+        }
+    }
+
 
     private final static String SQL_INSERT = "INSERT INTO equipment (venue_id, name, description, total_quantity) " +
                                              "VALUES (?, ?, ?, ?) RETURNING id";

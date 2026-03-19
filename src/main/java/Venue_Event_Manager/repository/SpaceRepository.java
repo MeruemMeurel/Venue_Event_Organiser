@@ -13,6 +13,8 @@ public interface SpaceRepository {
 
     List<Space> findAllByVenueId(Connection conn, long venueId);
 
+    List<Space> searchByName(Connection conn, String name);
+
     long insert(Connection conn, Space space);
 
     void update(Connection conn, Space space);
