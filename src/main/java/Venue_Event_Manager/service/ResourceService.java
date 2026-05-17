@@ -15,7 +15,7 @@ import Venue_Event_Manager.repository.VenueRepository;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ResourceServiceTEMP {
+public class ResourceService {
 
     private final TransactionManager transactionManager;
     private final SpaceRepository spaceRepository;
@@ -23,8 +23,8 @@ public class ResourceServiceTEMP {
     private final ServiceRepository serviceRepository;
     private final VenueRepository venueRepository;
 
-    public ResourceServiceTEMP(SpaceRepository spaceRepository, EquipmentRepository equipmentRepository,
-                               ServiceRepository serviceRepository, VenueRepository venueRepository) {
+    public ResourceService(SpaceRepository spaceRepository, EquipmentRepository equipmentRepository,
+                           ServiceRepository serviceRepository, VenueRepository venueRepository) {
         this.transactionManager = TransactionManager.getInstance();
         this.spaceRepository = spaceRepository;
         this.equipmentRepository = equipmentRepository;
@@ -116,14 +116,52 @@ public class ResourceServiceTEMP {
                 equipmentRepository.findAllByVenueId(conn,venueId));
     }
 
-    public void saveResource(Resource resource){
+    public void create(Resource resource){
+        transactionManager.inTransaction(conn->{
+            if(resource instanceof Space){
+                spaceRepository.insert(conn,(Space)resource);
+            }else if(resource instanceof Service){
+                serviceRepository.insert(conn,(Service)resource);
+            }else if(resource instanceof Equipment){
+                equipmentRepository.insert(conn,(Equipment)resource);
+            }
+            return null;
+        });
+    }
 
+    public void update(Resource resource){
+        transactionManager.inTransaction(conn->{
+            if(resource instanceof Space){
+                spaceRepository.update(conn,(Space) resource);
+            }else if(resource instanceof Service){
+                serviceRepository.update(conn,(Service) resource);
+            }else if(resource instanceof Equipment){
+                equipmentRepository.update(conn,(Equipment) resource);
+            }
+            return null;
+        });
+    }
+
+    public void delete(Resource resource){
+        transactionManager.inTransaction(conn->{
+            if(resource instanceof Space){
+                spaceRepository.deleteById(conn,((Space)resource).getId());
+            }else if(resource instanceof Service){
+                serviceRepository.deleteById(conn,((Service)resource).getId());
+            }else if(resource instanceof Equipment){
+                equipmentRepository.deleteById(conn,((Equipment)resource).getId());
+            }
+            return null;
+        });
     }
 
     //validation
     public void validate(Resource resource){
        validateVenueId(resource.getVenueId());
        validateName(resource.getName());
+       if(resource instanceof Equipment){
+           validateQuantity((Equipment) resource);
+       }
     }
 
     public void validateVenueId(long venueId){
@@ -139,6 +177,12 @@ public class ResourceServiceTEMP {
     public void validateName(String name){
         if(name == null || name.isEmpty()) {
             throw new ValidationException("Name of resource is empty");
+        }
+    }
+
+    public void validateQuantity(Equipment resource){
+        if(resource.getTotalQuantity() <= 0) {
+            throw new ValidationException("Quantity of resource is less than 0");
         }
     }
 
