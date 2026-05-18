@@ -96,6 +96,30 @@ public class EventService {
                         .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId)));
     }
 
+    //CRUD
+    public void createEvent(Event event){
+        transactionManager.inTransaction(conn->{
+            validate(event);
+            eventRepository.insert(conn,event);
+            return null;
+        });
+    }
+
+    public void updateEvent(Event event){
+        transactionManager.inTransaction(conn->{
+            validate(event);
+            eventRepository.update(conn,event);
+            return null;
+        });
+    }
+
+    public void deleteEvent(Event event){
+        transactionManager.inTransaction(conn->{
+            eventRepository.deleteById(conn,event.getId());
+            return null;
+        });
+    }
+
 
 
 
