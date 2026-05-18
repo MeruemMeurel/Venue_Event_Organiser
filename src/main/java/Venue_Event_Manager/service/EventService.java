@@ -134,24 +134,102 @@ public class EventService {
         });
     }
 
-    public void publishEvent(Event event){
+    public void publishEvent(long eventId){
         transactionManager.inTransaction(conn->{
+            Event event = eventRepository.findById(conn,eventId)
+                    .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId));
+            if(event.getStatus() == EventStatus.PUBLISHED) throw new ForbiddenException("Event is already published");
+            if(event.getStatus() == EventStatus.CANCELLED) throw new ForbiddenException("Event is already cancelled");
+            //TODO handle Not published status yet to add
             if(event.getPublishedAt() == null) eventRepository.updateStatusAndPublishedAt(conn,event.getId(),EventStatus.PUBLISHED,LocalDateTime.now());
             else eventRepository.updateStatus(conn,event.getId(), EventStatus.PUBLISHED);
             return null;
         });
     }
 
-    public void confirmEvent(Event event){
+    public void confirmEvent(long eventId){
         transactionManager.inTransaction(conn->{
+            Event event = eventRepository.findById(conn,eventId)
+                    .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId));
             eventRepository.updateStatus(conn,event.getId(),EventStatus.CONFIRMED);
             return null;
         });
     }
 
-    public void cancelEvent(Event event){
+    public void cancelEvent(long eventId){
         transactionManager.inTransaction(conn->{
+            Event event = eventRepository.findById(conn,eventId)
+                    .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId));
             eventRepository.updateStatus(conn,event.getId(),EventStatus.CANCELLED);
+            return null;
+        });
+    }
+
+
+    public void rescheduleEvent(long eventId, LocalDateTime new_begin, LocalDateTime new_end){
+        transactionManager.inTransaction(conn->{
+            Event old_event = eventRepository.findById(conn,eventId)
+                    .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId));
+            if (old_event.getEndDatetime().isBefore(LocalDateTime.now())) throw new ForbiddenException("Can't reschedule finished event");
+            Event new_event = old_event.withBeginDateTime(new_begin).withEndDateTime(new_end);
+            validate(new_event);
+            eventRepository.update(conn,new_event);
+            return null;
+        });
+    }
+
+    //TODO can't change capacity to be lower than current sold tickets
+    public void changeCapacity(long eventId, int capacity){
+        transactionManager.inTransaction(conn->{
+            Event new_event = eventRepository.findById(conn,eventId)
+                    .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId))
+                    .withCapacity(capacity);
+            validate(new_event);
+            eventRepository.update(conn,new_event);
+            return null;
+        });
+    }
+
+    public void assignOrganiser(long eventId, long organiserId){
+        transactionManager.inTransaction(conn->{
+            Event new_event = eventRepository.findById(conn,eventId)
+                    .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId))
+                    .withOrganiserId(organiserId);
+            validate(new_event);
+            eventRepository.update(conn,new_event);
+            return null;
+        });
+    }
+
+    public void removeOrganiser(long eventId){
+        transactionManager.inTransaction(conn->{
+            Event new_event = eventRepository.findById(conn,eventId)
+                    .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId))
+                    .withOrganiserId(null);
+            validate(new_event);
+            eventRepository.update(conn,new_event);
+            return null;
+        });
+    }
+
+    public void updatePoster(long eventId, String filepath){
+        transactionManager.inTransaction(conn->{
+            Event new_event = eventRepository.findById(conn,eventId)
+                    .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId))
+                    .withPosterFilepath(filepath);
+            validate(new_event);
+            eventRepository.update(conn,new_event);
+            return null;
+        });
+    }
+
+    public void setTicketPrice(long eventId, BigDecimal ticketPrice){
+        transactionManager.inTransaction(conn->{
+            Event new_event = eventRepository.findById(conn,eventId)
+                    .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId))
+                    .withTicketPrice(ticketPrice);
+            validate(new_event);
+            eventRepository.update(conn,new_event);
             return null;
         });
     }
