@@ -120,6 +120,44 @@ public class EventService {
         });
     }
 
+    public void changeVisibility(Event event, EventVisibility eventVisibility){
+        transactionManager.inTransaction(conn->{
+            eventRepository.updateVisibility(conn,event.getId(),eventVisibility);
+            return null;
+        });
+    }
+
+    private void changeStatus(Event event, EventStatus eventStatus){
+        transactionManager.inTransaction(conn->{
+            eventRepository.updateStatus(conn,event.getId(),eventStatus);
+            return null;
+        });
+    }
+
+    public void publishEvent(Event event){
+        transactionManager.inTransaction(conn->{
+            if(event.getPublishedAt() == null) eventRepository.updateStatusAndPublishedAt(conn,event.getId(),EventStatus.PUBLISHED,LocalDateTime.now());
+            else eventRepository.updateStatus(conn,event.getId(), EventStatus.PUBLISHED);
+            return null;
+        });
+    }
+
+    public void confirmEvent(Event event){
+        transactionManager.inTransaction(conn->{
+            eventRepository.updateStatus(conn,event.getId(),EventStatus.CONFIRMED);
+            return null;
+        });
+    }
+
+    public void cancelEvent(Event event){
+        transactionManager.inTransaction(conn->{
+            eventRepository.updateStatus(conn,event.getId(),EventStatus.CANCELLED);
+            return null;
+        });
+    }
+
+
+
 
 
 

@@ -497,6 +497,24 @@ public class PgEventRepository implements EventRepository {
         }
     }
 
+    private final static String SQL_UPDATE_STATUS_AND_PUBLISHED_AT =    "UPDATE event" +
+                                                                        "SET status = ?, published_at = ?" +
+                                                                        "WHERE id = ?";
+
+    @Override
+    public void updateStatusAndPublishedAt(Connection conn, long eventId, EventStatus status, LocalDateTime publishedAt) {
+        try (PreparedStatement ps = conn.prepareStatement(SQL_UPDATE_STATUS_AND_PUBLISHED_AT)) {
+            ps.setString(1, status.name());
+            ps.setTimestamp(2, Timestamp.valueOf(publishedAt));
+            ps.setLong(3, eventId);
+
+            int updated = ps.executeUpdate();
+            JdbcUtils.requireUpdatedExactly(updated, 1, "updateStatusAndPublishedAt(event_id=" + eventId + ")");
+
+        }catch (SQLException e) {
+            throw new DaoException("Error while trying to update status and datetime of publish for event id = " + eventId, e);
+        }
+    }
 
     private final static String SQL_DELETE = "DELETE FROM event " +
                                              "WHERE id = ?";
