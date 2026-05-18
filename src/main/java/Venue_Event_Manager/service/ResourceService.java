@@ -156,7 +156,7 @@ public class ResourceService {
     }
 
     //validation
-    public void validate(Resource resource){
+    private void validate(Resource resource){
        validateVenueId(resource.getVenueId());
        validateName(resource.getName());
        if(resource instanceof Equipment){
@@ -164,7 +164,7 @@ public class ResourceService {
        }
     }
 
-    public void validateVenueId(long venueId){
+    private void validateVenueId(long venueId){
         if(venueId > 0) {
             transactionManager.inReadOnly(conn-> {
                     venueRepository.findById(conn,venueId)
@@ -174,13 +174,13 @@ public class ResourceService {
         }
     }
 
-    public void validateName(String name){
+    private void validateName(String name){
         if(name == null || name.isEmpty()) {
             throw new ValidationException("Name of resource is empty");
         }
     }
 
-    public void validateQuantity(Equipment resource){
+    private void validateQuantity(Equipment resource){
         if(resource.getTotalQuantity() <= 0) {
             throw new ValidationException("Quantity of resource is less than 0");
         }
