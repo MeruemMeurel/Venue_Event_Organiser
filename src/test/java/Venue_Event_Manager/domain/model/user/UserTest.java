@@ -1,10 +1,11 @@
 package Venue_Event_Manager.domain.model.user;
 
+import Venue_Event_Manager.util.TestDataFactory;
+import java.time.LocalDate;
+
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
-
-import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -12,6 +13,7 @@ public class UserTest {
 
     @Nested
     @DisplayName("Tests for Constructors and Defaults")
+
     class ConstructorsAndDefaults {
 
         @Test
@@ -49,6 +51,68 @@ public class UserTest {
                     "123456", false, AccountStatus.ACTIVE);
 
             assertEquals(0, user.getId());
+        }
+    }
+
+    @Nested
+    @DisplayName("Tests for Immutability and Withers")
+    class ImmutabilityAndWithers {
+
+        @Test
+        @DisplayName("Wither methods should return a new instance and keep other fields intact")
+        void witherShouldReturnNewInstanceWithUpdatedField() {
+            User original = TestDataFactory.createDefaultUser("mario88");
+
+            User updated = original.withId(99L);
+
+            assertNotSame(original, updated, "Wither must return a new object instance (immutability)");
+            assertEquals(99L, updated.getId(), "The target field must be updated");
+            assertEquals(original.getUsername(), updated.getUsername(), "Other fields must remain identical");
+
+            User updatedEmail = original.withEmail("new@test.com");
+            assertEquals("new@test.com", updatedEmail.getEmail());
+            assertEquals(original.getId(), updatedEmail.getId());
+        }
+    }
+
+    @Nested
+    @DisplayName("Tests for Equals and HashCode")
+    class EqualsAndHashCodeLogic {
+
+        @Test
+        @DisplayName("Users with same non-zero ID should be equal regardless of other fields")
+        void equalWithSameId() {
+            User user1 = TestDataFactory.createDefaultUser("user1").withId(10L);
+            User user2 = TestDataFactory.createDefaultUser("user2").withId(10L); // Username diverso, stesso ID
+
+            assertEquals(user1, user2);
+            assertEquals(user1.hashCode(), user2.hashCode());
+        }
+
+        @Test
+        @DisplayName("Unsaved users (ID=0) should be equal if they share username or email")
+        void equalUnsavedUsers() {
+            //case 1: same username, different email
+            User user1 = TestDataFactory.createDefaultUser("comune").withEmail("diverso1@test.com");
+            User user2 = TestDataFactory.createDefaultUser("comune").withEmail("diverso2@test.com");
+
+            //case 2: different username, same email
+            User user3 = TestDataFactory.createDefaultUser("diverso1").withEmail("comune@test.com");
+            User user4 = TestDataFactory.createDefaultUser("diverso2").withEmail("comune@test.com");
+
+            assertEquals(user1, user2, "Should be equal by username when ID is 0");
+            assertEquals(user3, user4, "Should be equal by email when ID is 0");
+            assertEquals(user1.hashCode(), user2.hashCode());
+            assertEquals(user3.hashCode(), user4.hashCode());
+        }
+
+        @Test
+        @DisplayName("Users with different non-zero IDs should NOT be equal even with same username/email")
+        void notEqualWithDifferentIds() {
+            User user1 = TestDataFactory.createDefaultUser("uguale").withId(1L);
+            User user2 = TestDataFactory.createDefaultUser("uguale").withId(2L);
+
+            assertNotEquals(user1, user2, "Different database IDs means different users");
         }
     }
 
