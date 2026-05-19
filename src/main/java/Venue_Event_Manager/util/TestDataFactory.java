@@ -1,16 +1,13 @@
 package Venue_Event_Manager.util;
 
-import Venue_Event_Manager.domain.model.user.User;
-import Venue_Event_Manager.domain.model.user.AccountStatus;
-
-import Venue_Event_Manager.domain.model.venue.Address;
-import Venue_Event_Manager.domain.model.venue.Venue;
-
-import Venue_Event_Manager.domain.model.resource.Equipment;
-import Venue_Event_Manager.domain.model.resource.Service;
-import Venue_Event_Manager.domain.model.resource.Space;
+import Venue_Event_Manager.domain.model.user.*;
+import Venue_Event_Manager.domain.model.venue.*;
+import Venue_Event_Manager.domain.model.resource.*;
+import Venue_Event_Manager.domain.model.event.*;
 
 import java.time.LocalDate;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 /**
  * A tool for creating mock domain models for testing purposes.
@@ -87,7 +84,7 @@ public class TestDataFactory {
      * RESOURCE PACKET
      */
     /**
-     * Creates a standard Equipment instance without a specific Venue and default mock data.
+     * Creates a standard Equipment without a specific Venue and default mock data.
      */
     public static Equipment createGenericEquipment(String name) {
         return new Equipment(
@@ -100,7 +97,7 @@ public class TestDataFactory {
     }
 
     /**
-     * Creates a standard Equipment instance with a specific Venue and default mock data.
+     * Creates a standard Equipment with a specific Venue and default mock data.
      */
     public static Equipment createVenueEquipment(String name, long venueId) {
         return new Equipment(
@@ -113,7 +110,7 @@ public class TestDataFactory {
     }
 
     /**
-     * Creates a standard Service instance with default mock data.
+     * Creates a standard Service with default mock data.
      */
     public static Service createDefaultService(String name) {
         return new Service(
@@ -124,7 +121,7 @@ public class TestDataFactory {
     }
 
     /**
-     * Creates a standard Space instance bound to a venue with default mock data.
+     * Creates a standard Space bound to a venue with default mock data.
      */
     public static Space createDefaultSpace(String name, long venueId) {
         return new Space(
@@ -132,6 +129,47 @@ public class TestDataFactory {
                 venueId,
                 name,
                 "Spazio/Sala per eventi"
+        );
+    }
+
+
+    /**
+     * EVENT PACKET
+     */
+    /**
+     * Creates a standard Event with default mock data.
+     */
+    public static Event createDefaultEvent(String name, long venueId, long creatorId) {
+        return new Event(
+                0, // default ID for unsaved objects
+                venueId,
+                creatorId,
+                null, // organiser_id is optional
+                name,
+                "Concerto live o conferenza aziendale di test.",
+                LocalDateTime.of(2026, 6, 1, 20, 0),
+                LocalDateTime.of(2026, 6, 1, 23, 30),
+                "covers/test_poster.png",
+                500,
+                EventStatus.CONFIRMED,
+                EventVisibility.PUBLIC,
+                new BigDecimal("15.50"),
+                null
+        );
+    }
+
+    /**
+     * Creates a standard EventGuest bound to an event with default mock data.
+     */
+    public static EventGuest createDefaultGuest(String firstname, String lastname, long eventId) {
+        return new EventGuest(
+                0, // default ID for unsaved objects
+                eventId,
+                firstname,
+                lastname,
+                java.time.LocalDate.of(2000, 1, 1),
+                EventGuestStatus.INVITED,
+                "Nota di prova"
         );
     }
 }
