@@ -3,6 +3,9 @@ package Venue_Event_Manager.util;
 import Venue_Event_Manager.domain.model.user.User;
 import Venue_Event_Manager.domain.model.user.AccountStatus;
 
+import Venue_Event_Manager.domain.model.venue.Address;
+import Venue_Event_Manager.domain.model.venue.Venue;
+
 import java.time.LocalDate;
 
 /**
@@ -45,4 +48,33 @@ public class TestDataFactory {
         return createDefaultUser(username).withAccountStatus(AccountStatus.BANNED);
     }
 
+
+    /**
+     * VENUE
+     */
+    /**
+     * Creates a standard Address record with full mock data.
+     */
+    public static Address createDefaultAddress() {
+        return new Address(
+                "Via Roma",
+                "10",
+                "Prato",
+                "59100",
+                "Italia",
+                "Interno 2"
+        );
+    }
+
+    /**
+     * Creates a standard, venue with default data.
+     */
+    public static Venue createDefaultVenue(String name) {
+        return new Venue(
+                0, // default ID for unsaved objects
+                name,
+                "Splendida location per eventi aziendali e privati.",
+                createDefaultAddress()
+        );
+    }
 }
