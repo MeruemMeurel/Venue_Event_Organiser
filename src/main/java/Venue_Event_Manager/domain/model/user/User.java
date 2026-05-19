@@ -118,9 +118,12 @@ public class User {
         if (other == null || getClass() != other.getClass()) return false;
         User user = (User) other;
         if (id != 0 && user.id != 0) return id == user.id;
-        return Objects.equals(username, user.username) || Objects.equals(email, user.email);
+        return Objects.equals(username, user.username) && Objects.equals(email, user.email);
     }
 
     @Override
-    public int hashCode() { return Objects.hash(id, username, email); }
+    public int hashCode() {
+        if(id != 0) return Objects.hash(id);
+        return Objects.hash(username, email);
+    }
 }
