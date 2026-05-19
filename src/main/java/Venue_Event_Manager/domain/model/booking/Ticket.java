@@ -58,7 +58,7 @@ public class Ticket {
     }
 
     public LocalDateTime getStartsAt(){ return starts_at; }
-    public Ticket withBirthday(LocalDateTime newStartsAt){
+    public Ticket withStartsAt(LocalDateTime newStartsAt){
         return new Ticket(id, booking_id, firstname, lastname, newStartsAt);
     }
 
