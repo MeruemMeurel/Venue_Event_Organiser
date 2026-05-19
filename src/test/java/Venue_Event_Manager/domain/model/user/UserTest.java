@@ -82,8 +82,9 @@ public class UserTest {
         @Test
         @DisplayName("Users with same non-zero ID should be equal regardless of other fields")
         void equalWithSameId() {
+            //different username, same ID
             User user1 = TestDataFactory.createDefaultUser("user1").withId(10L);
-            User user2 = TestDataFactory.createDefaultUser("user2").withId(10L); // Username diverso, stesso ID
+            User user2 = TestDataFactory.createDefaultUser("user2").withId(10L);
 
             assertEquals(user1, user2);
             assertEquals(user1.hashCode(), user2.hashCode());
@@ -109,6 +110,7 @@ public class UserTest {
         @Test
         @DisplayName("Users with different non-zero IDs should NOT be equal even with same username/email")
         void notEqualWithDifferentIds() {
+            //same attributes, but different ID
             User user1 = TestDataFactory.createDefaultUser("uguale").withId(1L);
             User user2 = TestDataFactory.createDefaultUser("uguale").withId(2L);
 
