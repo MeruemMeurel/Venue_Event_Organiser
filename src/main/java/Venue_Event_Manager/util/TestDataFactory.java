@@ -6,6 +6,7 @@ import Venue_Event_Manager.domain.model.resource.*;
 import Venue_Event_Manager.domain.model.event.*;
 import Venue_Event_Manager.domain.model.booking.*;
 import Venue_Event_Manager.domain.model.request.*;
+import Venue_Event_Manager.domain.model.feedback.*;
 
 import java.time.LocalDate;
 import java.math.BigDecimal;
@@ -21,7 +22,7 @@ public class TestDataFactory {
      * USER PACKET
      */
     /**
-     * Creates a standard, active, non-admin User with default mock data.
+     * Creates a standard, active, non-admin, unsaved User with default mock data.
      */
     public static User createDefaultUser(String username) {
         return new User(
@@ -38,14 +39,14 @@ public class TestDataFactory {
     }
 
     /**
-     * Creates an admin User with default mock data.
+     * Creates an admin unsaved User with default mock data.
      */
     public static User createAdminUser(String username) {
         return createDefaultUser(username).withIsAdmin(true);
     }
 
     /**
-     * Creates a banned User with default mock data.
+     * Creates a banned unsaved User with default mock data.
      */
     public static User createBannedUser(String username) {
         return createDefaultUser(username).withAccountStatus(AccountStatus.BANNED);
@@ -70,7 +71,7 @@ public class TestDataFactory {
     }
 
     /**
-     * Creates a standard Venue with default mock data.
+     * Creates a standard unsaved Venue with default mock data.
      */
     public static Venue createDefaultVenue(String name) {
         return new Venue(
@@ -86,7 +87,7 @@ public class TestDataFactory {
      * RESOURCE PACKET
      */
     /**
-     * Creates a standard Equipment without a specific Venue and default mock data.
+     * Creates a standard unsaved Equipment without a specific Venue and default mock data.
      */
     public static Equipment createGenericEquipment(String name) {
         return new Equipment(
@@ -99,7 +100,7 @@ public class TestDataFactory {
     }
 
     /**
-     * Creates a standard Equipment with a specific Venue and default mock data.
+     * Creates a standard unsaved Equipment with a specific Venue and default mock data.
      */
     public static Equipment createVenueEquipment(String name, long venueId) {
         return new Equipment(
@@ -112,7 +113,7 @@ public class TestDataFactory {
     }
 
     /**
-     * Creates a standard Service with default mock data.
+     * Creates a standard unsaved Service with default mock data.
      */
     public static Service createDefaultService(String name) {
         return new Service(
@@ -123,7 +124,7 @@ public class TestDataFactory {
     }
 
     /**
-     * Creates a standard Space bound to a venue with default mock data.
+     * Creates a standard unsaved Space bound to a venue with default mock data.
      */
     public static Space createDefaultSpace(String name, long venueId) {
         return new Space(
@@ -139,7 +140,7 @@ public class TestDataFactory {
      * EVENT PACKET
      */
     /**
-     * Creates a standard Event with default mock data.
+     * Creates a standard unsaved Event with default mock data.
      */
     public static Event createDefaultEvent(String name, long venueId, long creatorId) {
         return new Event(
@@ -161,7 +162,7 @@ public class TestDataFactory {
     }
 
     /**
-     * Creates a standard EventGuest bound to an event with default mock data.
+     * Creates a standard unsaved EventGuest bound to an event with default mock data.
      */
     public static EventGuest createDefaultGuest(String firstname, String lastname, long eventId) {
         return new EventGuest(
@@ -180,11 +181,11 @@ public class TestDataFactory {
      * BOOKING PACKET
      */
     /**
-     * Creates a standard Booking with default mock data.
+     * Creates a standard unsaved Booking with default mock data.
      */
     public static Booking createDefaultBooking(long userId, long eventId) {
         return new Booking(
-                0,
+                0, //default ID for unsaved objects
                 userId,
                 eventId,
                 LocalDateTime.of(2026, 5, 19, 12, 0),
@@ -194,11 +195,11 @@ public class TestDataFactory {
     }
 
     /**
-     * Creates a standard Ticket bound to a booking with default mock data.
+     * Creates a standard unsaved Ticket bound to a booking with default mock data.
      */
     public static Ticket createDefaultTicket(long bookingId, String firstname, String lastname) {
         return new Ticket(
-                0,
+                0, //default ID for unsaved objects
                 bookingId,
                 firstname,
                 lastname,
@@ -211,11 +212,11 @@ public class TestDataFactory {
      * REQUEST PACKET
      */
     /**
-     * Creates a default EventRequest with default mock data.
+     * Creates a default unsaved EventRequest with default mock data.
      */
     public static EventRequest createDefaultRequest(long requesterId, long venueId, String name) {
         return new EventRequest(
-                0,
+                0, //default ID for unsaved objects
                 requesterId,
                 null, //handler_id is null at the start
                 venueId,
@@ -224,9 +225,42 @@ public class TestDataFactory {
                 LocalDateTime.of(2026, 7, 10, 18, 0),
                 LocalDateTime.of(2026, 7, 11, 0, 30),
                 EventRequestStatus.PENDING,
-                LocalDateTime.of(2026, 5, 19, 20, 0), //created_at standard for tests
+                LocalDateTime.of(2026, 5, 19, 20, 0), //created_at standard value for tests
                 null,
                 new BigDecimal("150.00")
+        );
+    }
+
+
+    /**
+     * FEEDBACK PACKET
+     */
+    /**
+     * Creates a standard unsaved Report with default mock data.
+     */
+    public static Report createDefaultReport(long userId, long adminId, Long eventId) {
+        return new Report(
+                0, //default ID for unsaved objects
+                userId,
+                adminId,
+                eventId,
+                ReportSeverity.MIDDLE,
+                "Il comportamento di alcuni partecipanti ha violato i termini del servizio.",
+                LocalDateTime.of(2026, 5, 20, 10, 0) //created_at standard value for tests
+        );
+    }
+
+    /**
+     * Creates a standard unsaved Review with default mock data.
+     */
+    public static Review createDefaultReview(long userId, long eventId) {
+        return new Review(
+                0, //default ID for unsaved objects
+                userId,
+                eventId,
+                5,
+                "Evento organizzato benissimo, acustica della sala impeccabile!",
+                LocalDateTime.of(2026, 5, 20, 11, 30) // created_at standard value for tests
         );
     }
 }
