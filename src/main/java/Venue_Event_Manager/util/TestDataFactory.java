@@ -5,6 +5,7 @@ import Venue_Event_Manager.domain.model.venue.*;
 import Venue_Event_Manager.domain.model.resource.*;
 import Venue_Event_Manager.domain.model.event.*;
 import Venue_Event_Manager.domain.model.booking.*;
+import Venue_Event_Manager.domain.model.request.*;
 
 import java.time.LocalDate;
 import java.math.BigDecimal;
@@ -202,6 +203,30 @@ public class TestDataFactory {
                 firstname,
                 lastname,
                 LocalDateTime.of(2026, 6, 1, 20, 0)
+        );
+    }
+
+
+    /**
+     * REQUEST PACKET
+     */
+    /**
+     * Creates a default EventRequest with default mock data.
+     */
+    public static EventRequest createDefaultRequest(long requesterId, long venueId, String name) {
+        return new EventRequest(
+                0,
+                requesterId,
+                null, //handler_id is null at the start
+                venueId,
+                name,
+                "Richiesta di prenotazione spazio per festa di laurea.",
+                LocalDateTime.of(2026, 7, 10, 18, 0),
+                LocalDateTime.of(2026, 7, 11, 0, 30),
+                EventRequestStatus.PENDING,
+                LocalDateTime.of(2026, 5, 19, 20, 0), //created_at standard for tests
+                null,
+                new BigDecimal("150.00")
         );
     }
 }
