@@ -3,9 +3,9 @@ package Venue_Event_Manager.domain.model.user;
 import Venue_Event_Manager.util.TestDataFactory;
 import java.time.LocalDate;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.DisplayName;
 
 import static org.junit.jupiter.api.Assertions.*;
 
