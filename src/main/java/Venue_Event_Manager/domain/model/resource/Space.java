@@ -59,13 +59,17 @@ public class Space extends Resource {
         if (this == other) return true;
         if (other == null || getClass() != other.getClass()) return false;
         Space space = (Space) other;
-        if (id != 0 && space.id != 0) return id == space.id;
-        return venue_id == space.venue_id && Objects.equals(name, space.name);
+        if (id != 0 && space.id != 0){
+            return Objects.equals(id, space.id);
+        }
+        return Objects.equals(venue_id, space.venue_id) && Objects.equals(name, space.name);
     }
 
     @Override
     public int hashCode() {
-        if (id != 0) return Objects.hash(id);
+        if (id != 0){
+            return Objects.hash(id);
+        }
         return Objects.hash(venue_id, name);
     }
 }

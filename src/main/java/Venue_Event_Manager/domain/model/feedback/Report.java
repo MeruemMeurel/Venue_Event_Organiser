@@ -99,13 +99,18 @@ public class Report {
         if (this == other) return true;
         if (other == null || getClass() != other.getClass()) return false;
         Report report = (Report) other;
-        if (id != 0 && report.id != 0) return id == report.id;
-        return user_id == report.user_id && admin_id == report.admin_id && Objects.equals(created_at, report.created_at);
+        if (id != 0 && report.id != 0){
+            return Objects.equals(id, report.id);
+        }
+        return Objects.equals(user_id, report.user_id) && Objects.equals(admin_id, report.admin_id) &&
+                Objects.equals(created_at, report.created_at);
     }
 
     @Override
     public int hashCode() {
-        if (id != 0) return Objects.hash(id);
+        if (id != 0){
+            return Objects.hash(id);
+        }
         return Objects.hash(user_id, admin_id, created_at);
     }
 }

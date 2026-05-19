@@ -91,14 +91,18 @@ public class Booking {
         if (this == other) return true;
         if (other == null || getClass() != other.getClass()) return false;
         Booking booking = (Booking) other;
-        if (id != 0 && booking.id != 0) return id == booking.id;
-        return user_id == booking.user_id && event_id == booking.event_id &&
+        if (id != 0 && booking.id != 0){
+            return Objects.equals(id, booking.id);
+        }
+        return Objects.equals(user_id, booking.user_id) && Objects.equals(event_id, booking.event_id) &&
                 Objects.equals(created_at, booking.created_at);
     }
 
     @Override
     public int hashCode(){
-        if(id != 0) return Objects.hash(id);
+        if(id != 0){
+            return Objects.hash(id);
+        }
         return Objects.hash(user_id, event_id, created_at);
     }
 

@@ -72,11 +72,16 @@ public class Venue {
         if (other == null || getClass() != other.getClass()) return false;
         Venue venue = (Venue) other;
         if (id != 0 && venue.id != 0) {
-            return id == venue.id;
+            return Objects.equals(id, venue.id);
         }
         return Objects.equals(address, venue.address);
     }
 
     @Override
-    public int hashCode(){ return Objects.hash(id, address); }
+    public int hashCode(){
+        if(id != 0){
+            return Objects.hash(id);
+        }
+        return Objects.hash(address);
+    }
 }
