@@ -25,7 +25,7 @@ public class TestDataFactory {
      */
     public static User createDefaultUser(String username) {
         return new User(
-                0, // default ID for unsaved objects
+                0, //default ID for unsaved objects
                 username,
                 "Mario",
                 "Rossi",
@@ -74,7 +74,7 @@ public class TestDataFactory {
      */
     public static Venue createDefaultVenue(String name) {
         return new Venue(
-                0, // default ID for unsaved objects
+                0, //default ID for unsaved objects
                 name,
                 "Splendida location per eventi aziendali e privati.",
                 createDefaultAddress()
@@ -90,8 +90,8 @@ public class TestDataFactory {
      */
     public static Equipment createGenericEquipment(String name) {
         return new Equipment(
-                0, // default ID for unsaved objects
-                null, // generic equipment with no specific venue
+                0, //default ID for unsaved objects
+                null, //generic equipment with no specific venue
                 name,
                 "Attrezzatura generica per eventi",
                 10
@@ -103,7 +103,7 @@ public class TestDataFactory {
      */
     public static Equipment createVenueEquipment(String name, long venueId) {
         return new Equipment(
-                0, // default ID for unsaved objects
+                0, //default ID for unsaved objects
                 venueId,
                 name,
                 "Attrezzatura specifica",
@@ -116,7 +116,7 @@ public class TestDataFactory {
      */
     public static Service createDefaultService(String name) {
         return new Service(
-                0, // default ID for unsaved objects
+                0, //default ID for unsaved objects
                 name,
                 "Servizio di supporto standard"
         );
@@ -127,7 +127,7 @@ public class TestDataFactory {
      */
     public static Space createDefaultSpace(String name, long venueId) {
         return new Space(
-                0, // default ID for unsaved objects
+                0, //default ID for unsaved objects
                 venueId,
                 name,
                 "Spazio/Sala per eventi"
@@ -143,10 +143,10 @@ public class TestDataFactory {
      */
     public static Event createDefaultEvent(String name, long venueId, long creatorId) {
         return new Event(
-                0, // default ID for unsaved objects
+                0, //default ID for unsaved objects
                 venueId,
                 creatorId,
-                null, // organiser_id is optional
+                null, //organiser_id is optional
                 name,
                 "Concerto live o conferenza aziendale di test.",
                 LocalDateTime.of(2026, 6, 1, 20, 0),
@@ -165,7 +165,7 @@ public class TestDataFactory {
      */
     public static EventGuest createDefaultGuest(String firstname, String lastname, long eventId) {
         return new EventGuest(
-                0, // default ID for unsaved objects
+                0, //default ID for unsaved objects
                 eventId,
                 firstname,
                 lastname,
