@@ -4,6 +4,7 @@ import Venue_Event_Manager.domain.model.user.*;
 import Venue_Event_Manager.domain.model.venue.*;
 import Venue_Event_Manager.domain.model.resource.*;
 import Venue_Event_Manager.domain.model.event.*;
+import Venue_Event_Manager.domain.model.booking.*;
 
 import java.time.LocalDate;
 import java.math.BigDecimal;
@@ -170,6 +171,37 @@ public class TestDataFactory {
                 java.time.LocalDate.of(2000, 1, 1),
                 EventGuestStatus.INVITED,
                 "Nota di prova"
+        );
+    }
+
+
+    /**
+     * BOOKING PACKET
+     */
+    /**
+     * Creates a standard Booking with default mock data.
+     */
+    public static Booking createDefaultBooking(long userId, long eventId) {
+        return new Booking(
+                0,
+                userId,
+                eventId,
+                LocalDateTime.of(2026, 5, 19, 12, 0),
+                BookingStatus.PENDING_PAYMENT,
+                new BigDecimal("31.00")
+        );
+    }
+
+    /**
+     * Creates a standard Ticket bound to a booking with default mock data.
+     */
+    public static Ticket createDefaultTicket(long bookingId, String firstname, String lastname) {
+        return new Ticket(
+                0,
+                bookingId,
+                firstname,
+                lastname,
+                LocalDateTime.of(2026, 6, 1, 20, 0)
         );
     }
 }
