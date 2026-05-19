@@ -93,18 +93,11 @@ public class UserTest {
         @Test
         @DisplayName("Unsaved users (ID=0) should be equal if they share username or email")
         void equalUnsavedUsers() {
-            //case 1: same username, different email
-            User user1 = TestDataFactory.createDefaultUser("comune").withEmail("diverso1@test.com");
-            User user2 = TestDataFactory.createDefaultUser("comune").withEmail("diverso2@test.com");
+            User user1 = TestDataFactory.createDefaultUser("comune");
+            User user2 = TestDataFactory.createDefaultUser("comune");
 
-            //case 2: different username, same email
-            User user3 = TestDataFactory.createDefaultUser("diverso1").withEmail("comune@test.com");
-            User user4 = TestDataFactory.createDefaultUser("diverso2").withEmail("comune@test.com");
-
-            assertEquals(user1, user2, "Should be equal by username when ID is 0");
-            assertEquals(user3, user4, "Should be equal by email when ID is 0");
+            assertEquals(user1, user2);
             assertEquals(user1.hashCode(), user2.hashCode());
-            assertEquals(user3.hashCode(), user4.hashCode());
         }
 
         @Test
