@@ -3,6 +3,7 @@ package Venue_Event_Manager.service;
 import Venue_Event_Manager.config.TransactionManager;
 import Venue_Event_Manager.domain.model.resource.Equipment;
 import Venue_Event_Manager.domain.model.resource.Resource;
+import Venue_Event_Manager.domain.model.resource.ResourceType;
 import Venue_Event_Manager.domain.model.resource.Service;
 import Venue_Event_Manager.domain.model.resource.Space;
 import Venue_Event_Manager.exception.NotFoundException;
@@ -12,6 +13,7 @@ import Venue_Event_Manager.repository.ServiceRepository;
 import Venue_Event_Manager.repository.SpaceRepository;
 import Venue_Event_Manager.repository.VenueRepository;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -86,6 +88,8 @@ public class ResourceService {
      * @return List of resources matching the given name
      */
     public List<Resource> searchResourceByName(String name){
+        validateName(name);
+
         ArrayList<Resource> resources = new ArrayList<>();
         resources.addAll(searchSpaceByName(name));
         resources.addAll(searchServiceByName(name));
@@ -99,6 +103,8 @@ public class ResourceService {
      * @return List of spaces matching the given name
      */
     public List<Space> searchSpaceByName(String name){
+        validateName(name);
+
         return transactionManager.inReadOnly(conn->
                 spaceRepository.searchByName(conn, name));
     }
@@ -109,6 +115,8 @@ public class ResourceService {
      * @return List of services matching the given name
      */
     public List<Service> searchServiceByName(String name){
+        validateName(name);
+
         return transactionManager.inReadOnly(conn->
                 serviceRepository.searchByName(conn, name));
     }
@@ -119,6 +127,8 @@ public class ResourceService {
      * @return List of equipments matching the given name
      */
     public List<Equipment> searchEquipmentByName(String name){
+        validateName(name);
+
         return transactionManager.inReadOnly(
                 conn->equipmentRepository.searchByName(conn, name)
         );
@@ -149,7 +159,7 @@ public class ResourceService {
     }
 
     /**
-     * Gets an equipment from its id.
+     * Gets equipment from its id.
      * @param id the id of the equipment to find
      * @return Equipment object if found
      * @throws NotFoundException if no equipment is found with such id
@@ -161,15 +171,43 @@ public class ResourceService {
     }
 
     /**
+     * Gets a resource from its type and id.
+     * @param resourceType the type of resource to find
+     * @param id the id of the resource to find
+     * @return Resource object if found
+     * @throws ValidationException if resource type is not valid
+     * @throws NotFoundException if no resource is found with such type and id
+     */
+    public Resource getResourceById(ResourceType resourceType, long id){
+        validateResourceType(resourceType);
+
+        switch (resourceType) {
+            case SPACE:
+                return getSpaceById(id);
+            case EQUIPMENT:
+                return getEquipmentById(id);
+            case SERVICE:
+                return getServiceById(id);
+            default:
+                throw new ValidationException("Unsupported resource type");
+        }
+    }
+
+    /**
      * Gets all venue resources linked to a specific venue.
+     * Services are not included because they are not linked to venues.
      * @param venueId the id of the venue
-     * @return List of resources linked to the venue
+     * @return List of venue resources linked to the venue
      */
     public List<Resource> getResourcesByVenue(long venueId){
-        ArrayList<Resource> resources = new ArrayList<>();
-        resources.addAll(getSpaceByVenue(venueId));
-        resources.addAll(getEquipmentByVenue(venueId));
-        return resources;
+        validateVenueId(venueId);
+
+        return transactionManager.inReadOnly(conn-> {
+            ArrayList<Resource> resources = new ArrayList<>();
+            resources.addAll(spaceRepository.findAllByVenueId(conn,venueId));
+            resources.addAll(equipmentRepository.findAllByVenueId(conn,venueId));
+            return resources;
+        });
     }
 
     /**
@@ -178,6 +216,8 @@ public class ResourceService {
      * @return List of spaces linked to the venue
      */
     public List<Space> getSpaceByVenue(long venueId){
+        validateVenueId(venueId);
+
         return transactionManager.inReadOnly(conn->
                 spaceRepository.findAllByVenueId(conn,venueId));
     }
@@ -188,6 +228,8 @@ public class ResourceService {
      * @return List of equipments linked to the venue
      */
     public List<Equipment> getEquipmentByVenue(long venueId){
+        validateVenueId(venueId);
+
         return transactionManager.inReadOnly(conn->
                 equipmentRepository.findAllByVenueId(conn,venueId));
     }
@@ -195,25 +237,32 @@ public class ResourceService {
     /**
      * Inserts a new resource in database.
      * @param resource the resource to insert
+     * @return generated id of the new resource
+     * @throws ValidationException if resource data or resource type are not valid
      */
-    public void create(Resource resource){
-        transactionManager.inTransaction(conn->{
+    public long create(Resource resource){
+        validate(resource);
+
+        return transactionManager.inTransaction(conn->{
             if(resource instanceof Space){
-                spaceRepository.insert(conn,(Space)resource);
+                return spaceRepository.insert(conn,(Space)resource);
             }else if(resource instanceof Service){
-                serviceRepository.insert(conn,(Service)resource);
+                return serviceRepository.insert(conn,(Service)resource);
             }else if(resource instanceof Equipment){
-                equipmentRepository.insert(conn,(Equipment)resource);
+                return equipmentRepository.insert(conn,(Equipment)resource);
             }
-            return null;
+            throw new ValidationException("Unsupported resource type");
         });
     }
 
     /**
      * Updates an existing resource in database.
      * @param resource the resource object with updated data
+     * @throws ValidationException if resource data or resource type are not valid
      */
     public void update(Resource resource){
+        validate(resource);
+
         transactionManager.inTransaction(conn->{
             if(resource instanceof Space){
                 spaceRepository.update(conn,(Space) resource);
@@ -221,6 +270,8 @@ public class ResourceService {
                 serviceRepository.update(conn,(Service) resource);
             }else if(resource instanceof Equipment){
                 equipmentRepository.update(conn,(Equipment) resource);
+            }else{
+                throw new ValidationException("Unsupported resource type");
             }
             return null;
         });
@@ -229,8 +280,11 @@ public class ResourceService {
     /**
      * Deletes a resource from database.
      * @param resource the resource to delete
+     * @throws ValidationException if resource type or id are not valid
      */
     public void delete(Resource resource){
+        validateResourceForDelete(resource);
+
         transactionManager.inTransaction(conn->{
             if(resource instanceof Space){
                 spaceRepository.deleteById(conn,((Space)resource).getId());
@@ -238,9 +292,80 @@ public class ResourceService {
                 serviceRepository.deleteById(conn,((Service)resource).getId());
             }else if(resource instanceof Equipment){
                 equipmentRepository.deleteById(conn,((Equipment)resource).getId());
+            }else{
+                throw new ValidationException("Unsupported resource type");
             }
             return null;
         });
+    }
+
+    /**
+     * Deletes a resource from database using type and id.
+     * @param resourceType the type of resource to delete
+     * @param id the id of the resource to delete
+     * @throws ValidationException if resource type or id are not valid
+     */
+    public void delete(ResourceType resourceType, long id){
+        validateResourceType(resourceType);
+        validateId(id);
+
+        transactionManager.inTransaction(conn->{
+            switch (resourceType) {
+                case SPACE:
+                    spaceRepository.deleteById(conn,id);
+                    break;
+                case EQUIPMENT:
+                    equipmentRepository.deleteById(conn,id);
+                    break;
+                case SERVICE:
+                    serviceRepository.deleteById(conn,id);
+                    break;
+                default:
+                    throw new ValidationException("Unsupported resource type");
+            }
+            return null;
+        });
+    }
+
+    /**
+     * TODO Gets all resources available for a specific event.
+     * @param eventId the id of the event
+     * @return List of resources available for the event
+     */
+    public List<Resource> getAvailableResourcesForEvent(long eventId){
+        throw new UnsupportedOperationException("TODO implement getAvailableResourcesForEvent");
+    }
+
+    /**
+     * TODO Gets all spaces available in a venue during a time interval.
+     * @param venueId the id of the venue
+     * @param begin the beginning of the time interval
+     * @param end the end of the time interval
+     * @return List of available spaces
+     */
+    public List<Space> getAvailableSpaces(long venueId, LocalDateTime begin, LocalDateTime end){
+        throw new UnsupportedOperationException("TODO implement getAvailableSpaces");
+    }
+
+    /**
+     * TODO Gets all equipments available in a venue during a time interval.
+     * @param venueId the id of the venue
+     * @param begin the beginning of the time interval
+     * @param end the end of the time interval
+     * @return List of available equipments
+     */
+    public List<Equipment> getAvailableEquipment(long venueId, LocalDateTime begin, LocalDateTime end){
+        throw new UnsupportedOperationException("TODO implement getAvailableEquipment");
+    }
+
+    /**
+     * TODO Gets all services available for an event.
+     * Services are not linked to venues, so availability must be defined by event requirements.
+     * @param eventId the id of the event
+     * @return List of available services
+     */
+    public List<Service> getAvailableServicesForEvent(long eventId){
+        throw new UnsupportedOperationException("TODO implement getAvailableServicesForEvent");
     }
 
     //validation
@@ -250,11 +375,19 @@ public class ResourceService {
      * @throws ValidationException if one or more fields are not valid
      */
     private void validate(Resource resource){
-       validateVenueId(resource.getVenueId());
-       validateName(resource.getName());
-       if(resource instanceof Equipment){
-           validateQuantity((Equipment) resource);
-       }
+        validateResourceNotNull(resource);
+        validateName(resource.getName());
+
+        if(resource instanceof Space){
+            validateVenueId(resource.getVenueId());
+        }else if(resource instanceof Equipment){
+            validateNullableVenueId(resource.getVenueId());
+            validateQuantity((Equipment) resource);
+        }else if(resource instanceof Service){
+            validateServiceVenueId(resource.getVenueId());
+        }else{
+            throw new ValidationException("Unsupported resource type");
+        }
     }
 
     /**
@@ -262,13 +395,26 @@ public class ResourceService {
      * @param venueId the id of the venue to validate
      * @throws ValidationException if no venue is found with such id
      */
-    private void validateVenueId(long venueId){
-        if(venueId > 0) {
-            transactionManager.inReadOnly(conn-> {
-                    venueRepository.findById(conn,venueId)
-                            .orElseThrow(() -> new ValidationException("No venue found with id "+venueId));
-                    return null;
-            });
+    private void validateVenueId(Long venueId){
+        if(venueId == null || venueId <= 0) {
+            throw new ValidationException("Venue id is not valid");
+        }
+
+        transactionManager.inReadOnly(conn-> {
+                venueRepository.findById(conn,venueId)
+                        .orElseThrow(() -> new ValidationException("No venue found with id "+venueId));
+                return null;
+        });
+    }
+
+    /**
+     * Validates if a nullable venue exists when it is provided.
+     * @param venueId the nullable id of the venue to validate
+     * @throws ValidationException if venue id is invalid or no venue is found with such id
+     */
+    private void validateNullableVenueId(Long venueId){
+        if(venueId != null){
+            validateVenueId(venueId);
         }
     }
 
@@ -278,7 +424,7 @@ public class ResourceService {
      * @throws ValidationException if name is empty
      */
     private void validateName(String name){
-        if(name == null || name.isEmpty()) {
+        if(name == null || name.isBlank()) {
             throw new ValidationException("Name of resource is empty");
         }
     }
@@ -291,6 +437,64 @@ public class ResourceService {
     private void validateQuantity(Equipment resource){
         if(resource.getTotalQuantity() <= 0) {
             throw new ValidationException("Quantity of resource is less than 0");
+        }
+    }
+
+    /**
+     * Validates that a resource is not null.
+     * @param resource the resource to validate
+     * @throws ValidationException if resource is null
+     */
+    private void validateResourceNotNull(Resource resource){
+        if(resource == null){
+            throw new ValidationException("Resource is null");
+        }
+    }
+
+    /**
+     * Validates that a service is not linked to a venue.
+     * @param venueId the venue id stored in the service resource
+     * @throws ValidationException if service has a venue id
+     */
+    private void validateServiceVenueId(Long venueId){
+        if(venueId != null){
+            throw new ValidationException("Service cannot be linked to a venue");
+        }
+    }
+
+    /**
+     * Validates resource type.
+     * @param resourceType the resource type to validate
+     * @throws ValidationException if resource type is null
+     */
+    private void validateResourceType(ResourceType resourceType){
+        if(resourceType == null){
+            throw new ValidationException("Resource type is null");
+        }
+    }
+
+    /**
+     * Validates resource id.
+     * @param id the id to validate
+     * @throws ValidationException if id is not valid
+     */
+    private void validateId(long id){
+        if(id <= 0){
+            throw new ValidationException("Resource id is not valid");
+        }
+    }
+
+    /**
+     * Validates a resource before delete.
+     * @param resource the resource to validate
+     * @throws ValidationException if resource is null, has invalid id or unsupported type
+     */
+    private void validateResourceForDelete(Resource resource){
+        validateResourceNotNull(resource);
+        validateId(resource.getId());
+
+        if(!(resource instanceof Space) && !(resource instanceof Equipment) && !(resource instanceof Service)){
+            throw new ValidationException("Unsupported resource type");
         }
     }
 
