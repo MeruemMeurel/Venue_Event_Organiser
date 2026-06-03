@@ -128,6 +128,7 @@ public class UserService {
 
     //TODO averageReview
     //TODO discuss with group if passwords can stay in plain text for project scope or must be hashed
+    //TODO discuss if password and privilege methods should be moved to a dedicated AuthService
 
     /**
      * Inserts a new user in database.
