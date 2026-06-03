@@ -127,6 +127,7 @@ public class UserService {
     }
 
     //TODO averageReview
+    //TODO discuss with group if passwords can stay in plain text for project scope or must be hashed
 
     /**
      * Inserts a new user in database.
@@ -170,6 +171,8 @@ public class UserService {
      */
     public void ban(long adminId,String adminPassword,long userId){
         checkPrivileges(adminId,adminPassword);
+        validateUserCanBeBanned(adminId,userId);
+
         transactionManager.inTransaction(conn -> {
                 userRepository.updateAccountStatus(conn,userId,AccountStatus.BANNED);
                 return null;
@@ -235,7 +238,7 @@ public class UserService {
      * @throws NotFoundException if no user is found with such id
      */
     private boolean checkPassword(long userId,String password){
-        String dbPassword = transactionManager.inTransaction(conn ->
+        String dbPassword = transactionManager.inReadOnly(conn ->
                 userRepository.getPasswordById(conn,userId)
                         .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found")));
 
@@ -264,10 +267,12 @@ public class UserService {
      * @throws ValidationException if one or more fields are not valid
      */
     private void validate(User user){
+        if(user == null) throw new ValidationException("User cannot be null");
         validateUsername(user.getUsername());
         validateFirstName(user.getFirstname());
         validateLastName(user.getLastname());
-        validateEmail(user.getEmail());
+        validateEmail(user.getEmail(), user.getId());
+        validatePhone(user.getPhone());
         validateBirthday(user.getBirthday());
     }
 
@@ -277,7 +282,7 @@ public class UserService {
      * @throws ValidationException if username is empty or has invalid length
      */
     private void validateUsername(String username){
-        if(username.isEmpty()) throw new ValidationException("Username cannot be empty");
+        if(username == null || username.isEmpty()) throw new ValidationException("Username cannot be empty");
         if(username.length()<2 || username.length() >35) throw new ValidationException("Username must be between 2 and 35 characters");
     }
 
@@ -287,7 +292,7 @@ public class UserService {
      * @throws ValidationException if first name is empty or has invalid length
      */
     private void validateFirstName(String firstName){
-        if(firstName.isEmpty()) throw new ValidationException("First name cannot be empty");
+        if(firstName == null || firstName.isEmpty()) throw new ValidationException("First name cannot be empty");
         if(firstName.length() < 2 || firstName.length() >35) throw new ValidationException("First name must be between 2 and 35 characters");
     }
 
@@ -297,19 +302,25 @@ public class UserService {
      * @throws ValidationException if last name is empty or has invalid length
      */
     private void validateLastName(String lastName){
-        if(lastName.isEmpty()) throw new ValidationException("Last name cannot be empty");
+        if(lastName == null || lastName.isEmpty()) throw new ValidationException("Last name cannot be empty");
         if(lastName.length() <2 || lastName.length() >35) throw new ValidationException("Last name must be between 2 and 35 characters");
     }
 
     /**
      * Validates email format and uniqueness.
      * @param email the email to validate
+     * @param currentUserId the id of the user being validated
      * @throws ValidationException if email is empty, invalid or already used
      */
-    private void validateEmail(String email){
-        if(email.isEmpty()) throw new ValidationException("Email cannot be empty");
+    private void validateEmail(String email, long currentUserId){
+        if(email == null || email.isEmpty()) throw new ValidationException("Email cannot be empty");
         if(!email.matches("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) throw new ValidationException("Invalid email format");
-        if(transactionManager.inReadOnly(conn -> userRepository.findByEmail(conn,email).isPresent())) throw new ValidationException("Email already used");
+        if(transactionManager.inReadOnly(conn ->
+                userRepository.findByEmail(conn,email)
+                        .map(existingUser -> existingUser.getId() != currentUserId)
+                        .orElse(false))) {
+            throw new ValidationException("Email already used");
+        }
     }
 
     /**
@@ -318,8 +329,19 @@ public class UserService {
      * @throws ValidationException if password is empty or has invalid length
      */
     private void validatePassword(String password){
-        if(password.isEmpty()) throw new ValidationException("Password cannot be empty");
+        if(password == null || password.isEmpty()) throw new ValidationException("Password cannot be empty");
         if(password.length() < 8 || password.length() > 30) throw new ValidationException("Password must be between 8 and 30 characters");
+    }
+
+    /**
+     * Validates phone format and length.
+     * @param phone the phone to validate
+     * @throws ValidationException if phone has invalid format or length
+     */
+    private void validatePhone(String phone){
+        if(phone == null || phone.isBlank()) return;
+        if(phone.length() < 5 || phone.length() > 20) throw new ValidationException("Phone must be between 5 and 20 characters");
+        if(!phone.matches("^\\+?[0-9 ]+$")) throw new ValidationException("Invalid phone format");
     }
 
     /**
@@ -331,6 +353,24 @@ public class UserService {
         if(birthday == null) throw new ValidationException("Birthday cannot be empty");
         if(birthday.isAfter(LocalDate.now())) throw new ValidationException("Birthday must be before "+LocalDate.now());
         if(birthday.isBefore(LocalDate.of(1900,1,1))) throw new ValidationException("Birthday must be before "+LocalDate.of(1900,1,1));
+    }
+
+    /**
+     * Validates if a user can be banned.
+     * @param adminId the id of the admin performing the action
+     * @param userId the id of the user to ban
+     * @throws ForbiddenException if admin is trying to ban himself or another admin
+     * @throws ConflictException if user is already banned
+     */
+    private void validateUserCanBeBanned(long adminId, long userId){
+        if(adminId == userId) throw new ForbiddenException("Admin cannot ban himself");
+
+        User user = transactionManager.inReadOnly(conn ->
+                userRepository.findById(conn,userId)
+                        .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found")));
+
+        if(user.isAdmin()) throw new ForbiddenException("Cannot ban an admin user");
+        if(user.getAccountStatus() == AccountStatus.BANNED) throw new ConflictException("User is already banned");
     }
 
 

@@ -14,9 +14,11 @@ import Venue_Event_Manager.repository.BookingRepository;
 import Venue_Event_Manager.repository.EquipmentRepository;
 import Venue_Event_Manager.repository.EventRepository;
 import Venue_Event_Manager.repository.TicketRepository;
+import Venue_Event_Manager.repository.UserRepository;
 
 import java.awt.print.Book;
 import java.math.BigDecimal;
+import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,18 +29,22 @@ public class BookingService {
     private BookingRepository bookingRepository;
     private TicketRepository ticketRepository;
     private EventRepository eventRepository;
+    private UserRepository userRepository;
 
     /**
      * Initializes BookingService with all repositories needed to handle bookings and tickets.
      * @param bookingRepository repository used to access booking data
      * @param ticketRepository repository used to access ticket data
      * @param eventRepository repository used to access event data
+     * @param userRepository repository used to access user data
      */
-    public BookingService(BookingRepository bookingRepository, TicketRepository ticketRepository, EventRepository eventRepository) {
+    public BookingService(BookingRepository bookingRepository, TicketRepository ticketRepository, EventRepository eventRepository,
+                          UserRepository userRepository) {
         this.transactionManager = TransactionManager.getInstance();
         this.bookingRepository = bookingRepository;
         this.ticketRepository = ticketRepository;
         this.eventRepository = eventRepository;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -218,6 +224,8 @@ public class BookingService {
 
         return transactionManager.inTransaction(conn->{
 
+            validateUserExists(conn,userId);
+
             Event event = eventRepository.findByIdForUpdate(conn,eventId)
                     .orElseThrow(() -> new NotFoundException("No event with such id exists"));
 
@@ -229,12 +237,14 @@ public class BookingService {
                 throw new ConflictException("Not enough available places remaining for event: "+eventId);
             }
 
+            BigDecimal ticketPrice = event.getTicketPrice() != null ? event.getTicketPrice() : BigDecimal.ZERO;
+
             Booking booking = new Booking(
                     userId,
                     eventId,
                     LocalDateTime.now(),
                     BookingStatus.PENDING_PAYMENT,
-                    event.getTicketPrice().multiply(BigDecimal.valueOf(tickets.size()))
+                    ticketPrice.multiply(BigDecimal.valueOf(tickets.size()))
             );
 
             booking = booking.withId(
@@ -273,6 +283,7 @@ public class BookingService {
      * @param bookingId the id of the booking to confirm
      */
     public void confirmBooking(long bookingId){
+        //TODO discuss with group which booking status transitions are allowed before confirming a booking
         updateStatus(bookingId,BookingStatus.CONFIRMED);
     }
 
@@ -281,6 +292,7 @@ public class BookingService {
      * @param bookingId the id of the booking to cancel
      */
     public void cancelBooking(long bookingId){
+        //TODO discuss with group which booking status transitions are allowed before cancelling a booking
         updateStatus(bookingId,BookingStatus.CANCELLED);
     }
 
@@ -304,6 +316,7 @@ public class BookingService {
         if(event == null) throw new ValidationException("Event is null");
         if(event.getEndDatetime().isBefore(LocalDateTime.now())) throw new ValidationException("Event has ended");
         if(!(event.getVisibility() == EventVisibility.PUBLIC))  throw new ValidationException("Event is not public");
+        //TODO discuss with group which event statuses allow public booking
     }
 
     /**
@@ -312,7 +325,7 @@ public class BookingService {
      * @throws ValidationException if list is empty or one ticket is not valid
      */
     public void validateManyTickets(List<Ticket> tickets){
-        if(tickets.isEmpty() || tickets == null) throw new ValidationException("No tickets found");
+        if(tickets == null || tickets.isEmpty()) throw new ValidationException("No tickets found");
         for(Ticket ticket : tickets){
             validateTicketForInsert(ticket);
         }
@@ -329,6 +342,44 @@ public class BookingService {
         if(ticket.getBookingId() != 0) throw new ValidationException("Ticket has already been booked");
         if(ticket.getFirstname() == null || ticket.getLastname() == null) throw new ValidationException("Firstname or Lastname is null");
         if(ticket.getFirstname().isEmpty() || ticket.getLastname().isEmpty()) throw new ValidationException("Firstname or Lastname is empty");
+    }
+
+    /**
+     * TODO Gets all tickets for a specific booking.
+     * @param bookingId the id of the booking
+     * @return List of tickets linked to the booking
+     */
+    public List<Ticket> getTicketsForBooking(long bookingId){
+        throw new UnsupportedOperationException("TODO implement getTicketsForBooking");
+    }
+
+    /**
+     * TODO Gets all tickets for a specific event.
+     * @param eventId the id of the event
+     * @return List of tickets linked to the event
+     */
+    public List<Ticket> getTicketsForEvent(long eventId){
+        throw new UnsupportedOperationException("TODO implement getTicketsForEvent");
+    }
+
+    /**
+     * TODO Gets remaining bookable places for a specific event.
+     * @param eventId the id of the event
+     * @return number of remaining places
+     */
+    public int getRemainingPlaces(long eventId){
+        throw new UnsupportedOperationException("TODO implement getRemainingPlaces");
+    }
+
+    /**
+     * Validates if a user exists before creating a booking.
+     * @param conn the db connection
+     * @param userId the id of the user to validate
+     * @throws NotFoundException if no user is found with such id
+     */
+    private void validateUserExists(Connection conn, long userId){
+        userRepository.findById(conn,userId)
+                .orElseThrow(() -> new NotFoundException("No user found with id "+userId));
     }
 
 
