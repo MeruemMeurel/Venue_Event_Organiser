@@ -16,7 +16,8 @@ public class PgEventRequestRepository implements EventRequestRepository {
      * Lambda function to map event_request sql results to an EventRequest object
      */
     private static final RowMapper<EventRequest> request_mapper = rs -> {
-        Long handler_id = rs.getLong("handler_id");
+        long raw_handler_id = rs.getLong("handler_id");
+        Long handler_id = rs.wasNull() ? null : raw_handler_id;
         Timestamp closed_at = rs.getTimestamp("closed_at");
 
         return new EventRequest(

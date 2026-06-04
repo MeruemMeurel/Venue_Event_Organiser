@@ -4,6 +4,7 @@ import Venue_Event_Manager.config.TransactionManager;
 import Venue_Event_Manager.domain.model.request.EventRequest;
 import Venue_Event_Manager.domain.model.request.EventRequestStatus;
 import Venue_Event_Manager.domain.model.user.User;
+import Venue_Event_Manager.exception.ConflictException;
 import Venue_Event_Manager.exception.NotFoundException;
 import Venue_Event_Manager.exception.ValidationException;
 import Venue_Event_Manager.repository.EventRequestRepository;
@@ -206,37 +207,101 @@ public class EventRequestService {
     }
 
     /**
-     * TODO Assigns an admin handler to a pending request.
+     * Assigns an admin handler to a pending request.
      * @param requestId the id of the request
      * @param handlerId the id of the admin handler
+     * @throws NotFoundException if no request is found with such id
+     * @throws ValidationException if handler is not valid
+     * @throws ConflictException if request is not pending
      */
     public void assignHandler(long requestId, long handlerId){
-        throw new UnsupportedOperationException("TODO implement assignHandler");
+        validateId(requestId,"Request id");
+        validateId(handlerId,"Handler id");
+
+        transactionManager.inTransaction(conn->{
+            validateHandlerId(conn,handlerId);
+
+            EventRequest request = eventRequestRepository.findById(conn,requestId)
+                    .orElseThrow(() -> new NotFoundException("No event request found with id "+requestId));
+            validateRequestIsPending(request);
+
+            eventRequestRepository.update(conn,request.withHandlerId(handlerId));
+            return null;
+        });
     }
 
     /**
-     * TODO Accepts a pending request and stores the proposed quote.
+     * Accepts a pending request and stores the proposed quote.
      * @param requestId the id of the request
      * @param quote the accepted quote
+     * @throws NotFoundException if no request is found with such id
+     * @throws ValidationException if quote is not valid or no handler is assigned
+     * @throws ConflictException if request is not pending
      */
     public void acceptRequest(long requestId, BigDecimal quote){
-        throw new UnsupportedOperationException("TODO implement acceptRequest");
+        validateId(requestId,"Request id");
+        validateAcceptedQuote(quote);
+
+        transactionManager.inTransaction(conn->{
+            EventRequest request = eventRequestRepository.findById(conn,requestId)
+                    .orElseThrow(() -> new NotFoundException("No event request found with id "+requestId));
+            validateRequestIsPending(request);
+            validateRequestHasHandler(request);
+
+            EventRequest acceptedRequest = request
+                    .withStatus(EventRequestStatus.ACCEPTED)
+                    .withQuote(quote)
+                    .withClosedAt(LocalDateTime.now());
+
+            eventRequestRepository.update(conn,acceptedRequest);
+            return null;
+        });
     }
 
     /**
-     * TODO Rejects a pending request.
+     * Rejects a pending request.
      * @param requestId the id of the request
+     * @throws NotFoundException if no request is found with such id
+     * @throws ConflictException if request is not pending
      */
     public void rejectRequest(long requestId){
-        throw new UnsupportedOperationException("TODO implement rejectRequest");
+        validateId(requestId,"Request id");
+
+        transactionManager.inTransaction(conn->{
+            EventRequest request = eventRequestRepository.findById(conn,requestId)
+                    .orElseThrow(() -> new NotFoundException("No event request found with id "+requestId));
+            validateRequestIsPending(request);
+
+            EventRequest rejectedRequest = request
+                    .withStatus(EventRequestStatus.REJECTED)
+                    .withClosedAt(LocalDateTime.now());
+
+            eventRequestRepository.update(conn,rejectedRequest);
+            return null;
+        });
     }
 
     /**
-     * TODO Cancels a request by requester action.
+     * Cancels a pending request by requester action.
      * @param requestId the id of the request
+     * @throws NotFoundException if no request is found with such id
+     * @throws ConflictException if request is not pending
      */
     public void cancelRequest(long requestId){
-        throw new UnsupportedOperationException("TODO implement cancelRequest");
+        validateId(requestId,"Request id");
+
+        transactionManager.inTransaction(conn->{
+            EventRequest request = eventRequestRepository.findById(conn,requestId)
+                    .orElseThrow(() -> new NotFoundException("No event request found with id "+requestId));
+            validateRequestIsPending(request);
+
+            EventRequest cancelledRequest = request
+                    .withStatus(EventRequestStatus.CANCELLED)
+                    .withClosedAt(LocalDateTime.now());
+
+            eventRequestRepository.update(conn,cancelledRequest);
+            return null;
+        });
     }
 
     /**
@@ -416,6 +481,38 @@ public class EventRequestService {
     private void validateQuote(BigDecimal quote){
         if(quote != null && quote.compareTo(BigDecimal.ZERO) < 0) {
             throw new ValidationException("Quote cannot be negative");
+        }
+    }
+
+    /**
+     * Validates accepted quote.
+     * @param quote the quote to validate
+     * @throws ValidationException if quote is empty or negative
+     */
+    private void validateAcceptedQuote(BigDecimal quote){
+        if(quote == null) throw new ValidationException("Quote cannot be empty");
+        validateQuote(quote);
+    }
+
+    /**
+     * Validates that request is pending.
+     * @param request the request to validate
+     * @throws ConflictException if request is not pending
+     */
+    private void validateRequestIsPending(EventRequest request){
+        if(request.getStatus() != EventRequestStatus.PENDING) {
+            throw new ConflictException("Event request is not pending");
+        }
+    }
+
+    /**
+     * Validates that request has an assigned handler.
+     * @param request the request to validate
+     * @throws ValidationException if request has no handler
+     */
+    private void validateRequestHasHandler(EventRequest request){
+        if(request.getHandlerId() == null) {
+            throw new ValidationException("Event request must have an assigned handler before acceptance");
         }
     }
 }
