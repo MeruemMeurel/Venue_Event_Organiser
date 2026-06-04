@@ -88,13 +88,18 @@ public class Review {
         if (this == other) return true;
         if (other == null || getClass() != other.getClass()) return false;
         Review review = (Review) other;
-        if (id != 0 && review.id != 0) return id == review.id;
-        return user_id == review.user_id && event_id == review.event_id && Objects.equals(created_at, review.created_at);
+        if (id != 0 && review.id != 0){
+            return Objects.equals(id, review.id);
+        }
+        return Objects.equals(user_id, review.user_id) && Objects.equals(event_id, review.event_id) &&
+                Objects.equals(created_at, review.created_at);
     }
 
     @Override
     public int hashCode(){
-        if(id != 0) return Objects.hash(id);
+        if(id != 0){
+            return Objects.hash(id);
+        }
         return Objects.hash(user_id, event_id, created_at);
     }
 

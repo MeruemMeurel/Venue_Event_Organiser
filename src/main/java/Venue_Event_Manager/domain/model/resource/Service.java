@@ -53,13 +53,17 @@ public class Service extends Resource {
         if (this == other) return true;
         if (other == null || getClass() != other.getClass()) return false;
         Service service = (Service) other;
-        if (id != 0 && service.id != 0) return id == service.id;
+        if (id != 0 && service.id != 0){
+            return Objects.equals(id, service.id);
+        }
         return Objects.equals(name, service.name);
     }
 
     @Override
     public int hashCode() {
-        if (id != 0) return Objects.hash(id);
+        if (id != 0){
+            return Objects.hash(id);
+        }
         return Objects.hash(name);
     }
 }
