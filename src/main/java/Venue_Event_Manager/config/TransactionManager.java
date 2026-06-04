@@ -54,7 +54,7 @@ public class TransactionManager {
                 throw e;
             }catch (Exception e){
                 safeRollback(conn);
-                throw new TransactionException("Checked error in read-only transaction",e);
+                throw new TransactionException("Checked error in read-write transaction",e);
             } finally {
                 safeSetAutoCommit(conn,oldAutoCommit);
             }
