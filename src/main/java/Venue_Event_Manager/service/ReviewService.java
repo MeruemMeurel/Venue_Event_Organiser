@@ -1,26 +1,35 @@
 package Venue_Event_Manager.service;
 
 import Venue_Event_Manager.config.TransactionManager;
-import Venue_Event_Manager.domain.model.event.Event;
 import Venue_Event_Manager.domain.model.booking.Booking;
 import Venue_Event_Manager.domain.model.booking.BookingStatus;
+import Venue_Event_Manager.domain.model.event.Event;
 import Venue_Event_Manager.domain.model.feedback.Review;
-import Venue_Event_Manager.exception.ValidationException;
-import Venue_Event_Manager.exception.NotFoundException;
-import Venue_Event_Manager.repository.ReviewRepository;
-import Venue_Event_Manager.repository.EventRepository;
-import Venue_Event_Manager.repository.BookingRepository;
 import Venue_Event_Manager.exception.ConflictException;
 import Venue_Event_Manager.exception.ForbiddenException;
+import Venue_Event_Manager.exception.NotFoundException;
+import Venue_Event_Manager.exception.ValidationException;
+import Venue_Event_Manager.repository.BookingRepository;
+import Venue_Event_Manager.repository.EventRepository;
+import Venue_Event_Manager.repository.ReviewRepository;
+
+import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.util.List;
 
 public class ReviewService {
-    private TransactionManager transactionManager;
-    private ReviewRepository reviewRepository;
-    private EventRepository eventRepository;
-    private BookingRepository bookingRepository;
 
+    private final TransactionManager transactionManager;
+    private final ReviewRepository reviewRepository;
+    private final EventRepository eventRepository;
+    private final BookingRepository bookingRepository;
+
+    /**
+     * Initializes ReviewService with all repositories needed to handle reviews.
+     * @param reviewRepository repository used to access review data
+     * @param eventRepository repository used to access event data
+     * @param bookingRepository repository used to access booking data
+     */
     public ReviewService(ReviewRepository reviewRepository, EventRepository eventRepository, BookingRepository bookingRepository) {
         this.transactionManager = TransactionManager.getInstance();
         this.reviewRepository = reviewRepository;
@@ -29,171 +38,272 @@ public class ReviewService {
     }
 
     /**
-     * Retrieves all reviews in the system.
-     *
-     * @return a list of all reviews
+     * Gets all reviews stored in database.
+     * @return List of all reviews
      */
     public List<Review> getAllReviews(){
         return transactionManager.inReadOnly(conn ->
-                reviewRepository.findAll(conn) );
+                reviewRepository.findAll(conn));
     }
 
     /**
-     * Retrieves a specific review by its ID.
-     *
-     * @param reviewId the ID of the review to retrieve
-     * @return the review matching the given ID
-     * @throws NotFoundException if no review is found with the given ID
+     * Gets a review from its id.
+     * @param reviewId the id of the review to find
+     * @return Review object if found
+     * @throws NotFoundException if no review is found with such id
      */
     public Review getReview(long reviewId){
         return transactionManager.inReadOnly(conn ->
-                reviewRepository.findById(conn, reviewId))
-                    .orElseThrow(() -> new NotFoundException("Review with id "
-                            + reviewId + " not found" ));
+                reviewRepository.findById(conn,reviewId)
+                        .orElseThrow(() -> new NotFoundException("Review with id " + reviewId + " not found")));
     }
 
     /**
-     * Retrieves all reviews written by a specific user.
-     *
-     * @param userId the ID of the user
-     * @return a list of reviews written by the user
+     * Gets all reviews written by a specific user.
+     * @param userId the id of the user
+     * @return List of reviews written by the user
      */
     public List<Review> getReviewsByUser(long userId){
         return transactionManager.inReadOnly(conn ->
-                reviewRepository.findAllByUserId(conn, userId));
+                reviewRepository.findAllByUserId(conn,userId));
     }
 
     /**
-     * Retrieves all reviews written for a specific event.
-     *
-     * @param eventId the ID of the event
-     * @return a list of reviews for the event
+     * Gets all reviews written for a specific event.
+     * @param eventId the id of the event
+     * @return List of reviews written for the event
      */
     public List<Review> getReviewsForEvent(long eventId){
         return transactionManager.inReadOnly(conn ->
-                reviewRepository.findAllByEventId(conn, eventId));
+                reviewRepository.findAllByEventId(conn,eventId));
     }
 
     /**
-     * Retrieves all reviews matching a specific rating score.
-     *
-     * @param rating the rating value (1 to 5)
-     * @return a list of reviews with the matching rating
+     * Gets all reviews with a specific rating.
+     * @param rating the rating used to filter reviews
+     * @return List of reviews with the given rating
+     * @throws ValidationException if rating is not valid
      */
     public List<Review> getReviewsWithRating(int rating){
+        validateRating(rating);
+
         return transactionManager.inReadOnly(conn ->
-                reviewRepository.findAllByRating(conn, rating));
+                reviewRepository.findAllByRating(conn,rating));
     }
 
     /**
-     * Retrieves a single review written by a specific user for a specific event.
-     *
-     * @param userId  the ID of the user
-     * @param eventId the ID of the event
-     * @return the matching review
-     * @throws NotFoundException if no review is found for the user and event
+     * Gets a review written by a user for a specific event.
+     * @param userId the id of the user
+     * @param eventId the id of the event
+     * @return Review object if found
+     * @throws NotFoundException if no review is found for such user and event
      */
-    public Review getReviewByUserAndEvent (long userId, long eventId){
+    public Review getReviewByUserAndEvent(long userId, long eventId){
         return transactionManager.inReadOnly(conn ->
-                reviewRepository.findByUserIdAndEventId(conn, userId, eventId))
-                    .orElseThrow(() -> new NotFoundException("Review from user with id " + userId +
-                            " for event " + eventId + " not found" ));
+                reviewRepository.findByUserIdAndEventId(conn,userId,eventId)
+                        .orElseThrow(() -> new NotFoundException("Review from user with id " + userId +
+                                " for event " + eventId + " not found")));
     }
 
     /**
-     * Calculates the average rating given by a user.
-     *
-     * @param userId the ID of the user
-     * @return the user's average rating
+     * Gets average rating given by a user.
+     * @param userId the id of the user
+     * @return average rating given by the user
      */
     public double getAverageRatingByUser(long userId){
-       return transactionManager.inReadOnly(conn ->
-                reviewRepository.getAverageRatingByUser(conn, userId));
+        return transactionManager.inReadOnly(conn ->
+                reviewRepository.getAverageRatingByUser(conn,userId));
     }
 
     /**
-     * Calculates the average rating received by an event.
-     *
-     * @param eventId the ID of the event
-     * @return the event's average rating
+     * Gets average rating received by an event.
+     * @param eventId the id of the event
+     * @return average rating received by the event
      */
     public double getAverageRatingByEvent(long eventId){
         return transactionManager.inReadOnly(conn ->
-                reviewRepository.getAverageRatingByEvent(conn, eventId));
+                reviewRepository.getAverageRatingByEvent(conn,eventId));
     }
 
     /**
-     * Deletes a review from the system.
-     *
-     * @param reviewId the ID of the review to delete
-     * @throws NotFoundException if the review is not found
+     * Inserts a new review in database.
+     * @param review the review to insert
+     * @return generated id of the new review
+     * @throws ValidationException if review data are not valid
+     * @throws NotFoundException if event does not exist
+     * @throws ForbiddenException if user did not attend the event
+     * @throws ConflictException if user has already reviewed the event
+     */
+    public long addReview(Review review){
+        validateReviewNotNull(review);
+
+        return transactionManager.inTransaction(conn -> {
+            validateForInsert(conn,review);
+            Review finalReview = review.withCreatedAt(LocalDateTime.now());
+            return reviewRepository.insert(conn,finalReview);
+        });
+    }
+
+    /**
+     * Updates an existing review in database.
+     * @param review the review object with updated data
+     * @throws ValidationException if review data or id are not valid
+     */
+    public void updateReview(Review review){
+        validateForUpdate(review);
+
+        transactionManager.inTransaction(conn -> {
+            reviewRepository.findById(conn,review.getId())
+                    .orElseThrow(() -> new NotFoundException("Review with id " + review.getId() + " not found"));
+            reviewRepository.update(conn,review);
+            return null;
+        });
+    }
+
+    /**
+     * Deletes a review from database.
+     * @param reviewId the id of the review to delete
+     * @throws NotFoundException if no review is found with such id
      */
     public void deleteReview(long reviewId){
         transactionManager.inTransaction(conn -> {
-            reviewRepository.findById(conn, reviewId)
-                        .orElseThrow(() -> new NotFoundException("Review with id " + reviewId
-                                + " not found" ));
-
-                    reviewRepository.deleteById(conn, reviewId);
-
-                    return null;
-                });
+            reviewRepository.findById(conn,reviewId)
+                    .orElseThrow(() -> new NotFoundException("Review with id " + reviewId + " not found"));
+            reviewRepository.deleteById(conn,reviewId);
+            return null;
+        });
     }
 
     /**
-     * Helper method to validate if an event has ended.
-     *
-     * @param event the event to check
-     * @throws ValidationException if the event is still ongoing
+     * Validates review data before insert.
+     * @param conn the db connection
+     * @param review the review to validate
+     * @throws ValidationException if one or more fields are not valid
      */
-    private void validateEventEnded(Event event){
-        if(event.getEndDatetime().isAfter(LocalDateTime.now())){
-            throw new ValidationException("Cannot review an event that hasn't ended yet.");
+    private void validateForInsert(Connection conn, Review review){
+        validateRating(review.getRating());
+        validateComment(review.getComment());
+        Event event = validateEventExists(conn,review.getEventId());
+        validateEventEnded(event);
+        validateUserAttendedEvent(conn,review.getUserId(),review.getEventId());
+        validateUserHasNotReviewedEvent(conn,review.getUserId(),review.getEventId());
+    }
+
+    /**
+     * Validates review data before update.
+     * @param review the review to validate
+     * @throws ValidationException if one or more fields are not valid
+     */
+    private void validateForUpdate(Review review){
+        validateReviewNotNull(review);
+        validateId(review.getId(),"Review id");
+        validateId(review.getUserId(),"User id");
+        validateId(review.getEventId(),"Event id");
+        validateRating(review.getRating());
+        validateComment(review.getComment());
+        validateCreatedAt(review.getCreatedAt());
+    }
+
+    /**
+     * Validates that review is not null.
+     * @param review the review to validate
+     * @throws ValidationException if review is null
+     */
+    private void validateReviewNotNull(Review review){
+        if(review == null) throw new ValidationException("Review cannot be null");
+    }
+
+    /**
+     * Validates positive id.
+     * @param id the id to validate
+     * @param label the name of the id field
+     * @throws ValidationException if id is not valid
+     */
+    private void validateId(long id, String label){
+        if(id <= 0) throw new ValidationException(label + " is not valid");
+    }
+
+    /**
+     * Validates rating.
+     * @param rating the rating to validate
+     * @throws ValidationException if rating is outside accepted range
+     */
+    private void validateRating(int rating){
+        if(rating < 1 || rating > 5) throw new ValidationException("Review rating must be between 1 and 5");
+    }
+
+    /**
+     * Validates comment.
+     * @param comment the comment to validate
+     * @throws ValidationException if comment has invalid length
+     */
+    private void validateComment(String comment){
+        if(comment != null && comment.length() > 1000) {
+            throw new ValidationException("Review comment cannot exceed 1000 characters");
         }
     }
 
     /**
-     * Adds a new review to an event, enforcing validation constraints and business rules.
-     *
-     * @param review the review details to insert
-     * @return the generated ID of the new review
-     * @throws ValidationException if the rating is invalid or the event has not ended yet
-     * @throws NotFoundException   if the referenced event does not exist
-     * @throws ForbiddenException  if the user does not have a confirmed booking for the event
-     * @throws ConflictException   if the user has already reviewed this event
+     * Validates created date.
+     * @param createdAt the created date to validate
+     * @throws ValidationException if created date is empty
      */
-    public long addReview(Review review){
-        return transactionManager.inTransaction(conn -> {
-            //check if rating for the event are ok
-            if (review.getRating() < 1 || review.getRating() > 5) {
-                throw new ValidationException("Review rating must be between 1 and 5");
-            }
-            //check if there's an event with such id
-            Event event = eventRepository.findById(conn, review.getEventId())
-                    .orElseThrow(() -> new NotFoundException("Event with id "
-                            + review.getEventId() + " not found"));
-            //check if event has ended
-            validateEventEnded(event);
-            //get all the bookings with corresponding event and user id
-            List<Booking> bookings=bookingRepository.findAllByUserIdAndEventId(conn,
-                    review.getUserId(), review.getEventId());
-            //check if atleast one is confirmed, if not throw an exception
-            boolean hasConfirmedBooking = false;
-            for(Booking booking : bookings){
-               if (booking.getStatus() == BookingStatus.CONFIRMED){
-                   hasConfirmedBooking = true;
-                   break;
-               }
-            }
-            if(!hasConfirmedBooking){
-                throw new ForbiddenException("User did not attend the event.");
-            }
-            //check if user has already reviewed the event
-            if (reviewRepository.findByUserIdAndEventId(conn, review.getUserId(), review.getEventId()).isPresent()){
-                throw new ConflictException("User has already review this event.");
-            }
-            Review finalReview = review.withCreatedAt(LocalDateTime.now());
-            return reviewRepository.insert(conn, finalReview);
-        });
+    private void validateCreatedAt(LocalDateTime createdAt){
+        if(createdAt == null) throw new ValidationException("Review created date cannot be empty");
+    }
+
+    /**
+     * Validates if event exists.
+     * @param conn the db connection
+     * @param eventId the id of the event to validate
+     * @return Event object if found
+     * @throws NotFoundException if no event is found with such id
+     */
+    private Event validateEventExists(Connection conn, long eventId){
+        validateId(eventId,"Event id");
+        return eventRepository.findById(conn,eventId)
+                .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
+    }
+
+    /**
+     * Validates if an event has ended.
+     * @param event the event to validate
+     * @throws ValidationException if event has not ended yet
+     */
+    private void validateEventEnded(Event event){
+        if(event.getEndDatetime().isAfter(LocalDateTime.now())){
+            throw new ValidationException("Cannot review an event that has not ended yet");
+        }
+    }
+
+    /**
+     * Validates if a user has a confirmed booking for an event.
+     * @param conn the db connection
+     * @param userId the id of the user
+     * @param eventId the id of the event
+     * @throws ForbiddenException if user has no confirmed booking for the event
+     */
+    private void validateUserAttendedEvent(Connection conn, long userId, long eventId){
+        validateId(userId,"User id");
+        List<Booking> bookings = bookingRepository.findAllByUserIdAndEventId(conn,userId,eventId);
+
+        for(Booking booking : bookings){
+            if(booking.getStatus() == BookingStatus.CONFIRMED) return;
+        }
+
+        throw new ForbiddenException("User did not attend the event");
+    }
+
+    /**
+     * Validates that user has not already reviewed an event.
+     * @param conn the db connection
+     * @param userId the id of the user
+     * @param eventId the id of the event
+     * @throws ConflictException if review already exists
+     */
+    private void validateUserHasNotReviewedEvent(Connection conn, long userId, long eventId){
+        if(reviewRepository.findByUserIdAndEventId(conn,userId,eventId).isPresent()){
+            throw new ConflictException("User has already reviewed this event");
+        }
     }
 }
