@@ -345,30 +345,36 @@ public class BookingService {
     }
 
     /**
-     * TODO Gets all tickets for a specific booking.
      * @param bookingId the id of the booking
      * @return List of tickets linked to the booking
      */
     public List<Ticket> getTicketsForBooking(long bookingId){
-        throw new UnsupportedOperationException("TODO implement getTicketsForBooking");
+        return transactionManager.inTransaction(conn->
+                ticketRepository.findAllByBookingId(conn,bookingId));
     }
 
     /**
-     * TODO Gets all tickets for a specific event.
      * @param eventId the id of the event
      * @return List of tickets linked to the event
      */
     public List<Ticket> getTicketsForEvent(long eventId){
-        throw new UnsupportedOperationException("TODO implement getTicketsForEvent");
+        return transactionManager.inTransaction(conn->
+                ticketRepository.findAllByEventId(conn,eventId) );
     }
 
     /**
-     * TODO Gets remaining bookable places for a specific event.
      * @param eventId the id of the event
      * @return number of remaining places
      */
     public int getRemainingPlaces(long eventId){
-        throw new UnsupportedOperationException("TODO implement getRemainingPlaces");
+        return transactionManager.inTransaction(conn->
+        {
+            Event event = eventRepository.findById(conn, eventId)
+                    .orElseThrow(() -> new NotFoundException("No event with id: "+eventId));
+
+            int soldTickets = ticketRepository.countTicketsForEvent(conn, eventId);
+            return event.getCapacity() - soldTickets;
+        });
     }
 
     /**
