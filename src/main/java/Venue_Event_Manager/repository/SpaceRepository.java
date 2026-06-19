@@ -2,6 +2,8 @@ package Venue_Event_Manager.repository;
 
 import Venue_Event_Manager.domain.model.resource.Space;
 import java.sql.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,4 +23,5 @@ public interface SpaceRepository {
 
     void deleteById(Connection conn, long spaceId);
 
+    List<Space> findAvailableSpaces(Connection conn, long venueId, LocalDateTime begin, LocalDateTime end);
 }

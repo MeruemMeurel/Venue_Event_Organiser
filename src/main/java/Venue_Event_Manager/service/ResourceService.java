@@ -337,14 +337,15 @@ public class ResourceService {
     }
 
     /**
-     * TODO Gets all spaces available in a venue during a time interval.
+     * Gets all spaces available in a venue during a time interval
      * @param venueId the id of the venue
      * @param begin the beginning of the time interval
      * @param end the end of the time interval
      * @return List of available spaces
      */
     public List<Space> getAvailableSpaces(long venueId, LocalDateTime begin, LocalDateTime end){
-        throw new UnsupportedOperationException("TODO implement getAvailableSpaces");
+        return transactionManager.inTransaction(conn ->
+                spaceRepository.findAvailableSpaces(conn,venueId, begin, end));
     }
 
     /**
