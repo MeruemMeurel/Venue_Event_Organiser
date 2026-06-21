@@ -15,7 +15,6 @@ import java.util.List;
 public class EventService {
     private final TransactionManager transactionManager;
     private final EventRepository eventRepository;
-    private final EventGuestRepository eventGuestRepository;
     private final EventRequestRepository eventRequestRepository;
     private final VenueRepository venueRepository;
     private final UserRepository userRepository;
@@ -23,15 +22,13 @@ public class EventService {
     /**
      * Initializes EventService with all repositories needed to handle events.
      * @param eventRepository repository used to access event data
-     * @param eventGuestRepository repository used to access event guest data
      * @param eventRequestRepository repository used to access event request data
      * @param venueRepository repository used to access venue data
      * @param userRepository repository used to access user data
      */
-    public EventService(EventRepository eventRepository, EventGuestRepository eventGuestRepository, EventRequestRepository eventRequestRepository, VenueRepository venueRepository, UserRepository userRepository) {
+    public EventService(EventRepository eventRepository, EventRequestRepository eventRequestRepository, VenueRepository venueRepository, UserRepository userRepository) {
         transactionManager = TransactionManager.getInstance();
         this.eventRepository = eventRepository;
-        this.eventGuestRepository = eventGuestRepository;
         this.eventRequestRepository = eventRequestRepository;
         this.venueRepository = venueRepository;
         this.userRepository = userRepository;
