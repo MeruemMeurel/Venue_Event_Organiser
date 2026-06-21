@@ -187,7 +187,7 @@ public class PgSpaceRepository implements SpaceRepository {
         }
     }
 
-    private final static String SQL_FIND_AVAILABLE = "SELECT * FROM space " +
+    private final static String SQL_FIND_AVAILABLE_SPACE = "SELECT * FROM space " +
                                                      "WHERE venue_id = ? " +
                                                      "AND id NOT IN " +
                                                      "(SELECT space_id FROM event_space " +
@@ -206,7 +206,7 @@ public class PgSpaceRepository implements SpaceRepository {
     public List<Space> findAvailableSpaces(Connection conn, long venueId, LocalDateTime begin, LocalDateTime end) {
         List<Space> spaces = new ArrayList<>();
 
-        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_AVAILABLE)) {
+        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_AVAILABLE_SPACE)) {
             ps.setLong(1, venueId);
             ps.setTimestamp(2, java.sql.Timestamp.valueOf(end));
             ps.setTimestamp(3, java.sql.Timestamp.valueOf(begin));
