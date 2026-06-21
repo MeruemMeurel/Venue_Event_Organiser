@@ -156,4 +156,35 @@ public class PgServiceRepository implements ServiceRepository {
             throw new DaoException("Error while trying to delete service with id: " + serviceId, e);
         }
     }
+
+    private final static String SQL_FIND_AVAILABLE_SERVICES = "SELECT id,name,description " +
+                                                              "FROM service s " +
+                                                              "WHERE s.id NOT IN " +
+                                                              "(SELECT service_id FROM event_service " +
+                                                              "WHERE event_id = ? ) ";
+
+    /**
+     * get all the available service for a given event
+     * @param conn the database connection
+     * @param eventId the id of the event to search for his services
+     * @return
+     */
+    @Override
+    public List<Service> findAvailableServicesForEvent(Connection conn, long eventId) {
+        List<Service> services = new ArrayList<>();
+
+        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_AVAILABLE_SERVICES)) {
+            ps.setLong(1, eventId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    services.add(service_mapper.mapRow(rs));
+                }
+            }
+
+            return services;
+        }catch (SQLException e) {
+            throw new DaoException("Error while trying to find available services for event id: " + eventId, e);
+        }
+    }
 }

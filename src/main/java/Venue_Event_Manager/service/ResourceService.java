@@ -1,6 +1,7 @@
 package Venue_Event_Manager.service;
 
 import Venue_Event_Manager.config.TransactionManager;
+import Venue_Event_Manager.domain.model.event.Event;
 import Venue_Event_Manager.domain.model.resource.Equipment;
 import Venue_Event_Manager.domain.model.resource.Resource;
 import Venue_Event_Manager.domain.model.resource.ResourceType;
@@ -8,10 +9,7 @@ import Venue_Event_Manager.domain.model.resource.Service;
 import Venue_Event_Manager.domain.model.resource.Space;
 import Venue_Event_Manager.exception.NotFoundException;
 import Venue_Event_Manager.exception.ValidationException;
-import Venue_Event_Manager.repository.EquipmentRepository;
-import Venue_Event_Manager.repository.ServiceRepository;
-import Venue_Event_Manager.repository.SpaceRepository;
-import Venue_Event_Manager.repository.VenueRepository;
+import Venue_Event_Manager.repository.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -24,6 +22,7 @@ public class ResourceService {
     private final EquipmentRepository equipmentRepository;
     private final ServiceRepository serviceRepository;
     private final VenueRepository venueRepository;
+    private final EventRepository eventRepository;
 
     /**
      * Initializes ResourceService with all repositories needed to handle resources.
@@ -33,12 +32,13 @@ public class ResourceService {
      * @param venueRepository repository used to access venue data
      */
     public ResourceService(SpaceRepository spaceRepository, EquipmentRepository equipmentRepository,
-                           ServiceRepository serviceRepository, VenueRepository venueRepository) {
+                           ServiceRepository serviceRepository, VenueRepository venueRepository, EventRepository eventRepository) {
         this.transactionManager = TransactionManager.getInstance();
         this.spaceRepository = spaceRepository;
         this.equipmentRepository = equipmentRepository;
         this.serviceRepository = serviceRepository;
         this.venueRepository = venueRepository;
+        this.eventRepository = eventRepository;
     }
 
     /**
@@ -328,12 +328,28 @@ public class ResourceService {
     }
 
     /**
-     * TODO Gets all resources available for a specific event.
+     * Gets all resources available for a specific event.
      * @param eventId the id of the event
      * @return List of resources available for the event
      */
     public List<Resource> getAvailableResourcesForEvent(long eventId){
-        throw new UnsupportedOperationException("TODO implement getAvailableResourcesForEvent");
+        return transactionManager.inReadOnly(conn -> {
+            Event event = eventRepository.findById(conn,eventId)
+                    .orElseThrow(() -> new ValidationException("No event found with id " + eventId));
+
+            List<Resource> availableResources = new ArrayList<>();
+
+            availableResources.addAll(
+                    spaceRepository.findAvailableSpaces(conn,event.getVenueId(),
+                            event.getBeginDatetime(), event.getEndDatetime()));
+            availableResources.addAll(
+                    equipmentRepository.findAvailableEquipment(conn, event.getVenueId(),
+                            event.getBeginDatetime(), event.getEndDatetime()));
+            availableResources.addAll(
+                    serviceRepository.findAvailableServicesForEvent(conn, eventId));
+
+            return availableResources;
+        });
     }
 
     /**
@@ -361,13 +377,15 @@ public class ResourceService {
     }
 
     /**
-     * TODO Gets all services available for an event.
+     * Gets all services available for an event.
      * Services are not linked to venues, so availability must be defined by event requirements.
      * @param eventId the id of the event
      * @return List of available services
      */
     public List<Service> getAvailableServicesForEvent(long eventId){
-        throw new UnsupportedOperationException("TODO implement getAvailableServicesForEvent");
+        return transactionManager.inReadOnly(conn ->
+                serviceRepository.findAvailableServicesForEvent(conn, eventId)
+        );
     }
 
     //validation
