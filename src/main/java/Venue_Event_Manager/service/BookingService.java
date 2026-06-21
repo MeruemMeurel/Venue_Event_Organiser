@@ -349,7 +349,7 @@ public class BookingService {
      * @return List of tickets linked to the booking
      */
     public List<Ticket> getTicketsForBooking(long bookingId){
-        return transactionManager.inTransaction(conn->
+        return transactionManager.inReadOnly(conn->
                 ticketRepository.findAllByBookingId(conn,bookingId));
     }
 
@@ -358,7 +358,7 @@ public class BookingService {
      * @return List of tickets linked to the event
      */
     public List<Ticket> getTicketsForEvent(long eventId){
-        return transactionManager.inTransaction(conn->
+        return transactionManager.inReadOnly(conn->
                 ticketRepository.findAllByEventId(conn,eventId) );
     }
 
@@ -367,7 +367,7 @@ public class BookingService {
      * @return number of remaining places
      */
     public int getRemainingPlaces(long eventId){
-        return transactionManager.inTransaction(conn->
+        return transactionManager.inReadOnly(conn->
         {
             Event event = eventRepository.findById(conn, eventId)
                     .orElseThrow(() -> new NotFoundException("No event with id: "+eventId));
