@@ -344,19 +344,20 @@ public class ResourceService {
      * @return List of available spaces
      */
     public List<Space> getAvailableSpaces(long venueId, LocalDateTime begin, LocalDateTime end){
-        return transactionManager.inTransaction(conn ->
+        return transactionManager.inReadOnly(conn ->
                 spaceRepository.findAvailableSpaces(conn,venueId, begin, end));
     }
 
     /**
-     * TODO Gets all equipments available in a venue during a time interval.
+     * Gets all equipments available in a venue during a time interval.
      * @param venueId the id of the venue
      * @param begin the beginning of the time interval
      * @param end the end of the time interval
      * @return List of available equipments
      */
     public List<Equipment> getAvailableEquipment(long venueId, LocalDateTime begin, LocalDateTime end){
-        throw new UnsupportedOperationException("TODO implement getAvailableEquipment");
+        return transactionManager.inReadOnly(conn ->
+                equipmentRepository.findAvailableEquipment(conn,venueId, begin, end));
     }
 
     /**
