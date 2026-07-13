@@ -87,6 +87,30 @@ public class PgEventRepository implements EventRepository {
         }
     }
 
+    public static String SQL_FIND_BY_ID_FOR_UPDATE = SQL_FIND_ALL + " WHERE id = ?" +
+                                                                    " FOR UPDATE";
+
+    /**
+     * Executes SQL Query to get a Event from its id, setting it for update
+     * @param conn the db connection
+     * @param eventId the event
+     * @return Optional<Event> optional object containing the event if found
+     * @throws DaoException daoException
+     */
+    @Override
+    public Optional<Event> findByIdForUpdate(Connection conn, long eventId) {
+        try(PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_ID_FOR_UPDATE)){
+            ps.setLong(1, eventId);
+
+            try(ResultSet rs = ps.executeQuery()) {
+                if(!rs.next()) return Optional.empty();
+                else return Optional.of(event_mapper.mapRow(rs));
+            }
+
+        }catch (SQLException e) {
+            throw new DaoException("Error while trying to find event with id = " + eventId, e);
+        }
+    }
 
     private final static String SQL_FIND_ALL_BY_VENUE = SQL_FIND_ALL + " WHERE venue_id = ?";
     /**
@@ -473,6 +497,24 @@ public class PgEventRepository implements EventRepository {
         }
     }
 
+    private final static String SQL_UPDATE_STATUS_AND_PUBLISHED_AT =    "UPDATE event " +
+                                                                        "SET status = ?, published_at = ? " +
+                                                                        "WHERE id = ?";
+
+    @Override
+    public void updateStatusAndPublishedAt(Connection conn, long eventId, EventStatus status, LocalDateTime publishedAt) {
+        try (PreparedStatement ps = conn.prepareStatement(SQL_UPDATE_STATUS_AND_PUBLISHED_AT)) {
+            ps.setString(1, status.name());
+            ps.setTimestamp(2, Timestamp.valueOf(publishedAt));
+            ps.setLong(3, eventId);
+
+            int updated = ps.executeUpdate();
+            JdbcUtils.requireUpdatedExactly(updated, 1, "updateStatusAndPublishedAt(event_id=" + eventId + ")");
+
+        }catch (SQLException e) {
+            throw new DaoException("Error while trying to update status and datetime of publish for event id = " + eventId, e);
+        }
+    }
 
     private final static String SQL_DELETE = "DELETE FROM event " +
                                              "WHERE id = ?";

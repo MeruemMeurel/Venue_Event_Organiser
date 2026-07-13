@@ -6,6 +6,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -96,6 +97,31 @@ public class PgEquipmentRepository implements EquipmentRepository {
         }
     }
 
+    private final static String SQL_SEARCH_BY_NAME = SQL_FIND_ALL + " WHERE LOWER(name) LIKE LOWER(?)";
+    /**
+     * Searches in database a name like the parameter name
+     * @param conn the db connection
+     * @param name the name to search
+     * @return List<Equipment> results of query
+     * @throws DaoException daoException
+     */
+    @Override
+    public List<Equipment> searchByName(Connection conn, String name) {
+        try(PreparedStatement ps = conn.prepareStatement(SQL_SEARCH_BY_NAME)){
+            ps.setString(1, "%" + name + "%");
+            ArrayList<Equipment> equipments = new ArrayList<>();
+
+            try (ResultSet rs = ps.executeQuery()){
+                while(rs.next()){
+                    equipments.add(equipment_mapper.mapRow(rs));
+                }
+            }
+            return equipments;
+        }catch (SQLException e) {
+            throw new DaoException("Error while trying to find equipments with name: " + name, e);
+        }
+    }
+
 
     private final static String SQL_INSERT = "INSERT INTO equipment (venue_id, name, description, total_quantity) " +
                                              "VALUES (?, ?, ?, ?) RETURNING id";
@@ -149,7 +175,7 @@ public class PgEquipmentRepository implements EquipmentRepository {
 
 
     private final static String SQL_DELETE = "DELETE FROM equipment " +
-                                             "WHERE id = ?";
+                                             "WHERE id = ? ";
     /**
      * Deletes an equipment record from database by its id
      * @param conn the database connection
@@ -164,6 +190,48 @@ public class PgEquipmentRepository implements EquipmentRepository {
             JdbcUtils.requireUpdatedExactly(updated, 1, "deleteEquipment(id=" + equipmentId + ")");
         }catch (SQLException e){
             throw new DaoException("Error while trying to delete equipment with id: " + equipmentId, e);
+        }
+    }
+
+    private final static String SQL_FIND_AVAILABLE_EQUIPMENT = "SELECT * " +
+                                                     "FROM equipment e " +
+                                                     "WHERE e.venue_id = ? " +
+                                                     "AND e.total_quantity > COALESCE( " +
+                                                     "(SELECT SUM(ee.quantity) " +
+                                                     "FROM event_equipment ee " +
+                                                     "JOIN event ev On ee.event_id = ev.id " +
+                                                     "WHERE ee.equipment_id = e.id " +
+                                                        "AND ev.begin_datetime < ? AND ev.end_datetime > ?),"+
+                                                        "0 " +
+                                                     ") ";
+
+    /**
+     * Executes SQL query to database to find all available equipments in a venue within a specific time interval
+     * @param conn the databaseconnection
+     * @param venueId the id of the venue to search in
+     * @param begin the start time of the interval
+     * @param end the end time of the interval
+     * @return List<Equipment> object containing available equipments
+     */
+    @Override
+    public List<Equipment> findAvailableEquipment(Connection conn, long venueId, LocalDateTime begin, LocalDateTime end) {
+        List<Equipment> equipments = new ArrayList<>();
+
+        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_AVAILABLE_EQUIPMENT)){
+            ps.setLong(1,venueId);
+            ps.setTimestamp(2, java.sql.Timestamp.valueOf(end));
+            ps.setTimestamp(3, java.sql.Timestamp.valueOf(begin));
+
+            try (ResultSet rs = ps.executeQuery()){
+                while (rs.next()){
+                    equipments.add(equipment_mapper.mapRow(rs));
+                }
+            }
+            return equipments;
+
+        }catch (SQLException e){
+            throw new DaoException("Error while trying to find available " +
+                    "equipment from venue with id: " + venueId, e);
         }
     }
 }

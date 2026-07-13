@@ -35,6 +35,14 @@ public class Ticket {
         this(0, booking_id, firstname, lastname, startsAt);
     }
 
+    /** Constructor for ticket not yet booked.     */
+    public Ticket(String firstname, String lastname) {
+        this.id=0;
+        this.booking_id=0;
+        this.firstname = firstname;
+        this.lastname = lastname;
+        this.starts_at = LocalDateTime.of(1900,1,1,1,1);
+    }
 
     //getters and withers
     public long getId(){ return id; }
@@ -58,7 +66,7 @@ public class Ticket {
     }
 
     public LocalDateTime getStartsAt(){ return starts_at; }
-    public Ticket withBirthday(LocalDateTime newStartsAt){
+    public Ticket withStartsAt(LocalDateTime newStartsAt){
         return new Ticket(id, booking_id, firstname, lastname, newStartsAt);
     }
 
@@ -80,14 +88,18 @@ public class Ticket {
         if (this == other) return true;
         if (other == null || getClass() != other.getClass()) return false;
         Ticket ticket = (Ticket) other;
-        if (id != 0 && ticket.id != 0) return id == ticket.id;
-        return booking_id == ticket.booking_id && Objects.equals(firstname, ticket.firstname) &&
+        if (id != 0 && ticket.id != 0){
+            return Objects.equals(id, ticket.id);
+        }
+        return Objects.equals(booking_id, ticket.booking_id) && Objects.equals(firstname, ticket.firstname) &&
                 Objects.equals(lastname, ticket.lastname);
     }
 
     @Override
     public int hashCode(){
-        if(id != 0) return Objects.hash(id);
+        if(id != 0){
+            return Objects.hash(id);
+        }
         return Objects.hash(booking_id, firstname, lastname);
     }
 

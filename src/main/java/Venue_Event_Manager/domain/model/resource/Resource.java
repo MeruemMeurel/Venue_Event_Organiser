@@ -66,13 +66,17 @@ public abstract class Resource {
         if (this == other) return true;
         if (other == null || getClass() != other.getClass()) return false;
         Resource resource = (Resource) other;
-        if (id == 0 && resource.id == 0) return false;
-        return id == resource.id;
+        if (id == 0 && resource.id == 0){
+            return false;
+        }
+        return Objects.equals(id, resource.id);
     }
 
     @Override
     public int hashCode() {
-        if (id == 0) return super.hashCode();
+        if (id == 0){
+            return super.hashCode();
+        }
         return Objects.hash(id);
     }
 }

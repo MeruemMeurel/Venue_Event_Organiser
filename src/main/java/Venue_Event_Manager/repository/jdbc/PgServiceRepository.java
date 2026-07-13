@@ -65,6 +65,31 @@ public class PgServiceRepository implements ServiceRepository {
         }
     }
 
+    private final static String SQL_SEARCH_BY_NAME = SQL_FIND_ALL + " WHERE LOWER(name) LIKE LOWER(?)";
+    /**
+     * Searches in database a name like the parameter name
+     * @param conn the db connection
+     * @param name the name to search
+     * @return List<Service> results of query
+     * @throws DaoException daoException
+     */
+    @Override
+    public List<Service> searchByName(Connection conn, String name) {
+        try(PreparedStatement ps = conn.prepareStatement(SQL_SEARCH_BY_NAME)){
+            ps.setString(1, "%" + name + "%");
+            ArrayList<Service> services = new ArrayList<>();
+
+            try (ResultSet rs = ps.executeQuery()){
+                while(rs.next()){
+                    services.add(service_mapper.mapRow(rs));
+                }
+            }
+            return services;
+        }catch (SQLException e) {
+            throw new DaoException("Error while trying to find services with name: " + name, e);
+        }
+    }
+
 
     private final static String SQL_INSERT = "INSERT INTO service (name, description) " +
                                              "VALUES (?, ?) RETURNING id";
@@ -129,6 +154,37 @@ public class PgServiceRepository implements ServiceRepository {
             JdbcUtils.requireUpdatedExactly(updated, 1, "deleteService(id=" + serviceId + ")");
         } catch (SQLException e){
             throw new DaoException("Error while trying to delete service with id: " + serviceId, e);
+        }
+    }
+
+    private final static String SQL_FIND_AVAILABLE_SERVICES = "SELECT id,name,description " +
+                                                              "FROM service s " +
+                                                              "WHERE s.id NOT IN " +
+                                                              "(SELECT service_id FROM event_service " +
+                                                              "WHERE event_id = ? ) ";
+
+    /**
+     * get all the available service for a given event
+     * @param conn the database connection
+     * @param eventId the id of the event to search for his services
+     * @return
+     */
+    @Override
+    public List<Service> findAvailableServicesForEvent(Connection conn, long eventId) {
+        List<Service> services = new ArrayList<>();
+
+        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_AVAILABLE_SERVICES)) {
+            ps.setLong(1, eventId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    services.add(service_mapper.mapRow(rs));
+                }
+            }
+
+            return services;
+        }catch (SQLException e) {
+            throw new DaoException("Error while trying to find available services for event id: " + eventId, e);
         }
     }
 }

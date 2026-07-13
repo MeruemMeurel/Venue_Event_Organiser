@@ -4,6 +4,7 @@ import Venue_Event_Manager.domain.model.venue.Venue;
 import Venue_Event_Manager.domain.model.venue.Address;
 import Venue_Event_Manager.repository.VenueRepository;
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -73,6 +74,120 @@ public class PgVenueRepository implements VenueRepository {
             }
         } catch (SQLException e) {
             throw new DaoException("Error while trying to find venue id = " + venueId, e);
+        }
+    }
+
+    private final static String SQL_FIND_BY_NAME = SQL_FIND_ALL + " WHERE name ILIKE ?";
+    /**
+     * Executes SQL query to get venues with a matching name
+     * @param conn the db connection
+     * @param name the name or part of name to search
+     * @return List of venues matching the given name
+     */
+    @Override
+    public List<Venue> findByName(Connection conn, String name) {
+        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_NAME)) {
+            ps.setString(1, "%" + name + "%");
+            List<Venue> venues = new ArrayList<>();
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    venues.add(venue_mapper.mapRow(rs));
+                }
+            }
+            return venues;
+        } catch (SQLException e) {
+            throw new DaoException("Error while trying to find venues with name = " + name, e);
+        }
+    }
+
+
+    private final static String SQL_FIND_BY_CITY = SQL_FIND_ALL + " WHERE city ILIKE ?";
+    /**
+     * Executes SQL query to get venues in a matching city
+     * @param conn the db connection
+     * @param city the city or part of city to search
+     * @return List of venues matching the given city
+     */
+    @Override
+    public List<Venue> findByCity(Connection conn, String city) {
+        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_CITY)) {
+            ps.setString(1, "%" + city + "%");
+            List<Venue> venues = new ArrayList<>();
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    venues.add(venue_mapper.mapRow(rs));
+                }
+            }
+            return venues;
+        } catch (SQLException e) {
+            throw new DaoException("Error while trying to find venues with city = " + city, e);
+        }
+    }
+
+
+    private final static String SQL_FIND_BY_COUNTRY = SQL_FIND_ALL + " WHERE country ILIKE ?";
+    /**
+     * Executes SQL query to get venues in a matching country
+     * @param conn the db connection
+     * @param country the country or part of country to search
+     * @return List of venues matching the given country
+     */
+    @Override
+    public List<Venue> findByCountry(Connection conn, String country) {
+        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_COUNTRY)) {
+            ps.setString(1, "%" + country + "%");
+            List<Venue> venues = new ArrayList<>();
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    venues.add(venue_mapper.mapRow(rs));
+                }
+            }
+            return venues;
+        } catch (SQLException e) {
+            throw new DaoException("Error while trying to find venues with country = " + country, e);
+        }
+    }
+
+    private final static String SQL_FIND_ALL_WITH_AVAILABLE_SPACES = SQL_FIND_ALL + " v " +
+            "WHERE EXISTS ( " +
+            "    SELECT 1 " +
+            "    FROM space s " +
+            "    WHERE s.venue_id = v.id " +
+            "    AND NOT EXISTS ( " +
+            "        SELECT 1 " +
+            "        FROM event_space es " +
+            "        INNER JOIN event e ON e.id = es.event_id " +
+            "        WHERE es.space_id = s.id " +
+            "        AND e.status <> 'CANCELLED' " +
+            "        AND e.begin_datetime < ? " +
+            "        AND e.end_datetime > ? " +
+            "    ) " +
+            ")";
+    /**
+     * Executes SQL query to get venues with at least one available space in a time range
+     * @param conn the db connection
+     * @param begin the beginning of the time range
+     * @param end the end of the time range
+     * @return List of venues with at least one available space
+     */
+    @Override
+    public List<Venue> findAllWithAvailableSpaces(Connection conn, LocalDateTime begin, LocalDateTime end) {
+        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL_WITH_AVAILABLE_SPACES)) {
+            ps.setTimestamp(1, Timestamp.valueOf(end));
+            ps.setTimestamp(2, Timestamp.valueOf(begin));
+            List<Venue> venues = new ArrayList<>();
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    venues.add(venue_mapper.mapRow(rs));
+                }
+            }
+            return venues;
+        } catch (SQLException e) {
+            throw new DaoException("Error while trying to find venues with available spaces", e);
         }
     }
 

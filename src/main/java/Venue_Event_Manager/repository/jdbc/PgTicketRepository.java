@@ -91,6 +91,59 @@ public class PgTicketRepository implements TicketRepository {
         }
     }
 
+    private final static String SQL_FIND_ALL_BY_EVENT = "SELECT t.id, t.booking_id, t.firstname, t.lastname, t.starts_at " +
+                                                         "FROM ticket t " +
+                                                         "INNER JOIN booking b ON b.id = t.booking_id " +
+                                                         "WHERE b.event_id = ?";
+
+    /**
+     * Executes SQL Query to get all tickets for a specific event
+     * @param conn the db connection
+     * @param eventId the id of the event
+     * @return List of Tickets found
+     * @throws DaoException daoException
+     */
+    @Override
+    public List<Ticket> findAllByEventId(Connection conn, long eventId) {
+        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL_BY_EVENT)) {
+            ps.setLong(1, eventId);
+            List<Ticket> tickets = new ArrayList<>();
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    tickets.add(ticket_mapper.mapRow(rs));
+                }
+            }
+            return tickets;
+        } catch (SQLException e) {
+            throw new DaoException("Error while trying to find tickets for event id = " + eventId, e);
+        }    }
+
+    public static String SQL_COUNT_TICKETS =    "SELECT COUNT(*) AS total_tickets " +
+                                                "FROM ticket t " +
+                                                "INNER JOIN booking b ON b.id = t.booking_id " +
+                                                "WHERE b.event_id = ? " +
+                                                "AND b.status IN ('PENDING_PAYMENT','CONFIRMED') ";
+    /**
+     * Executes SQL query to count the tickets for an event that are pending a payment or are confirmed
+     * @param conn    the db connection
+     * @param eventId the id of the event
+     * @return int number of tickets counted (if none = 0)
+     * @throws DaoException daoException
+     */
+    @Override
+    public int countTicketsForEvent(Connection conn, long eventId) {
+        try(PreparedStatement ps = conn.prepareStatement(SQL_COUNT_TICKETS)){
+            ps.setLong(1, eventId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                return rs.getInt("total_tickets");
+            }
+        }catch (SQLException e){
+            throw new DaoException("Error while trying to count tickets for event id = " + eventId, e);
+        }
+    }
 
     private final static String SQL_INSERT = "INSERT INTO ticket (booking_id, firstname, lastname, starts_at) " +
                                              "VALUES (?, ?, ?, ?) RETURNING id";
@@ -117,6 +170,29 @@ public class PgTicketRepository implements TicketRepository {
         }
     }
 
+    /**
+     * Executes multiple sql queries to insert a list of tickets
+     * @param conn the db connection
+     * @param tickets the list of tickets
+     * @throws DaoException dao exception
+     */
+    @Override
+    public void insertMany(Connection conn, List<Ticket> tickets) {
+        try(PreparedStatement ps = conn.prepareStatement(SQL_INSERT)){
+            for(Ticket ticket : tickets){
+                ps.setLong(1, ticket.getBookingId());
+                ps.setString(2, ticket.getFirstname());
+                ps.setString(3, ticket.getLastname());
+                ps.setTimestamp(4, Timestamp.valueOf(ticket.getStartsAt()));
+                ps.addBatch();
+            }
+            ps.executeBatch();
+
+        }catch (SQLException e) {
+            throw new DaoException("Error while trying to insert multiple tickets: ", e);
+        }
+
+    }
 
     private final static String SQL_UPDATE = "UPDATE ticket " +
                                              "SET booking_id = ?, firstname = ?, lastname = ?, starts_at = ? " +

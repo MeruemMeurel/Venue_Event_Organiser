@@ -72,13 +72,17 @@ public class Equipment extends Resource {
         if (this == other) return true;
         if (other == null || getClass() != other.getClass()) return false;
         Equipment equipment = (Equipment) other;
-        if (id != 0 && equipment.id != 0) return id == equipment.id;
-        return venue_id == equipment.venue_id && Objects.equals(name, equipment.name);
+        if (id != 0 && equipment.id != 0){
+            return Objects.equals(id, equipment.id);
+        }
+        return Objects.equals(venue_id, equipment.venue_id) && Objects.equals(name, equipment.name);
     }
 
     @Override
     public int hashCode() {
-        if (id != 0) return Objects.hash(id);
+        if (id != 0){
+            return Objects.hash(id);
+        }
         return Objects.hash(venue_id, name);
     }
 }

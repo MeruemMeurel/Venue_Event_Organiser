@@ -159,14 +159,19 @@ public class EventRequest {
         if (this == other) return true;
         if (other == null || getClass() != other.getClass()) return false;
         EventRequest eventRequest = (EventRequest) other;
-        if (id != 0 && eventRequest.id != 0) return id == eventRequest.id;
-        return requester_id == eventRequest.requester_id && venue_id == eventRequest.venue_id &&
-                Objects.equals(name, eventRequest.name) && Objects.equals(begin_datetime, eventRequest.begin_datetime)
+        if (id != 0 && eventRequest.id != 0){
+            return Objects.equals(id, eventRequest.id);
+        }
+        return Objects.equals(requester_id, eventRequest.requester_id) && Objects.equals(venue_id, eventRequest.venue_id)
+                && Objects.equals(name, eventRequest.name) && Objects.equals(begin_datetime, eventRequest.begin_datetime)
                 && Objects.equals(created_at, eventRequest.created_at);
     }
 
+    @Override
     public int hashCode(){
-        if(id != 0) return Objects.hash(id);
+        if(id != 0){
+            return Objects.hash(id);
+        }
         return Objects.hash(requester_id, venue_id, name, begin_datetime, created_at);
     }
 

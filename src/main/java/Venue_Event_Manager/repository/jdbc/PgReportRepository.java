@@ -14,7 +14,8 @@ public class PgReportRepository implements ReportRepository {
      * Lambda function to map report sql results to a Report object
      */
     private static final RowMapper<Report> report_mapper = rs -> {
-        Long event_id = rs.getLong("event_id");
+        long raw_event_id = rs.getLong("event_id");
+        Long event_id = rs.wasNull() ? null : raw_event_id;
 
         return new Report(
                 rs.getLong("id"),

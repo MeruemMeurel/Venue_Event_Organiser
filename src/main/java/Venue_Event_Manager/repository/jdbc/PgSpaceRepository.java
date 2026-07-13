@@ -6,6 +6,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -93,6 +94,30 @@ public class PgSpaceRepository implements SpaceRepository {
         }
     }
 
+    private final static String SQL_SEARCH_BY_NAME = SQL_FIND_ALL + " WHERE LOWER(name) LIKE LOWER(?)";
+    /**
+     * Searches in database a name like the parameter name
+     * @param conn the db connection
+     * @param name the name to search
+     * @return List<Space> results of query
+     * @throws DaoException daoException
+     */
+    @Override
+    public List<Space> searchByName(Connection conn, String name) {
+        try(PreparedStatement ps = conn.prepareStatement(SQL_SEARCH_BY_NAME)){
+            ps.setString(1, "%" + name + "%");
+            ArrayList<Space> spaces = new ArrayList<>();
+
+            try (ResultSet rs = ps.executeQuery()){
+                while(rs.next()){
+                    spaces.add(space_mapper.mapRow(rs));
+                }
+            }
+            return spaces;
+        }catch (SQLException e) {
+            throw new DaoException("Error while trying to find spaces with name: " + name, e);
+        }
+    }
 
     private final static String SQL_INSERT = "INSERT INTO space (venue_id, name, description) " +
                                              "VALUES (?, ?, ?) RETURNING id";
@@ -159,6 +184,44 @@ public class PgSpaceRepository implements SpaceRepository {
             JdbcUtils.requireUpdatedExactly(updated, 1, "deleteSpace(id=" + id + ")");
         }catch (SQLException e){
             throw new DaoException("Error while trying to delete space with id: " + id, e);
+        }
+    }
+
+    private final static String SQL_FIND_AVAILABLE_SPACE = "SELECT * FROM space " +
+                                                     "WHERE venue_id = ? " +
+                                                     "AND id NOT IN " +
+                                                     "(SELECT space_id FROM event_space " +
+                                                     "JOIN event ON event_space.event_id = event.id " +
+                                                     "WHERE event.begin_datetime < ? AND event.end_datetime > ?)";
+
+    /**
+     * Executes SQL query to database to find all available spaces in a venue within a specific time interval
+     * @param conn the database connection
+     * @param venueId the id of the venue to search in
+     * @param begin the start time of the interval
+     * @param end the end time of the interval
+     * @return List<Space> object containing available spaces
+     */
+    @Override
+    public List<Space> findAvailableSpaces(Connection conn, long venueId, LocalDateTime begin, LocalDateTime end) {
+        List<Space> spaces = new ArrayList<>();
+
+        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_AVAILABLE_SPACE)) {
+            ps.setLong(1, venueId);
+            ps.setTimestamp(2, java.sql.Timestamp.valueOf(end));
+            ps.setTimestamp(3, java.sql.Timestamp.valueOf(begin));
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    spaces.add(space_mapper.mapRow(rs));
+                }
+            }
+            return spaces;
+
+
+        } catch (SQLException e) {
+            throw new DaoException("Error while trying to find available " +
+                    "spaces from venue with id: " + venueId, e);
         }
     }
 }
