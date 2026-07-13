@@ -7,20 +7,16 @@ import Venue_Event_Manager.domain.model.booking.Ticket;
 import Venue_Event_Manager.domain.model.event.Event;
 import Venue_Event_Manager.domain.model.event.EventVisibility;
 import Venue_Event_Manager.exception.ConflictException;
-import Venue_Event_Manager.exception.ForbiddenException;
 import Venue_Event_Manager.exception.NotFoundException;
 import Venue_Event_Manager.exception.ValidationException;
 import Venue_Event_Manager.repository.BookingRepository;
-import Venue_Event_Manager.repository.EquipmentRepository;
 import Venue_Event_Manager.repository.EventRepository;
 import Venue_Event_Manager.repository.TicketRepository;
 import Venue_Event_Manager.repository.UserRepository;
 
-import java.awt.print.Book;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 public class BookingService {
@@ -63,7 +59,7 @@ public class BookingService {
      * @throws NotFoundException if no booking is found with such id
      */
     public Booking getBooking(long bookingId){
-        return transactionManager.inTransaction(conn->
+        return transactionManager.inReadOnly(conn->
                 bookingRepository.findById(conn,bookingId)
                         .orElseThrow(() -> new NotFoundException("No booking with such id exists")));
     }

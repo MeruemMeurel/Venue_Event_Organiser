@@ -4,8 +4,13 @@ import Venue_Event_Manager.config.TransactionManager;
 import Venue_Event_Manager.domain.model.event.Event;
 import Venue_Event_Manager.domain.model.event.EventStatus;
 import Venue_Event_Manager.domain.model.event.EventVisibility;
-import Venue_Event_Manager.repository.*;
-import Venue_Event_Manager.exception.*;
+import Venue_Event_Manager.repository.EventRepository;
+import Venue_Event_Manager.repository.EventRequestRepository;
+import Venue_Event_Manager.repository.VenueRepository;
+import Venue_Event_Manager.repository.UserRepository;
+import Venue_Event_Manager.exception.ForbiddenException;
+import Venue_Event_Manager.exception.NotFoundException;
+import Venue_Event_Manager.exception.ValidationException;
 
 import java.math.BigDecimal;
 import java.sql.Connection;

@@ -2,10 +2,11 @@ package Venue_Event_Manager.service;
 
 import Venue_Event_Manager.config.TransactionManager;
 import Venue_Event_Manager.domain.model.user.*;
-import Venue_Event_Manager.repository.jdbc.PgUserRepository;
 import Venue_Event_Manager.repository.UserRepository;
-import Venue_Event_Manager.util.*;
-import Venue_Event_Manager.exception.*;
+import Venue_Event_Manager.exception.ConflictException;
+import Venue_Event_Manager.exception.ForbiddenException;
+import Venue_Event_Manager.exception.NotFoundException;
+import Venue_Event_Manager.exception.ValidationException;
 
 import java.sql.Connection;
 import java.time.LocalDate;
@@ -255,7 +256,7 @@ public class UserService {
      * @throws ForbiddenException if user is not admin or password is wrong
      */
     private void checkPrivileges(long adminId, String password){
-        User admin = transactionManager.inTransaction(conn ->
+        User admin = transactionManager.inReadOnly(conn ->
                 userRepository.findById(conn,adminId).orElseThrow(() -> new NotFoundException("Admin does not exist")));
         if(!admin.isAdmin()) throw new ForbiddenException("Admin privileges required for such action");
 

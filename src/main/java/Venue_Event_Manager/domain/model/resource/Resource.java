@@ -1,6 +1,5 @@
 package Venue_Event_Manager.domain.model.resource;
 
-import java.io.ObjectStreamException;
 import java.util.Objects;
 
 /**

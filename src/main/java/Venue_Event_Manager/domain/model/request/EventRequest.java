@@ -167,6 +167,7 @@ public class EventRequest {
                 && Objects.equals(created_at, eventRequest.created_at);
     }
 
+    @Override
     public int hashCode(){
         if(id != 0){
             return Objects.hash(id);
