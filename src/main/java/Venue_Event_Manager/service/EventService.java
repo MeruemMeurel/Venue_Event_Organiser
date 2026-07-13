@@ -8,6 +8,7 @@ import Venue_Event_Manager.repository.EventRepository;
 import Venue_Event_Manager.repository.EventRequestRepository;
 import Venue_Event_Manager.repository.VenueRepository;
 import Venue_Event_Manager.repository.UserRepository;
+import Venue_Event_Manager.repository.TicketRepository;
 import Venue_Event_Manager.exception.ForbiddenException;
 import Venue_Event_Manager.exception.NotFoundException;
 import Venue_Event_Manager.exception.ValidationException;
@@ -23,6 +24,7 @@ public class EventService {
     private final EventRequestRepository eventRequestRepository;
     private final VenueRepository venueRepository;
     private final UserRepository userRepository;
+    private final TicketRepository ticketRepository;
 
     /**
      * Initializes EventService with all repositories needed to handle events.
@@ -30,13 +32,15 @@ public class EventService {
      * @param eventRequestRepository repository used to access event request data
      * @param venueRepository repository used to access venue data
      * @param userRepository repository used to access user data
+     * @param ticketRepository repository used to access ticket data
      */
-    public EventService(EventRepository eventRepository, EventRequestRepository eventRequestRepository, VenueRepository venueRepository, UserRepository userRepository) {
+    public EventService(EventRepository eventRepository, EventRequestRepository eventRequestRepository, VenueRepository venueRepository, UserRepository userRepository, TicketRepository ticketRepository) {
         transactionManager = TransactionManager.getInstance();
         this.eventRepository = eventRepository;
         this.eventRequestRepository = eventRequestRepository;
         this.venueRepository = venueRepository;
         this.userRepository = userRepository;
+        this.ticketRepository = ticketRepository;
     }
 
     /**
@@ -304,19 +308,24 @@ public class EventService {
         });
     }
 
-    //TODO can't change capacity to be lower than current sold tickets
     /**
      * Changes capacity of an event.
      * @param eventId the id of the event to update
      * @param capacity the new capacity to set
      * @throws NotFoundException if no event is found with such id
-     * @throws ValidationException if capacity is not valid
+     * @throws ValidationException if capacity is not valid or lower than sold tickets
      */
     public void changeCapacity(long eventId, int capacity){
         transactionManager.inTransaction(conn->{
-            Event new_event = eventRepository.findById(conn,eventId)
-                    .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId))
-                    .withCapacity(capacity);
+            Event old_event = eventRepository.findById(conn,eventId)
+                    .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId));
+            
+            int soldTickets = ticketRepository.countTicketsForEvent(conn, eventId);
+            if(capacity < soldTickets) {
+                throw new ValidationException("Cannot change capacity to " + capacity + " because " + soldTickets + " tickets are already sold.");
+            }
+
+            Event new_event = old_event.withCapacity(capacity);
             validate(new_event);
             eventRepository.update(conn,new_event);
             return null;

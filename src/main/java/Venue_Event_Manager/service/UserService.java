@@ -127,7 +127,15 @@ public class UserService {
                 userRepository.findAllByAccountStatus(conn,accountStatus));
     }
 
-    //TODO averageReview
+    /**
+     * Calculates the average review score for a specific user
+     * @param userId the id of the user
+     * @return the average review score, or null if there are no reviews
+     */
+    public Double getAverageReview(long userId){
+        return transactionManager.inReadOnly(conn ->
+                userRepository.getAverageReview(conn,userId).orElse(null));
+    }
     //TODO discuss with group if passwords can stay in plain text for project scope or must be hashed
     //TODO discuss if password and privilege methods should be moved to a dedicated AuthService
 
