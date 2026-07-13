@@ -91,7 +91,10 @@ public class PgTicketRepository implements TicketRepository {
         }
     }
 
-    public static String SQL_FIND_ALL_BY_EVENT = SQL_FIND_ALL + " WHERE event = ?";
+    private final static String SQL_FIND_ALL_BY_EVENT = "SELECT t.id, t.booking_id, t.firstname, t.lastname, t.starts_at " +
+                                                         "FROM ticket t " +
+                                                         "INNER JOIN booking b ON b.id = t.booking_id " +
+                                                         "WHERE b.event_id = ?";
 
     /**
      * Executes SQL Query to get all tickets for a specific event

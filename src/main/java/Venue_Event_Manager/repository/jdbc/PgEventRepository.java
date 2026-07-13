@@ -497,8 +497,8 @@ public class PgEventRepository implements EventRepository {
         }
     }
 
-    private final static String SQL_UPDATE_STATUS_AND_PUBLISHED_AT =    "UPDATE event" +
-                                                                        "SET status = ?, published_at = ?" +
+    private final static String SQL_UPDATE_STATUS_AND_PUBLISHED_AT =    "UPDATE event " +
+                                                                        "SET status = ?, published_at = ? " +
                                                                         "WHERE id = ?";
 
     @Override
