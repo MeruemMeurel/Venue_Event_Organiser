@@ -341,6 +341,7 @@ public class BookingService {
     }
 
     /**
+     * Returns a list of all tickets connected to a specific booking
      * @param bookingId the id of the booking
      * @return List of tickets linked to the booking
      */
@@ -350,6 +351,7 @@ public class BookingService {
     }
 
     /**
+     * Returns all tickets connected to a specific event
      * @param eventId the id of the event
      * @return List of tickets linked to the event
      */
@@ -359,6 +361,7 @@ public class BookingService {
     }
 
     /**
+     * Calculates number of available places for a booking
      * @param eventId the id of the event
      * @return number of remaining places
      */

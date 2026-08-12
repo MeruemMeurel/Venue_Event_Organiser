@@ -4,10 +4,7 @@ import Venue_Event_Manager.config.TransactionManager;
 import Venue_Event_Manager.domain.model.event.Event;
 import Venue_Event_Manager.domain.model.event.EventStatus;
 import Venue_Event_Manager.domain.model.event.EventVisibility;
-import Venue_Event_Manager.repository.EventRepository;
-import Venue_Event_Manager.repository.EventRequestRepository;
-import Venue_Event_Manager.repository.VenueRepository;
-import Venue_Event_Manager.repository.UserRepository;
+import Venue_Event_Manager.repository.*;
 import Venue_Event_Manager.exception.ForbiddenException;
 import Venue_Event_Manager.exception.NotFoundException;
 import Venue_Event_Manager.exception.ValidationException;
@@ -21,6 +18,7 @@ public class EventService {
     private final TransactionManager transactionManager;
     private final EventRepository eventRepository;
     private final EventRequestRepository eventRequestRepository;
+    private final TicketRepository ticketRepository;
     private final VenueRepository venueRepository;
     private final UserRepository userRepository;
 
@@ -31,10 +29,11 @@ public class EventService {
      * @param venueRepository repository used to access venue data
      * @param userRepository repository used to access user data
      */
-    public EventService(EventRepository eventRepository, EventRequestRepository eventRequestRepository, VenueRepository venueRepository, UserRepository userRepository) {
+    public EventService(EventRepository eventRepository, EventRequestRepository eventRequestRepository, TicketRepository ticketRepository, VenueRepository venueRepository, UserRepository userRepository) {
         transactionManager = TransactionManager.getInstance();
         this.eventRepository = eventRepository;
         this.eventRequestRepository = eventRequestRepository;
+        this.ticketRepository = ticketRepository;
         this.venueRepository = venueRepository;
         this.userRepository = userRepository;
     }
@@ -304,7 +303,6 @@ public class EventService {
         });
     }
 
-    //TODO can't change capacity to be lower than current sold tickets
     /**
      * Changes capacity of an event.
      * @param eventId the id of the event to update
@@ -314,9 +312,14 @@ public class EventService {
      */
     public void changeCapacity(long eventId, int capacity){
         transactionManager.inTransaction(conn->{
-            Event new_event = eventRepository.findById(conn,eventId)
-                    .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId))
-                    .withCapacity(capacity);
+            Event event = eventRepository.findById(conn,eventId)
+                    .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId));
+
+            if(capacity < ticketRepository.countTicketsForEvent(conn,eventId))
+                throw new  ForbiddenException("Capacity is less than number of already sold tickets");
+
+            Event new_event = event.withCapacity(capacity);
+
             validate(new_event);
             eventRepository.update(conn,new_event);
             return null;
