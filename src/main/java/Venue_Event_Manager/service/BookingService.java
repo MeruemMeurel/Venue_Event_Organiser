@@ -247,16 +247,14 @@ public class BookingService {
                     bookingRepository.insert(conn, booking)
             );
 
-            for(int i=0;i<tickets.size();i++) {
+            long bookingId = booking.getId();
+            List<Ticket> ticketsToInsert = tickets.stream()
+                    .map(ticket -> ticket
+                            .withBookingId(bookingId)
+                            .withStartsAt(event.getBeginDatetime()))
+                    .toList();
 
-                tickets.set(i, tickets.get(i)
-                        .withBookingId(booking.getId())
-                        .withStartsAt(event.getBeginDatetime())
-                );
-
-            }
-
-            ticketRepository.insertMany(conn,tickets);
+            ticketRepository.insertMany(conn,ticketsToInsert);
 
             return booking;
         });

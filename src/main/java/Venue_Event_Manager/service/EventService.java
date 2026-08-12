@@ -410,11 +410,12 @@ public class EventService {
      * @throws ValidationException if one or more fields are not valid
      */
     private void validate(Event event){
+        if(event == null) throw new ValidationException("Event cannot be null");
         validateName(event.getName());
         validateBeginAndEndDate(event.getBeginDatetime(), event.getEndDatetime());
         if(event.getCapacity() <= 0) throw new ValidationException("Capacity must be greater than 0");
         if(event.getTicketPrice() != null && event.getTicketPrice().compareTo(BigDecimal.ZERO) < 0)
-            throw new ValidationException("Ticket price must be greater than 0");
+            throw new ValidationException("Ticket price cannot be negative");
         validateVenueId(event.getVenueId());
         validateCreatorId(event.getCreatorId());
         if(event.getOrganiserId() != null) validateOrganiserId(event.getOrganiserId());
@@ -442,8 +443,8 @@ public class EventService {
     private void validateBeginAndEndDate(LocalDateTime begin, LocalDateTime end){
         if(begin == null || end == null){
             throw new ValidationException("Begin or end date is empty");
-        }else if(begin.isAfter(end)){
-            throw new ValidationException("Begin date is after end date");
+        }else if(!begin.isBefore(end)){
+            throw new ValidationException("Begin date must be before end date");
         }
     }
 
@@ -453,13 +454,13 @@ public class EventService {
      * @throws ValidationException if no venue is found with such id
      */
     private void validateVenueId(long venueId){
-        if(venueId > 0) {
-            transactionManager.inReadOnly(conn-> {
-                venueRepository.findById(conn,venueId)
-                        .orElseThrow(() -> new ValidationException("No venue found with id "+venueId));
-                return null;
-            });
-        }
+        if(venueId <= 0) throw new ValidationException("Venue id is not valid");
+
+        transactionManager.inReadOnly(conn-> {
+            venueRepository.findById(conn,venueId)
+                    .orElseThrow(() -> new ValidationException("No venue found with id "+venueId));
+            return null;
+        });
     }
 
     /**
@@ -468,13 +469,13 @@ public class EventService {
      * @throws ValidationException if no user is found with such id
      */
     private void validateCreatorId(long creatorId){
-        if(creatorId > 0) {
-            transactionManager.inReadOnly(conn-> {
-                userRepository.findById(conn,creatorId)
-                        .orElseThrow(() -> new ValidationException("No user found with id "+creatorId));
-                return null;
-            });
-        }
+        if(creatorId <= 0) throw new ValidationException("Creator id is not valid");
+
+        transactionManager.inReadOnly(conn-> {
+            userRepository.findById(conn,creatorId)
+                    .orElseThrow(() -> new ValidationException("No user found with id "+creatorId));
+            return null;
+        });
     }
 
     /**
