@@ -29,7 +29,7 @@ public class PgUserRepository implements UserRepository {
 
     private static final String SQL_FIND_ALL = "SELECT id, username, firstname, lastname, birthday, email, phone, " +
                                                       "is_admin, account_status " +
-                                               "FROM user";
+                                               "FROM \"USER\"";
     /**
      * Executes query to database to get all Users
      * @param conn The database connection used
@@ -201,7 +201,7 @@ public class PgUserRepository implements UserRepository {
 
 
     private static final String SQL_GET_PASSWORD = "SELECT password " +
-                                                   "FROM user " +
+                                                   "FROM \"USER\" " +
                                                    "WHERE id = ?";
     /**
      * Executes query to get password of a user
@@ -224,7 +224,7 @@ public class PgUserRepository implements UserRepository {
     }
 
 
-    private static final String SQL_INSERT = "INSERT INTO user (username, password, firstname, lastname, birthday, email, " +
+    private static final String SQL_INSERT = "INSERT INTO \"USER\" (username, password, firstname, lastname, birthday, email, " +
                                                                "phone, is_admin, account_status) " +
                                              "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id";
     /**
@@ -257,7 +257,7 @@ public class PgUserRepository implements UserRepository {
     }
 
 
-    private static final String SQL_UPDATE = "UPDATE user " +
+    private static final String SQL_UPDATE = "UPDATE \"USER\" " +
                                              "SET username = ?, firstname = ?, lastname = ?, birthday = ?, email = ?, " +
                                                  "phone = ?, is_admin = ?, account_status = ? " +
                                              "WHERE id = ?";
@@ -287,7 +287,7 @@ public class PgUserRepository implements UserRepository {
     }
 
 
-    private static final String SQL_UPDATE_ACCOUNT_STATUS = "UPDATE user " +
+    private static final String SQL_UPDATE_ACCOUNT_STATUS = "UPDATE \"USER\" " +
                                                             "SET account_status = ? " +
                                                             "WHERE id = ?";
     /**
@@ -310,7 +310,7 @@ public class PgUserRepository implements UserRepository {
     }
 
 
-    private static final String SQL_UPDATE_PASSWORD = "UPDATE user " +
+    private static final String SQL_UPDATE_PASSWORD = "UPDATE \"USER\" " +
                                                       "SET password = ? " +
                                                       "WHERE id = ?";
     /**
@@ -333,7 +333,7 @@ public class PgUserRepository implements UserRepository {
     }
 
 
-    private static final String SQL_DELETE = "DELETE FROM user " +
+    private static final String SQL_DELETE = "DELETE FROM \"USER\" " +
                                              "WHERE id = ?";
     /**
      * Deletes a user from database if the password is correct

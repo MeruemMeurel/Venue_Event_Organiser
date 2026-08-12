@@ -316,7 +316,7 @@ public class EventService {
                     .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId));
 
             if(capacity < ticketRepository.countTicketsForEvent(conn,eventId))
-                throw new  ForbiddenException("Capacity is less than number of already sold tickets");
+                throw new  ForbiddenException("Capacity is less than number of tickets");
 
             Event new_event = event.withCapacity(capacity);
 

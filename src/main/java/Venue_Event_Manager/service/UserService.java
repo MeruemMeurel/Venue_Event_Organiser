@@ -139,10 +139,16 @@ public class UserService {
      * @throws ValidationException if user data or password are not valid
      */
     public long insert(User user,String password){
-        validate(user);
+        if(user == null) throw new ValidationException("User cannot be null");
+
+        User userToInsert = user
+                .withIsAdmin(false)
+                .withAccountStatus(AccountStatus.ACTIVE);
+
+        validate(userToInsert);
         validatePassword(password);
         return transactionManager.inTransaction(conn ->
-                userRepository.insert(conn,user,password));
+                userRepository.insert(conn,userToInsert,password));
     }
 
     /**
@@ -155,12 +161,21 @@ public class UserService {
     public void update(User user, String password){
         validate(user);
         validatePassword(password);
-        if(!checkPassword(user.getId(), password)){
-            throw new ForbiddenException("Wrong password");
-        }
+
         transactionManager.inTransaction(conn -> {
-                userRepository.update(conn,user);
-                return null;
+            User storedUser = userRepository.findById(conn,user.getId())
+                    .orElseThrow(() -> new NotFoundException("User with id " + user.getId() + " not found"));
+
+            if(!checkPassword(conn,user.getId(),password)) {
+                throw new ForbiddenException("Wrong password");
+            }
+
+            User profileToUpdate = user
+                    .withIsAdmin(storedUser.isAdmin())
+                    .withAccountStatus(storedUser.getAccountStatus());
+
+            userRepository.update(conn,profileToUpdate);
+            return null;
         });
     }
 
@@ -240,12 +255,17 @@ public class UserService {
      * @throws NotFoundException if no user is found with such id
      */
     private boolean checkPassword(long userId,String password){
-        String dbPassword = transactionManager.inReadOnly(conn ->
-                userRepository.getPasswordById(conn,userId)
-                        .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found")));
+        return transactionManager.inReadOnly(conn -> checkPassword(conn,userId,password));
+    }
+
+    /**
+     * Checks a password using an existing connection.
+     */
+    private boolean checkPassword(Connection conn, long userId, String password){
+        String dbPassword = userRepository.getPasswordById(conn,userId)
+                .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found"));
 
         return dbPassword.equals(password);
-
     }
 
     /**

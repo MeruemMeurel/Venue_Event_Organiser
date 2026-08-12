@@ -79,7 +79,7 @@ public class TransactionManager {
             boolean oldReadOnly = conn.isReadOnly();
 
             conn.setReadOnly(true);
-            conn.setAutoCommit(true);
+            conn.setAutoCommit(false);
 
             try{
                 T result = work.apply(conn);
