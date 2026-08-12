@@ -12,6 +12,8 @@ public interface EventGuestRepository {
 
     Optional<EventGuest> findById(Connection conn, long eventGuestId);
 
+    Optional<EventGuest> findByIdForUpdate(Connection conn, long eventGuestId);
+
     List<EventGuest> findAllByEventId(Connection conn, long eventId);
 
     List<EventGuest> findAllByStatus(Connection conn, EventGuestStatus status);
@@ -23,6 +25,8 @@ public interface EventGuestRepository {
     void update(Connection conn, EventGuest guest);
 
     void updateEventGuestStatus(Connection conn, long eventGuestId, EventGuestStatus status);
+
+    void cancelActiveByEventId(Connection conn, long eventId);
 
     void deleteById(Connection conn, long eventGuestId);
 

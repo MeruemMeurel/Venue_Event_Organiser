@@ -5,6 +5,7 @@ import Venue_Event_Manager.domain.model.event.Event;
 import Venue_Event_Manager.domain.model.event.EventStatus;
 import Venue_Event_Manager.domain.model.event.EventVisibility;
 import Venue_Event_Manager.repository.*;
+import Venue_Event_Manager.exception.ConflictException;
 import Venue_Event_Manager.exception.ForbiddenException;
 import Venue_Event_Manager.exception.NotFoundException;
 import Venue_Event_Manager.exception.ValidationException;
@@ -19,6 +20,8 @@ public class EventService {
     private final EventRepository eventRepository;
     private final EventRequestRepository eventRequestRepository;
     private final TicketRepository ticketRepository;
+    private final BookingRepository bookingRepository;
+    private final EventGuestRepository eventGuestRepository;
     private final VenueRepository venueRepository;
     private final UserRepository userRepository;
 
@@ -26,14 +29,22 @@ public class EventService {
      * Initializes EventService with all repositories needed to handle events.
      * @param eventRepository repository used to access event data
      * @param eventRequestRepository repository used to access event request data
+     * @param ticketRepository repository used to access ticket data
+     * @param bookingRepository repository used to access booking data
+     * @param eventGuestRepository repository used to access event guest data
      * @param venueRepository repository used to access venue data
      * @param userRepository repository used to access user data
      */
-    public EventService(EventRepository eventRepository, EventRequestRepository eventRequestRepository, TicketRepository ticketRepository, VenueRepository venueRepository, UserRepository userRepository) {
+    public EventService(EventRepository eventRepository, EventRequestRepository eventRequestRepository,
+                        TicketRepository ticketRepository, BookingRepository bookingRepository,
+                        EventGuestRepository eventGuestRepository, VenueRepository venueRepository,
+                        UserRepository userRepository) {
         transactionManager = TransactionManager.getInstance();
         this.eventRepository = eventRepository;
         this.eventRequestRepository = eventRequestRepository;
         this.ticketRepository = ticketRepository;
+        this.bookingRepository = bookingRepository;
+        this.eventGuestRepository = eventGuestRepository;
         this.venueRepository = venueRepository;
         this.userRepository = userRepository;
     }
@@ -182,7 +193,10 @@ public class EventService {
     public long createEvent(Event event){
         return transactionManager.inTransaction(conn->{
             validate(event);
-            return eventRepository.insert(conn,event);
+            Event draftEvent = event
+                    .withStatus(EventStatus.DRAFT)
+                    .withPublishedAt(null);
+            return eventRepository.insert(conn,draftEvent);
         });
     }
 
@@ -193,8 +207,17 @@ public class EventService {
      */
     public void updateEvent(Event event){
         transactionManager.inTransaction(conn->{
-            validate(event);
-            eventRepository.update(conn,event);
+            if(event == null) throw new ValidationException("Event cannot be null");
+
+            Event storedEvent = eventRepository.findByIdForUpdate(conn,event.getId())
+                    .orElseThrow(() -> new NotFoundException("No Event found with id " + event.getId()));
+
+            Event eventToUpdate = event
+                    .withStatus(storedEvent.getStatus())
+                    .withPublishedAt(storedEvent.getPublishedAt());
+
+            validate(eventToUpdate);
+            eventRepository.update(conn,eventToUpdate);
             return null;
         });
     }
@@ -223,32 +246,20 @@ public class EventService {
     }
 
     /**
-     * Changes status of an event.
-     * @param event the event to update
-     * @param eventStatus the new status to set
-     */
-    private void changeStatus(Event event, EventStatus eventStatus){
-        transactionManager.inTransaction(conn->{
-            eventRepository.updateStatus(conn,event.getId(),eventStatus);
-            return null;
-        });
-    }
-
-    /**
      * Publishes an event.
      * @param eventId the id of the event to publish
      * @throws NotFoundException if no event is found with such id
-     * @throws ForbiddenException if event cannot be published
+     * @throws ConflictException if the event is not confirmed
+     * @throws ValidationException if event data do not allow publication
      */
     public void publishEvent(long eventId){
         transactionManager.inTransaction(conn->{
-            Event event = eventRepository.findById(conn,eventId)
+            Event event = eventRepository.findByIdForUpdate(conn,eventId)
                     .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId));
-            if(event.getStatus() == EventStatus.PUBLISHED) throw new ForbiddenException("Event is already published");
-            if(event.getStatus() == EventStatus.CANCELLED) throw new ForbiddenException("Event is already cancelled");
-            //TODO handle Not published status yet to add
-            if(event.getPublishedAt() == null) eventRepository.updateStatusAndPublishedAt(conn,event.getId(),EventStatus.PUBLISHED,LocalDateTime.now());
-            else eventRepository.updateStatus(conn,event.getId(), EventStatus.PUBLISHED);
+
+            validateEventStatusTransition(event.getStatus(),EventStatus.PUBLISHED);
+            validateForPublication(conn,event);
+            eventRepository.updateStatusAndPublishedAt(conn,event.getId(),EventStatus.PUBLISHED,LocalDateTime.now());
             return null;
         });
     }
@@ -260,8 +271,10 @@ public class EventService {
      */
     public void confirmEvent(long eventId){
         transactionManager.inTransaction(conn->{
-            Event event = eventRepository.findById(conn,eventId)
+            Event event = eventRepository.findByIdForUpdate(conn,eventId)
                     .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId));
+
+            validateEventStatusTransition(event.getStatus(),EventStatus.CONFIRMED);
             eventRepository.updateStatus(conn,event.getId(),EventStatus.CONFIRMED);
             return null;
         });
@@ -274,8 +287,12 @@ public class EventService {
      */
     public void cancelEvent(long eventId){
         transactionManager.inTransaction(conn->{
-            Event event = eventRepository.findById(conn,eventId)
+            Event event = eventRepository.findByIdForUpdate(conn,eventId)
                     .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId));
+
+            validateEventStatusTransition(event.getStatus(),EventStatus.CANCELLED);
+            bookingRepository.cancelActiveByEventId(conn,eventId);
+            eventGuestRepository.cancelActiveByEventId(conn,eventId);
             eventRepository.updateStatus(conn,event.getId(),EventStatus.CANCELLED);
             return null;
         });
@@ -419,8 +436,39 @@ public class EventService {
         validateVenueId(event.getVenueId());
         validateCreatorId(event.getCreatorId());
         if(event.getOrganiserId() != null) validateOrganiserId(event.getOrganiserId());
-        //TODO Validate in case of private event
-        //TODO discuss with group the full event state machine and allowed transitions before completing status logic
+    }
+
+    /**
+     * Validates all requirements that must hold when an event becomes visible.
+     */
+    private void validateForPublication(Connection conn, Event event){
+        if(!event.getBeginDatetime().isAfter(LocalDateTime.now())) {
+            throw new ValidationException("Cannot publish an event that has already started");
+        }
+        if(event.getCapacity() <= 0) {
+            throw new ValidationException("Cannot publish an event without a positive capacity");
+        }
+        venueRepository.findById(conn,event.getVenueId())
+                .orElseThrow(() -> new ValidationException("No venue found with id " + event.getVenueId()));
+    }
+
+    /**
+     * Validates the event state machine.
+     */
+    static void validateEventStatusTransition(EventStatus currentStatus, EventStatus newStatus){
+        if(currentStatus == newStatus) {
+            throw new ConflictException("Event is already " + newStatus);
+        }
+
+        boolean allowed = (currentStatus == EventStatus.DRAFT
+                && (newStatus == EventStatus.CONFIRMED || newStatus == EventStatus.CANCELLED))
+                || (currentStatus == EventStatus.CONFIRMED
+                && (newStatus == EventStatus.PUBLISHED || newStatus == EventStatus.CANCELLED))
+                || (currentStatus == EventStatus.PUBLISHED && newStatus == EventStatus.CANCELLED);
+
+        if(!allowed) {
+            throw new ConflictException("Cannot change event status from " + currentStatus + " to " + newStatus);
+        }
     }
 
     /**

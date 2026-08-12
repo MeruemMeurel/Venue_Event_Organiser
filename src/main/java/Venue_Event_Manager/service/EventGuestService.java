@@ -1,8 +1,12 @@
 package Venue_Event_Manager.service;
 
 import Venue_Event_Manager.config.TransactionManager;
+import Venue_Event_Manager.domain.model.event.Event;
 import Venue_Event_Manager.domain.model.event.EventGuest;
 import Venue_Event_Manager.domain.model.event.EventGuestStatus;
+import Venue_Event_Manager.domain.model.event.EventStatus;
+import Venue_Event_Manager.domain.model.event.EventVisibility;
+import Venue_Event_Manager.exception.ConflictException;
 import Venue_Event_Manager.exception.NotFoundException;
 import Venue_Event_Manager.exception.ValidationException;
 import Venue_Event_Manager.repository.EventGuestRepository;
@@ -72,9 +76,12 @@ public class EventGuestService {
      */
     public long inviteGuest(EventGuest guest) {
         validateGuest(guest);
-        validateEventExists(guest.getEventId());
 
         return transactionManager.inTransaction(conn -> {
+            Event event = eventRepository.findByIdForUpdate(conn,guest.getEventId())
+                    .orElseThrow(() -> new NotFoundException("No event found with id " + guest.getEventId()));
+            validateEventAllowsInvitations(event);
+
             EventGuest newGuest = guest.withStatus(EventGuestStatus.INVITED);
             return eventGuestRepository.insert(conn, newGuest);
         });
@@ -86,14 +93,16 @@ public class EventGuestService {
      */
     public void updateGuest(EventGuest guest) {
         validateGuest(guest);
-        validateEventExists(guest.getEventId());
 
         transactionManager.inTransaction(conn -> {
-            // ensure guest exists
-            eventGuestRepository.findById(conn, guest.getId())
+            EventGuest storedGuest = eventGuestRepository.findByIdForUpdate(conn, guest.getId())
                     .orElseThrow(() -> new NotFoundException("No guest found with id " + guest.getId()));
 
-            eventGuestRepository.update(conn, guest);
+            EventGuest guestToUpdate = guest
+                    .withEventId(storedGuest.getEventId())
+                    .withStatus(storedGuest.getStatus());
+
+            eventGuestRepository.update(conn, guestToUpdate);
             return null;
         });
     }
@@ -119,9 +128,10 @@ public class EventGuestService {
      */
     private void updateGuestStatus(long guestId, EventGuestStatus status) {
         transactionManager.inTransaction(conn -> {
-            eventGuestRepository.findById(conn, guestId)
+            EventGuest guest = eventGuestRepository.findByIdForUpdate(conn, guestId)
                     .orElseThrow(() -> new NotFoundException("No guest found with id " + guestId));
 
+            validateGuestStatusTransition(guest.getStatus(),status);
             eventGuestRepository.updateEventGuestStatus(conn, guestId, status);
             return null;
         });
@@ -164,5 +174,28 @@ public class EventGuestService {
                     .orElseThrow(() -> new NotFoundException("No event found with id " + eventId));
             return null;
         });
+    }
+
+    static void validateGuestStatusTransition(EventGuestStatus currentStatus, EventGuestStatus newStatus) {
+        if(currentStatus == newStatus) {
+            throw new ConflictException("Guest invitation is already " + newStatus);
+        }
+
+        boolean allowed = (currentStatus == EventGuestStatus.INVITED
+                && (newStatus == EventGuestStatus.CONFIRMED || newStatus == EventGuestStatus.CANCELLED))
+                || (currentStatus == EventGuestStatus.CONFIRMED && newStatus == EventGuestStatus.CANCELLED);
+
+        if(!allowed) {
+            throw new ConflictException("Cannot change guest status from " + currentStatus + " to " + newStatus);
+        }
+    }
+
+    private void validateEventAllowsInvitations(Event event) {
+        if(event.getVisibility() != EventVisibility.PRIVATE_GUEST_LIST) {
+            throw new ValidationException("Guests can only be invited to private guest-list events");
+        }
+        if(event.getStatus() == EventStatus.CANCELLED) {
+            throw new ConflictException("Guests cannot be invited to a cancelled event");
+        }
     }
 }

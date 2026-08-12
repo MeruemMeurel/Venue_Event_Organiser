@@ -69,6 +69,23 @@ public class PgBookingRepository implements BookingRepository {
     }
 
 
+    private static final String SQL_FIND_BY_ID_FOR_UPDATE = SQL_FIND_BY_ID + " FOR UPDATE";
+
+    @Override
+    public Optional<Booking> findByIdForUpdate(Connection conn, long bookingId) {
+        try(PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_ID_FOR_UPDATE)){
+            ps.setLong(1, bookingId);
+
+            try (ResultSet rs = ps.executeQuery()){
+                if(!rs.next()) return Optional.empty();
+                return Optional.of(booking_mapper.mapRow(rs));
+            }
+        }catch (SQLException e){
+            throw new DaoException("Error while trying to lock booking with id = " + bookingId, e);
+        }
+    }
+
+
     public static final String SQL_FIND_ALL_BY_USER_ID = SQL_FIND_ALL + " WHERE user_id = ?";
     /**
      * Executes SQL query to get all bookings made by specific User
@@ -297,6 +314,21 @@ public class PgBookingRepository implements BookingRepository {
             JdbcUtils.requireUpdatedExactly(updated, 1, "updateStatus(id=" + bookingId + ")");
         }catch (SQLException e){
             throw new DaoException("Error while trying to update status of booking with id = " + bookingId, e);
+        }
+    }
+
+
+    private static final String SQL_CANCEL_ACTIVE_BY_EVENT_ID = "UPDATE booking " +
+            "SET status = 'CANCELLED' " +
+            "WHERE event_id = ? AND status IN ('PENDING_PAYMENT', 'CONFIRMED')";
+
+    @Override
+    public void cancelActiveByEventId(Connection conn, long eventId) {
+        try(PreparedStatement ps = conn.prepareStatement(SQL_CANCEL_ACTIVE_BY_EVENT_ID)){
+            ps.setLong(1, eventId);
+            ps.executeUpdate();
+        }catch (SQLException e){
+            throw new DaoException("Error while cancelling bookings for event id = " + eventId, e);
         }
     }
 

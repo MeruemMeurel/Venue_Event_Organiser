@@ -50,7 +50,7 @@ public class Event {
         this.end_datetime = end_datetime;
         this.poster_filepath = poster_filepath;
         this.capacity = capacity;
-        this.status = status != null ? status : CONFIRMED;
+        this.status = status != null ? status : DRAFT;
         this.visibility = visibility != null ? visibility : PUBLIC;
         this.ticket_price = ticket_price;
         this.published_at = published_at;

@@ -13,6 +13,8 @@ public interface BookingRepository {
 
     Optional<Booking> findById(Connection conn, long bookingId);
 
+    Optional<Booking> findByIdForUpdate(Connection conn, long bookingId);
+
     List<Booking> findAllByUserId(Connection conn, long userId);
 
     List<Booking> findAllByEventId(Connection conn, long eventId);
@@ -30,6 +32,8 @@ public interface BookingRepository {
     void update(Connection conn, Booking booking);
 
     void updateStatus(Connection conn, long bookingId, BookingStatus status);
+
+    void cancelActiveByEventId(Connection conn, long eventId);
 
     void delete(Connection conn, long bookingId);
 
