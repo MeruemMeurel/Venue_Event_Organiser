@@ -19,7 +19,7 @@ public interface ReviewRepository {
 
     Optional<Review> findByUserIdAndEventId(Connection conn, long userId, long eventId);
 
-    double getAverageRatingByUser(Connection conn, long userId);
+    double getAverageRatingGivenByUser(Connection conn, long userId);
 
     double getAverageRatingByEvent(Connection conn, long eventId);
 

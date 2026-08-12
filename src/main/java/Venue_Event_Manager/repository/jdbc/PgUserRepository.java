@@ -193,9 +193,9 @@ public class PgUserRepository implements UserRepository {
      * @return Optional<Double> with the average score
      */
     @Override
-    public Optional<Double> getAverageReview(Connection conn, long userId) {
+    public Optional<Double> getAverageRatingGivenByUser(Connection conn, long userId) {
         ReviewRepository reviewRepository = new PgReviewRepository();
-        double average = reviewRepository.getAverageRatingByUser(conn, userId);
+        double average = reviewRepository.getAverageRatingGivenByUser(conn, userId);
         return average != 0.0 ? Optional.of(average) : Optional.empty();
     }
 

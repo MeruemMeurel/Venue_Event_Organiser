@@ -111,9 +111,9 @@ public class ReviewService {
      * @param userId the id of the user
      * @return average rating given by the user
      */
-    public double getAverageRatingByUser(long userId){
+    public double getAverageRatingGivenByUser(long userId){
         return transactionManager.inReadOnly(conn ->
-                reviewRepository.getAverageRatingByUser(conn,userId));
+                reviewRepository.getAverageRatingGivenByUser(conn,userId));
     }
 
     /**

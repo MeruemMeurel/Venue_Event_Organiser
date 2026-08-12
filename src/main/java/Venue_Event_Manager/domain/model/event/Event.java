@@ -22,7 +22,7 @@ public class Event {
     private final LocalDateTime begin_datetime;
     private final LocalDateTime end_datetime;
     private final String poster_filepath; //NULLABLE
-    private final int capacity; // TODO capacity needs to be > 0
+    private final int capacity;
     private final EventStatus status;
     private final EventVisibility visibility;
     private final BigDecimal ticket_price; //NULLABLE

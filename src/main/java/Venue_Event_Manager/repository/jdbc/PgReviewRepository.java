@@ -177,7 +177,7 @@ public class PgReviewRepository implements ReviewRepository {
      * @return double average rating
      */
     @Override
-    public double getAverageRatingByUser(Connection conn, long userId) {
+    public double getAverageRatingGivenByUser(Connection conn, long userId) {
         try (PreparedStatement ps = conn.prepareStatement(SQL_AVG_BY_USER)) {
             ps.setLong(1, userId);
 
