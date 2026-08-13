@@ -71,6 +71,13 @@ public class PgBookingRepository implements BookingRepository {
 
     private static final String SQL_FIND_BY_ID_FOR_UPDATE = SQL_FIND_BY_ID + " FOR UPDATE";
 
+    /**
+     * Finds and locks a booking for the duration of the current transaction.
+     * @param conn active database connection
+     * @param bookingId id of the booking to find and lock
+     * @return booking wrapped in an Optional, or an empty Optional if it does not exist
+     * @throws DaoException if the query cannot be executed
+     */
     @Override
     public Optional<Booking> findByIdForUpdate(Connection conn, long bookingId) {
         try(PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_ID_FOR_UPDATE)){
@@ -322,6 +329,12 @@ public class PgBookingRepository implements BookingRepository {
             "SET status = 'CANCELLED' " +
             "WHERE event_id = ? AND status IN ('PENDING_PAYMENT', 'CONFIRMED')";
 
+    /**
+     * Cancels every pending or confirmed booking associated with an event.
+     * @param conn active database connection
+     * @param eventId id of the cancelled event
+     * @throws DaoException if the update cannot be executed
+     */
     @Override
     public void cancelActiveByEventId(Connection conn, long eventId) {
         try(PreparedStatement ps = conn.prepareStatement(SQL_CANCEL_ACTIVE_BY_EVENT_ID)){

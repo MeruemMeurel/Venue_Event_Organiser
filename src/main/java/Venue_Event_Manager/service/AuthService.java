@@ -17,6 +17,10 @@ public class AuthService {
     private final TransactionManager transactionManager;
     private final UserRepository userRepository;
 
+    /**
+     * Initializes the authentication service.
+     * @param userRepository repository used to load and update user credentials
+     */
     public AuthService(UserRepository userRepository) {
         this.transactionManager = TransactionManager.getInstance();
         this.userRepository = userRepository;
@@ -24,6 +28,12 @@ public class AuthService {
 
     /**
      * Changes a user's password after verifying the current password.
+     * @param userId id of the user changing the password
+     * @param oldPassword current password used to authorize the change
+     * @param newPassword new password to persist
+     * @throws NotFoundException if the user does not exist
+     * @throws ForbiddenException if the current password is incorrect
+     * @throws ValidationException if the new password does not satisfy the policy
      */
     public void changePassword(long userId, String oldPassword, String newPassword) {
         validatePassword(newPassword);
@@ -37,6 +47,10 @@ public class AuthService {
 
     /**
      * Requires valid administrator credentials.
+     * @param adminId id of the user expected to be an administrator
+     * @param password administrator password to verify
+     * @throws NotFoundException if the administrator does not exist
+     * @throws ForbiddenException if the user is not an administrator or the password is incorrect
      */
     void requireAdminCredentials(long adminId, String password) {
         transactionManager.inReadOnly(conn -> {
@@ -54,6 +68,11 @@ public class AuthService {
 
     /**
      * Requires the supplied password to match the stored credential.
+     * @param conn active database connection used to load the stored credential
+     * @param userId id of the user whose password must be verified
+     * @param password password supplied by the caller
+     * @throws NotFoundException if the user does not exist
+     * @throws ForbiddenException if the supplied password is incorrect
      */
     void requireValidPassword(Connection conn, long userId, String password) {
         String storedPassword = userRepository.getPasswordById(conn,userId)
@@ -67,6 +86,8 @@ public class AuthService {
 
     /**
      * Validates password input according to the current project policy.
+     * @param password password to validate
+     * @throws ValidationException if the password is empty or has an invalid length
      */
     void validatePassword(String password) {
         if(password == null || password.isEmpty()) {

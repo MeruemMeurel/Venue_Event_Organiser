@@ -176,6 +176,12 @@ public class EventGuestService {
         });
     }
 
+    /**
+     * Validates the guest invitation state machine.
+     * @param currentStatus current persisted invitation status
+     * @param newStatus requested invitation status
+     * @throws ConflictException if the transition is duplicated or not allowed
+     */
     static void validateGuestStatusTransition(EventGuestStatus currentStatus, EventGuestStatus newStatus) {
         if(currentStatus == newStatus) {
             throw new ConflictException("Guest invitation is already " + newStatus);
@@ -190,6 +196,12 @@ public class EventGuestService {
         }
     }
 
+    /**
+     * Validates that an event can receive guest-list invitations.
+     * @param event event for which the invitation is being created
+     * @throws ValidationException if the event does not use a private guest list
+     * @throws ConflictException if the event has been cancelled
+     */
     private void validateEventAllowsInvitations(Event event) {
         if(event.getVisibility() != EventVisibility.PRIVATE_GUEST_LIST) {
             throw new ValidationException("Guests can only be invited to private guest-list events");

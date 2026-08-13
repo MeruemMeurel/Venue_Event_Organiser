@@ -397,6 +397,9 @@ public class BookingService {
 
     /**
      * Validates the booking state machine.
+     * @param currentStatus current persisted booking status
+     * @param newStatus requested booking status
+     * @throws ConflictException if the transition is duplicated or not allowed
      */
     static void validateBookingStatusTransition(BookingStatus currentStatus, BookingStatus newStatus){
         if(currentStatus == newStatus) {

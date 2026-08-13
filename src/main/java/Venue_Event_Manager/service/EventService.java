@@ -440,6 +440,9 @@ public class EventService {
 
     /**
      * Validates all requirements that must hold when an event becomes visible.
+     * @param conn active database connection used to verify the venue
+     * @param event event being prepared for publication
+     * @throws ValidationException if the event has started, has invalid capacity or references a missing venue
      */
     private void validateForPublication(Connection conn, Event event){
         if(!event.getBeginDatetime().isAfter(LocalDateTime.now())) {
@@ -454,6 +457,9 @@ public class EventService {
 
     /**
      * Validates the event state machine.
+     * @param currentStatus current persisted event status
+     * @param newStatus requested event status
+     * @throws ConflictException if the transition is duplicated or not allowed
      */
     static void validateEventStatusTransition(EventStatus currentStatus, EventStatus newStatus){
         if(currentStatus == newStatus) {
