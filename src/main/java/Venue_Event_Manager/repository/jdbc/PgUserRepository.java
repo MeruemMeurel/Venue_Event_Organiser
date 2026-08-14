@@ -226,7 +226,7 @@ public class PgUserRepository implements UserRepository {
 
     private static final String SQL_INSERT = "INSERT INTO \"USER\" (username, password, firstname, lastname, birthday, email, " +
                                                                "phone, is_admin, account_status) " +
-                                             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id";
+                                             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?::account_status) RETURNING id";
     /**
      * Executes SQL Query to insert user object to database
      * @param conn the connection to database
@@ -259,7 +259,7 @@ public class PgUserRepository implements UserRepository {
 
     private static final String SQL_UPDATE = "UPDATE \"USER\" " +
                                              "SET username = ?, firstname = ?, lastname = ?, birthday = ?, email = ?, " +
-                                                 "phone = ?, is_admin = ?, account_status = ? " +
+                                                 "phone = ?, is_admin = ?, account_status = ?::account_status " +
                                              "WHERE id = ?";
     /**
      * Executes SQL Query to update a user's profile information
@@ -288,7 +288,7 @@ public class PgUserRepository implements UserRepository {
 
 
     private static final String SQL_UPDATE_ACCOUNT_STATUS = "UPDATE \"USER\" " +
-                                                            "SET account_status = ? " +
+                                                            "SET account_status = ?::account_status " +
                                                             "WHERE id = ?";
     /**
      * Executes SQL Query to update a user's Account Status
