@@ -6,6 +6,7 @@ CREATE TABLE "USER"
 (
     id             SERIAL PRIMARY KEY,
     username       VARCHAR(50)    NOT NULL UNIQUE,
+    password       VARCHAR(255)   NOT NULL,
     firstname      VARCHAR(100)   NOT NULL,
     lastname       VARCHAR(100)   NOT NULL,
     birthday       DATE           NOT NULL,
