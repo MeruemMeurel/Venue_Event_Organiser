@@ -22,17 +22,17 @@ public interface UserRepository {
 
     List<User> findAllByAccountStatus(Connection conn, AccountStatus accountStatus);
 
-    Optional<Double> getAverageReview(Connection conn, long userId);
+    Optional<Double> getAverageRatingGivenByUser(Connection conn, long userId);
 
     Optional<String> getPasswordById(Connection conn, long userId);
 
-    long insert(Connection conn, User user, String password);
+    long insert(Connection conn, User user, String encodedPassword);
 
     void update(Connection conn, User user);
 
     void updateAccountStatus(Connection conn, long userId, AccountStatus newAccountStatus);
 
-    void updatePassword (Connection conn, long userId, String newPassword);
+    void updatePassword(Connection conn, long userId, String encodedPassword);
 
     void deleteById(Connection conn, long userId);
 

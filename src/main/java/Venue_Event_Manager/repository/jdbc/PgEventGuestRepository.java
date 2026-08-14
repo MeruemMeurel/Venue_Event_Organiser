@@ -75,6 +75,30 @@ public class PgEventGuestRepository implements EventGuestRepository {
     }
 
 
+    private static final String SQL_FIND_BY_ID_FOR_UPDATE = SQL_FIND_BY_ID + " FOR UPDATE";
+
+    /**
+     * Finds and locks a guest entry for the duration of the current transaction.
+     * @param conn active database connection
+     * @param eventGuestId id of the guest entry to find and lock
+     * @return guest entry wrapped in an Optional, or an empty Optional if it does not exist
+     * @throws DaoException if the query cannot be executed
+     */
+    @Override
+    public Optional<EventGuest> findByIdForUpdate(Connection conn, long eventGuestId) {
+        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_ID_FOR_UPDATE)) {
+            ps.setLong(1, eventGuestId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) return Optional.empty();
+                return Optional.of(guest_mapper.mapRow(rs));
+            }
+        } catch (SQLException e) {
+            throw new DaoException("Error while trying to lock event guest with id = " + eventGuestId, e);
+        }
+    }
+
+
     private final static String SQL_FIND_ALL_BY_EVENT_ID = SQL_FIND_ALL + " WHERE event_id = ?";
     /**
      * Executes SQL query to get all guests for a specific event
@@ -228,6 +252,27 @@ public class PgEventGuestRepository implements EventGuestRepository {
             JdbcUtils.requireUpdatedExactly(updated, 1, "updateEventGuestStatus(id=" + eventGuestId + ")");
         } catch (SQLException e) {
             throw new DaoException("Error while trying to update status for event guest id = " + eventGuestId, e);
+        }
+    }
+
+
+    private static final String SQL_CANCEL_ACTIVE_BY_EVENT_ID = "UPDATE event_guest " +
+            "SET status = 'CANCELLED' " +
+            "WHERE event_id = ? AND status IN ('INVITED', 'CONFIRMED')";
+
+    /**
+     * Cancels every invited or confirmed guest associated with an event.
+     * @param conn active database connection
+     * @param eventId id of the cancelled event
+     * @throws DaoException if the update cannot be executed
+     */
+    @Override
+    public void cancelActiveByEventId(Connection conn, long eventId) {
+        try (PreparedStatement ps = conn.prepareStatement(SQL_CANCEL_ACTIVE_BY_EVENT_ID)) {
+            ps.setLong(1, eventId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new DaoException("Error while cancelling guests for event id = " + eventId, e);
         }
     }
 

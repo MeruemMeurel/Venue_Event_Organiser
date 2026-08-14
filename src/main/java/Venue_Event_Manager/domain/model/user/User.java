@@ -15,7 +15,7 @@ public class User {
     private final String username;
     private final String firstname;
     private final String lastname;
-    private final LocalDate birthday; // TODO può essere null
+    private final LocalDate birthday; // Null only in the empty model; required for persisted users.
     private final String email;
     private final String phone;
     private final Boolean is_admin;

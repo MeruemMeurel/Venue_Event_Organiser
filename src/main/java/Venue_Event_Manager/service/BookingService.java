@@ -5,8 +5,11 @@ import Venue_Event_Manager.domain.model.booking.Booking;
 import Venue_Event_Manager.domain.model.booking.BookingStatus;
 import Venue_Event_Manager.domain.model.booking.Ticket;
 import Venue_Event_Manager.domain.model.event.Event;
+import Venue_Event_Manager.domain.model.event.EventStatus;
 import Venue_Event_Manager.domain.model.event.EventVisibility;
+import Venue_Event_Manager.domain.model.user.AccountStatus;
 import Venue_Event_Manager.exception.ConflictException;
+import Venue_Event_Manager.exception.ForbiddenException;
 import Venue_Event_Manager.exception.NotFoundException;
 import Venue_Event_Manager.exception.ValidationException;
 import Venue_Event_Manager.repository.BookingRepository;
@@ -247,16 +250,14 @@ public class BookingService {
                     bookingRepository.insert(conn, booking)
             );
 
-            for(int i=0;i<tickets.size();i++) {
+            long bookingId = booking.getId();
+            List<Ticket> ticketsToInsert = tickets.stream()
+                    .map(ticket -> ticket
+                            .withBookingId(bookingId)
+                            .withStartsAt(event.getBeginDatetime()))
+                    .toList();
 
-                tickets.set(i, tickets.get(i)
-                        .withBookingId(booking.getId())
-                        .withStartsAt(event.getBeginDatetime())
-                );
-
-            }
-
-            ticketRepository.insertMany(conn,tickets);
+            ticketRepository.insertMany(conn,ticketsToInsert);
 
             return booking;
         });
@@ -269,6 +270,10 @@ public class BookingService {
      */
     private void updateStatus(long bookingId, BookingStatus bookingStatus){
         transactionManager.inTransaction(conn->{
+            Booking booking = bookingRepository.findByIdForUpdate(conn,bookingId)
+                    .orElseThrow(() -> new NotFoundException("No booking with id " + bookingId + " exists"));
+
+            validateBookingStatusTransition(booking.getStatus(),bookingStatus);
             bookingRepository.updateStatus(conn,bookingId,bookingStatus);
             return null;
         });
@@ -279,7 +284,6 @@ public class BookingService {
      * @param bookingId the id of the booking to confirm
      */
     public void confirmBooking(long bookingId){
-        //TODO discuss with group which booking status transitions are allowed before confirming a booking
         updateStatus(bookingId,BookingStatus.CONFIRMED);
     }
 
@@ -288,7 +292,6 @@ public class BookingService {
      * @param bookingId the id of the booking to cancel
      */
     public void cancelBooking(long bookingId){
-        //TODO discuss with group which booking status transitions are allowed before cancelling a booking
         updateStatus(bookingId,BookingStatus.CANCELLED);
     }
 
@@ -310,9 +313,11 @@ public class BookingService {
      */
     public void validateEventToBook(Event event){
         if(event == null) throw new ValidationException("Event is null");
-        if(event.getEndDatetime().isBefore(LocalDateTime.now())) throw new ValidationException("Event has ended");
-        if(!(event.getVisibility() == EventVisibility.PUBLIC))  throw new ValidationException("Event is not public");
-        //TODO discuss with group which event statuses allow public booking
+        if(event.getStatus() != EventStatus.PUBLISHED) throw new ValidationException("Event is not published");
+        if(event.getVisibility() != EventVisibility.PUBLIC) throw new ValidationException("Event is not public");
+        if(!event.getBeginDatetime().isAfter(LocalDateTime.now())) {
+            throw new ValidationException("Event has already started");
+        }
     }
 
     /**
@@ -341,6 +346,7 @@ public class BookingService {
     }
 
     /**
+     * Returns a list of all tickets connected to a specific booking
      * @param bookingId the id of the booking
      * @return List of tickets linked to the booking
      */
@@ -350,6 +356,7 @@ public class BookingService {
     }
 
     /**
+     * Returns all tickets connected to a specific event
      * @param eventId the id of the event
      * @return List of tickets linked to the event
      */
@@ -359,6 +366,7 @@ public class BookingService {
     }
 
     /**
+     * Calculates number of available places for a booking
      * @param eventId the id of the event
      * @return number of remaining places
      */
@@ -380,8 +388,31 @@ public class BookingService {
      * @throws NotFoundException if no user is found with such id
      */
     private void validateUserExists(Connection conn, long userId){
-        userRepository.findById(conn,userId)
-                .orElseThrow(() -> new NotFoundException("No user found with id "+userId));
+        if(userRepository.findById(conn,userId)
+                .orElseThrow(() -> new NotFoundException("No user found with id "+userId))
+                .getAccountStatus() == AccountStatus.BANNED) {
+            throw new ForbiddenException("Banned users cannot book events");
+        }
+    }
+
+    /**
+     * Validates the booking state machine.
+     * @param currentStatus current persisted booking status
+     * @param newStatus requested booking status
+     * @throws ConflictException if the transition is duplicated or not allowed
+     */
+    static void validateBookingStatusTransition(BookingStatus currentStatus, BookingStatus newStatus){
+        if(currentStatus == newStatus) {
+            throw new ConflictException("Booking is already " + newStatus);
+        }
+
+        boolean allowed = (currentStatus == BookingStatus.PENDING_PAYMENT
+                && (newStatus == BookingStatus.CONFIRMED || newStatus == BookingStatus.CANCELLED))
+                || (currentStatus == BookingStatus.CONFIRMED && newStatus == BookingStatus.CANCELLED);
+
+        if(!allowed) {
+            throw new ConflictException("Cannot change booking status from " + currentStatus + " to " + newStatus);
+        }
     }
 
 

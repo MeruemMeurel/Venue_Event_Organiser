@@ -29,7 +29,7 @@ public class PgUserRepository implements UserRepository {
 
     private static final String SQL_FIND_ALL = "SELECT id, username, firstname, lastname, birthday, email, phone, " +
                                                       "is_admin, account_status " +
-                                               "FROM user";
+                                               "FROM \"USER\"";
     /**
      * Executes query to database to get all Users
      * @param conn The database connection used
@@ -193,15 +193,15 @@ public class PgUserRepository implements UserRepository {
      * @return Optional<Double> with the average score
      */
     @Override
-    public Optional<Double> getAverageReview(Connection conn, long userId) {
+    public Optional<Double> getAverageRatingGivenByUser(Connection conn, long userId) {
         ReviewRepository reviewRepository = new PgReviewRepository();
-        double average = reviewRepository.getAverageRatingByUser(conn, userId);
+        double average = reviewRepository.getAverageRatingGivenByUser(conn, userId);
         return average != 0.0 ? Optional.of(average) : Optional.empty();
     }
 
 
     private static final String SQL_GET_PASSWORD = "SELECT password " +
-                                                   "FROM user " +
+                                                   "FROM \"USER\" " +
                                                    "WHERE id = ?";
     /**
      * Executes query to get password of a user
@@ -215,7 +215,7 @@ public class PgUserRepository implements UserRepository {
 
             try(ResultSet rs = ps.executeQuery()) {
                 if(!rs.next()) return Optional.empty();
-                else return Optional.of(rs.getString("password"));
+                return Optional.ofNullable(rs.getString("password"));
             }
 
         }catch(SQLException e){
@@ -224,21 +224,21 @@ public class PgUserRepository implements UserRepository {
     }
 
 
-    private static final String SQL_INSERT = "INSERT INTO user (username, password, firstname, lastname, birthday, email, " +
+    private static final String SQL_INSERT = "INSERT INTO \"USER\" (username, password, firstname, lastname, birthday, email, " +
                                                                "phone, is_admin, account_status) " +
-                                             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id";
+                                             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?::account_status) RETURNING id";
     /**
      * Executes SQL Query to insert user object to database
      * @param conn the connection to database
      * @param user the user to insert
-     * @param password the password of the new user
+     * @param encodedPassword the encoded password of the new user
      * @return long int id of the new user created
      */
     @Override
-    public long insert(Connection conn, User user, String password) {
+    public long insert(Connection conn, User user, String encodedPassword) {
         try (PreparedStatement ps = conn.prepareStatement(SQL_INSERT)){
             ps.setString(1, user.getUsername());
-            ps.setString(2, password);
+            ps.setString(2, encodedPassword);
             ps.setString(3, user.getFirstname());
             ps.setString(4, user.getLastname());
             ps.setDate(5, Date.valueOf(user.getBirthday()));
@@ -257,9 +257,9 @@ public class PgUserRepository implements UserRepository {
     }
 
 
-    private static final String SQL_UPDATE = "UPDATE user " +
+    private static final String SQL_UPDATE = "UPDATE \"USER\" " +
                                              "SET username = ?, firstname = ?, lastname = ?, birthday = ?, email = ?, " +
-                                                 "phone = ?, is_admin = ?, account_status = ? " +
+                                                 "phone = ?, is_admin = ?, account_status = ?::account_status " +
                                              "WHERE id = ?";
     /**
      * Executes SQL Query to update a user's profile information
@@ -287,8 +287,8 @@ public class PgUserRepository implements UserRepository {
     }
 
 
-    private static final String SQL_UPDATE_ACCOUNT_STATUS = "UPDATE user " +
-                                                            "SET account_status = ? " +
+    private static final String SQL_UPDATE_ACCOUNT_STATUS = "UPDATE \"USER\" " +
+                                                            "SET account_status = ?::account_status " +
                                                             "WHERE id = ?";
     /**
      * Executes SQL Query to update a user's Account Status
@@ -310,19 +310,19 @@ public class PgUserRepository implements UserRepository {
     }
 
 
-    private static final String SQL_UPDATE_PASSWORD = "UPDATE user " +
+    private static final String SQL_UPDATE_PASSWORD = "UPDATE \"USER\" " +
                                                       "SET password = ? " +
                                                       "WHERE id = ?";
     /**
-     * Changes password of a user, if the old password provided is correct
+     * Replaces the stored credential of a user.
      * @param conn the database connection
      * @param userId the id of the user
-     * @param newPassword the new password to set
+     * @param encodedPassword the encoded password to set
      */
     @Override
-    public void updatePassword(Connection conn, long userId, String newPassword) {
+    public void updatePassword(Connection conn, long userId, String encodedPassword) {
         try (PreparedStatement ps = conn.prepareStatement(SQL_UPDATE_PASSWORD)){
-            ps.setString(1, newPassword);
+            ps.setString(1, encodedPassword);
             ps.setLong(2, userId);
                 
             int updated = ps.executeUpdate();
@@ -333,7 +333,7 @@ public class PgUserRepository implements UserRepository {
     }
 
 
-    private static final String SQL_DELETE = "DELETE FROM user " +
+    private static final String SQL_DELETE = "DELETE FROM \"USER\" " +
                                              "WHERE id = ?";
     /**
      * Deletes a user from database if the password is correct

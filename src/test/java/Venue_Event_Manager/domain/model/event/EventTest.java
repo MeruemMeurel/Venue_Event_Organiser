@@ -26,7 +26,7 @@ class EventTest {
             assertEquals(0, event.getVenueId());
             assertEquals("", event.getName());
             assertNull(event.getBeginDatetime());
-            assertEquals(EventStatus.CONFIRMED, event.getStatus());
+            assertEquals(EventStatus.DRAFT, event.getStatus());
         }
 
         @Test
@@ -36,7 +36,7 @@ class EventTest {
                     LocalDateTime.now(), LocalDateTime.now().plusHours(2),
                     null, 100, null, null, null, null);
 
-            assertEquals(EventStatus.CONFIRMED, event.getStatus(), "Null status must default to CONFIRMED");
+            assertEquals(EventStatus.DRAFT, event.getStatus(), "Null status must default to DRAFT");
             assertEquals(EventVisibility.PUBLIC, event.getVisibility(), "Null visibility must default to PUBLIC");
         }
     }

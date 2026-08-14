@@ -177,7 +177,7 @@ public class PgReviewRepository implements ReviewRepository {
      * @return double average rating
      */
     @Override
-    public double getAverageRatingByUser(Connection conn, long userId) {
+    public double getAverageRatingGivenByUser(Connection conn, long userId) {
         try (PreparedStatement ps = conn.prepareStatement(SQL_AVG_BY_USER)) {
             ps.setLong(1, userId);
 
@@ -243,7 +243,7 @@ public class PgReviewRepository implements ReviewRepository {
 
 
     private static final String SQL_UPDATE = "UPDATE review " +
-                                             "SET user_id = ?, event_id = ?, rating = ?, comment = ?, created_at = ? " +
+                                             "SET rating = ?, comment = ? " +
                                              "WHERE id = ?";
     /**
      * Executes SQL Query to update an existing review
@@ -253,12 +253,9 @@ public class PgReviewRepository implements ReviewRepository {
     @Override
     public void update(Connection conn, Review review) {
         try (PreparedStatement ps = conn.prepareStatement(SQL_UPDATE)) {
-            ps.setLong(1, review.getUserId());
-            ps.setLong(2, review.getEventId());
-            ps.setInt(3, review.getRating());
-            JdbcUtils.setNullableString(ps, 4, review.getComment());
-            ps.setTimestamp(5, Timestamp.valueOf(review.getCreatedAt()));
-            ps.setLong(6, review.getId());
+            ps.setInt(1, review.getRating());
+            JdbcUtils.setNullableString(ps, 2, review.getComment());
+            ps.setLong(3, review.getId());
 
             int updated = ps.executeUpdate();
             JdbcUtils.requireUpdatedExactly(updated, 1, "updateReview(id=" + review.getId() + ")");

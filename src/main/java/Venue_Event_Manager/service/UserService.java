@@ -8,22 +8,28 @@ import Venue_Event_Manager.exception.ForbiddenException;
 import Venue_Event_Manager.exception.NotFoundException;
 import Venue_Event_Manager.exception.ValidationException;
 
-import java.sql.Connection;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public class UserService {
 
     private final TransactionManager transactionManager;
     private final UserRepository userRepository;
+    private final AuthService authService;
 
     /**
      * Initializes UserService with the repository needed to handle users.
      * @param userRepository repository used to access user data
      */
     public UserService(UserRepository userRepository){
+        this(userRepository,new AuthService(userRepository));
+    }
+
+    UserService(UserRepository userRepository, AuthService authService){
         this.transactionManager = TransactionManager.getInstance();
         this.userRepository = userRepository;
+        this.authService = authService;
     }
 
     /**
@@ -127,9 +133,15 @@ public class UserService {
                 userRepository.findAllByAccountStatus(conn,accountStatus));
     }
 
-    //TODO averageReview
-    //TODO discuss with group if passwords can stay in plain text for project scope or must be hashed
-    //TODO discuss if password and privilege methods should be moved to a dedicated AuthService
+    /**
+     * Gets the average rating assigned by a user to reviewed events.
+     * @param userId the id of the user who submitted the reviews
+     * @return average rating, or an empty Optional if the user has not submitted reviews
+     */
+    public Optional<Double> getAverageRatingGivenByUser(long userId){
+        return transactionManager.inReadOnly(conn ->
+                userRepository.getAverageRatingGivenByUser(conn,userId));
+    }
 
     /**
      * Inserts a new user in database.
@@ -139,28 +151,40 @@ public class UserService {
      * @throws ValidationException if user data or password are not valid
      */
     public long insert(User user,String password){
-        validate(user);
-        validatePassword(password);
+        if(user == null) throw new ValidationException("User cannot be null");
+
+        User userToInsert = user
+                .withIsAdmin(false)
+                .withAccountStatus(AccountStatus.ACTIVE);
+
+        validate(userToInsert);
+        String encodedPassword = authService.hashPassword(password);
         return transactionManager.inTransaction(conn ->
-                userRepository.insert(conn,user,password));
+                userRepository.insert(conn,userToInsert,encodedPassword));
     }
 
     /**
      * Updates an existing user after checking the provided password.
      * @param user the user object with updated data
      * @param password the current password of the user
-     * @throws ValidationException if user data or password are not valid
+     * @throws ValidationException if user data are not valid
      * @throws ForbiddenException if password is wrong
      */
     public void update(User user, String password){
         validate(user);
-        validatePassword(password);
-        if(!checkPassword(user.getId(), password)){
-            throw new ForbiddenException("Wrong password");
-        }
+
         transactionManager.inTransaction(conn -> {
-                userRepository.update(conn,user);
-                return null;
+            User storedUser = userRepository.findById(conn,user.getId())
+                    .orElseThrow(() -> new NotFoundException("User with id " + user.getId() + " not found"));
+
+            authService.requireValidPassword(conn,user.getId(),password);
+
+            User profileToUpdate = user
+                    .withIsAdmin(storedUser.isAdmin())
+                    .withAccountStatus(storedUser.getAccountStatus());
+
+            userRepository.update(conn,profileToUpdate);
+            return null;
         });
     }
 
@@ -172,7 +196,7 @@ public class UserService {
      * @throws ForbiddenException if admin privileges are missing or password is wrong
      */
     public void ban(long adminId,String adminPassword,long userId){
-        checkPrivileges(adminId,adminPassword);
+        authService.requireAdminCredentials(adminId,adminPassword);
         validateUserCanBeBanned(adminId,userId);
 
         transactionManager.inTransaction(conn -> {
@@ -190,7 +214,7 @@ public class UserService {
      * @throws ForbiddenException if admin privileges are missing or password is wrong
      */
     public void unban(long adminId,String adminPassword,long userId){
-        checkPrivileges(adminId,adminPassword);
+        authService.requireAdminCredentials(adminId,adminPassword);
         transactionManager.inTransaction(conn -> {
             userRepository.updateAccountStatus(conn,userId,AccountStatus.ACTIVE);
             return null;
@@ -207,13 +231,7 @@ public class UserService {
      * @throws ForbiddenException if old password is wrong
      */
     public void changePassword(long userId, String oldPassword, String newPassword){
-        validatePassword(newPassword);
-        if(!checkPassword(userId,oldPassword)) throw new ForbiddenException("Wrong password");
-        transactionManager.inTransaction(conn -> {
-            userRepository.updatePassword(conn,userId,newPassword);
-            return null;
-        });
-
+        authService.changePassword(userId,oldPassword,newPassword);
     }
 
     /**
@@ -223,44 +241,11 @@ public class UserService {
      * @throws ForbiddenException if password is wrong
      */
     public void deleteUser(long userId, String password){
-        if(!checkPassword(userId,password)) throw new ForbiddenException("Wrong password");
         transactionManager.inTransaction(conn -> {
+            authService.requireValidPassword(conn,userId,password);
             userRepository.deleteById(conn,userId);
             return null;
         });
-    }
-
-    //-----UTILS-----
-
-    /**
-     * Checks if a password matches the password stored for a user.
-     * @param userId the id of the user
-     * @param password the password to check
-     * @return true if password is correct, false otherwise
-     * @throws NotFoundException if no user is found with such id
-     */
-    private boolean checkPassword(long userId,String password){
-        String dbPassword = transactionManager.inReadOnly(conn ->
-                userRepository.getPasswordById(conn,userId)
-                        .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found")));
-
-        return dbPassword.equals(password);
-
-    }
-
-    /**
-     * Checks if a user has admin privileges and provided the correct password.
-     * @param adminId the id of the admin user
-     * @param password the password to check
-     * @throws NotFoundException if admin user does not exist
-     * @throws ForbiddenException if user is not admin or password is wrong
-     */
-    private void checkPrivileges(long adminId, String password){
-        User admin = transactionManager.inReadOnly(conn ->
-                userRepository.findById(conn,adminId).orElseThrow(() -> new NotFoundException("Admin does not exist")));
-        if(!admin.isAdmin()) throw new ForbiddenException("Admin privileges required for such action");
-
-        if(!checkPassword(adminId,password)) throw new ForbiddenException("Wrong password");
     }
 
     /**
@@ -326,16 +311,6 @@ public class UserService {
     }
 
     /**
-     * Validates password length.
-     * @param password the password to validate
-     * @throws ValidationException if password is empty or has invalid length
-     */
-    private void validatePassword(String password){
-        if(password == null || password.isEmpty()) throw new ValidationException("Password cannot be empty");
-        if(password.length() < 8 || password.length() > 30) throw new ValidationException("Password must be between 8 and 30 characters");
-    }
-
-    /**
      * Validates phone format and length.
      * @param phone the phone to validate
      * @throws ValidationException if phone has invalid format or length
@@ -354,7 +329,7 @@ public class UserService {
     private void validateBirthday(LocalDate birthday){
         if(birthday == null) throw new ValidationException("Birthday cannot be empty");
         if(birthday.isAfter(LocalDate.now())) throw new ValidationException("Birthday must be before "+LocalDate.now());
-        if(birthday.isBefore(LocalDate.of(1900,1,1))) throw new ValidationException("Birthday must be before "+LocalDate.of(1900,1,1));
+        if(birthday.isBefore(LocalDate.of(1900,1,1))) throw new ValidationException("Birthday cannot be before "+LocalDate.of(1900,1,1));
     }
 
     /**

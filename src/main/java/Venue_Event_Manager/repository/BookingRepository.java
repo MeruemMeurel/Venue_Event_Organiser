@@ -13,6 +13,14 @@ public interface BookingRepository {
 
     Optional<Booking> findById(Connection conn, long bookingId);
 
+    /**
+     * Finds and locks a booking inside the caller's transaction.
+     * @param conn active database connection
+     * @param bookingId id of the booking to lock
+     * @return booking wrapped in an Optional, or an empty Optional if it does not exist
+     */
+    Optional<Booking> findByIdForUpdate(Connection conn, long bookingId);
+
     List<Booking> findAllByUserId(Connection conn, long userId);
 
     List<Booking> findAllByEventId(Connection conn, long eventId);
@@ -30,6 +38,13 @@ public interface BookingRepository {
     void update(Connection conn, Booking booking);
 
     void updateStatus(Connection conn, long bookingId, BookingStatus status);
+
+    /**
+     * Cancels all active bookings for an event.
+     * @param conn active database connection
+     * @param eventId id of the event whose bookings must be cancelled
+     */
+    void cancelActiveByEventId(Connection conn, long eventId);
 
     void delete(Connection conn, long bookingId);
 

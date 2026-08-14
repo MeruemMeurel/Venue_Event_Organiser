@@ -15,6 +15,7 @@ import Venue_Event_Manager.repository.UserRepository;
 import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 public class ReportService {
 
@@ -151,8 +152,16 @@ public class ReportService {
         validateForUpdate(report);
 
         transactionManager.inTransaction(conn -> {
-            reportRepository.findById(conn,report.getId())
+            Report storedReport = reportRepository.findById(conn,report.getId())
                     .orElseThrow(() -> new NotFoundException("Report with id " + report.getId() + " not found"));
+
+            if(storedReport.getUserId() != report.getUserId()
+                    || storedReport.getAdminId() != report.getAdminId()
+                    || !Objects.equals(storedReport.getEventId(),report.getEventId())
+                    || !Objects.equals(storedReport.getCreatedAt(),report.getCreatedAt())) {
+                throw new ValidationException("Report user, admin, event and creation date cannot be changed");
+            }
+
             reportRepository.update(conn,report);
             return null;
         });

@@ -257,8 +257,7 @@ public class PgReportRepository implements ReportRepository {
 
 
     private static final String SQL_UPDATE = "UPDATE report " +
-                                             "SET user_id = ?, admin_id = ?, event_id = ?, severity = ?, comment = ?, " +
-                                                 "created_at = ? " +
+                                             "SET severity = ?, comment = ? " +
                                              "WHERE id = ?";
     /**
      * Executes SQL query to update an existing report
@@ -268,13 +267,9 @@ public class PgReportRepository implements ReportRepository {
     @Override
     public void update(Connection conn, Report report) {
         try (PreparedStatement ps = conn.prepareStatement(SQL_UPDATE)) {
-            ps.setLong(1, report.getUserId());
-            ps.setLong(2, report.getAdminId());
-            JdbcUtils.setNullableLong(ps, 3, report.getEventId());
-            ps.setString(4, report.getSeverity().name());
-            JdbcUtils.setNullableString(ps, 5, report.getComment());
-            ps.setTimestamp(6, Timestamp.valueOf(report.getCreatedAt()));
-            ps.setLong(7, report.getId());
+            ps.setString(1, report.getSeverity().name());
+            JdbcUtils.setNullableString(ps, 2, report.getComment());
+            ps.setLong(3, report.getId());
 
             int updated = ps.executeUpdate();
             JdbcUtils.requireUpdatedExactly(updated, 1, "update(report_id=" + report.getId() + ")");

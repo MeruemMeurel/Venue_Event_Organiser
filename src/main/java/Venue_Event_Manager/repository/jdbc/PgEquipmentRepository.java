@@ -137,7 +137,7 @@ public class PgEquipmentRepository implements EquipmentRepository {
             ps.setLong(1, equipment.getVenueId());
             ps.setString(2, equipment.getName());
             JdbcUtils.setNullableString(ps, 3, equipment.getDescription());
-            ps.setInt(4, equipment.getTotalQuantity()); // Assicurati che il metodo si chiami così nel domain
+            ps.setInt(4, equipment.getTotalQuantity());
 
             try(ResultSet rs = ps.executeQuery()){
                 if (rs.next()) return rs.getLong(1);

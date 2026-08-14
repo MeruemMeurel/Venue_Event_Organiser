@@ -1,13 +1,15 @@
 -- V9__seed_data.sql
 -- Inserimento dati database
 
--- Inserimento admin
-INSERT INTO "USER" (username, firstname, lastname, birthday, email, phone, is_admin, account_status)
-VALUES ('admin_mario', 'Mario', 'Rossi', '1985-10-15', 'admin@venueorganiser.com', '3331234567', TRUE, 'ACTIVE');
+-- Inserimento admin (development password: Admin123!)
+INSERT INTO "USER" (username, password, firstname, lastname, birthday, email, phone, is_admin, account_status)
+VALUES ('admin_mario', 'pbkdf2-sha256$210000$KSua9X81jKm2llcGokP51A==$wWTKm/890qwVAjA2TTgp6ZZfJOWeYRXFr4JsRN5dLfE=',
+        'Mario', 'Rossi', '1985-10-15', 'admin@venueorganiser.com', '3331234567', TRUE, 'ACTIVE');
 
--- Inserimento utente normale
-INSERT INTO "USER" (username, firstname, lastname, birthday, email, phone, is_admin, account_status)
-VALUES ('user_luigi', 'Luigi', 'Verdi', '1992-05-20', 'luigi.verdi@email.com', '3339876543', FALSE, 'ACTIVE');
+-- Inserimento utente normale (development password: User1234!)
+INSERT INTO "USER" (username, password, firstname, lastname, birthday, email, phone, is_admin, account_status)
+VALUES ('user_luigi', 'pbkdf2-sha256$210000$/OEqtoutj019bIFiJMWSCg==$WdXdy5S1HaoJequCFmSaL3Q9Buuj3bKd+VFF9Y8MGMs=',
+        'Luigi', 'Verdi', '1992-05-20', 'luigi.verdi@email.com', '3339876543', FALSE, 'ACTIVE');
 
 -- Inseriamento Venue
 INSERT INTO VENUE (name, description, address)

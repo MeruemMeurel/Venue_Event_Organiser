@@ -16,6 +16,7 @@ import Venue_Event_Manager.repository.ReviewRepository;
 import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 public class ReviewService {
 
@@ -110,9 +111,9 @@ public class ReviewService {
      * @param userId the id of the user
      * @return average rating given by the user
      */
-    public double getAverageRatingByUser(long userId){
+    public double getAverageRatingGivenByUser(long userId){
         return transactionManager.inReadOnly(conn ->
-                reviewRepository.getAverageRatingByUser(conn,userId));
+                reviewRepository.getAverageRatingGivenByUser(conn,userId));
     }
 
     /**
@@ -153,8 +154,15 @@ public class ReviewService {
         validateForUpdate(review);
 
         transactionManager.inTransaction(conn -> {
-            reviewRepository.findById(conn,review.getId())
+            Review storedReview = reviewRepository.findById(conn,review.getId())
                     .orElseThrow(() -> new NotFoundException("Review with id " + review.getId() + " not found"));
+
+            if(storedReview.getUserId() != review.getUserId()
+                    || storedReview.getEventId() != review.getEventId()
+                    || !Objects.equals(storedReview.getCreatedAt(),review.getCreatedAt())) {
+                throw new ValidationException("Review user, event and creation date cannot be changed");
+            }
+
             reviewRepository.update(conn,review);
             return null;
         });
