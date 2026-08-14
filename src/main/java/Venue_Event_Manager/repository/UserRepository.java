@@ -26,13 +26,13 @@ public interface UserRepository {
 
     Optional<String> getPasswordById(Connection conn, long userId);
 
-    long insert(Connection conn, User user, String password);
+    long insert(Connection conn, User user, String encodedPassword);
 
     void update(Connection conn, User user);
 
     void updateAccountStatus(Connection conn, long userId, AccountStatus newAccountStatus);
 
-    void updatePassword (Connection conn, long userId, String newPassword);
+    void updatePassword(Connection conn, long userId, String encodedPassword);
 
     void deleteById(Connection conn, long userId);
 

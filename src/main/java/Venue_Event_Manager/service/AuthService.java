@@ -16,14 +16,26 @@ public class AuthService {
 
     private final TransactionManager transactionManager;
     private final UserRepository userRepository;
+    private final PasswordHasher passwordHasher;
 
     /**
      * Initializes the authentication service.
      * @param userRepository repository used to load and update user credentials
      */
     public AuthService(UserRepository userRepository) {
+        this(userRepository, new PasswordHasher());
+    }
+
+    /**
+     * Initializes the authentication service with an explicit password hasher.
+     *
+     * @param userRepository repository used to load and update user credentials
+     * @param passwordHasher component used to hash and verify credentials
+     */
+    AuthService(UserRepository userRepository, PasswordHasher passwordHasher) {
         this.transactionManager = TransactionManager.getInstance();
         this.userRepository = userRepository;
+        this.passwordHasher = passwordHasher;
     }
 
     /**
@@ -31,16 +43,15 @@ public class AuthService {
      * @param userId id of the user changing the password
      * @param oldPassword current password used to authorize the change
      * @param newPassword new password to persist
-     * @throws NotFoundException if the user does not exist
-     * @throws ForbiddenException if the current password is incorrect
+     * @throws ForbiddenException if credentials are unavailable or the current password is incorrect
      * @throws ValidationException if the new password does not satisfy the policy
      */
     public void changePassword(long userId, String oldPassword, String newPassword) {
-        validatePassword(newPassword);
+        String encodedPassword = hashPassword(newPassword);
 
         transactionManager.inTransaction(conn -> {
             requireValidPassword(conn,userId,oldPassword);
-            userRepository.updatePassword(conn,userId,newPassword);
+            userRepository.updatePassword(conn,userId,encodedPassword);
             return null;
         });
     }
@@ -71,15 +82,13 @@ public class AuthService {
      * @param conn active database connection used to load the stored credential
      * @param userId id of the user whose password must be verified
      * @param password password supplied by the caller
-     * @throws NotFoundException if the user does not exist
-     * @throws ForbiddenException if the supplied password is incorrect
+     * @throws ForbiddenException if credentials are unavailable or the supplied password is incorrect
      */
     void requireValidPassword(Connection conn, long userId, String password) {
         String storedPassword = userRepository.getPasswordById(conn,userId)
-                .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found"));
+                .orElseThrow(() -> new ForbiddenException("Credentials unavailable"));
 
-        // TODO security: replace plain-text comparison with salted PBKDF2 password hashes and migrate existing seed/user credentials.
-        if(!storedPassword.equals(password)) {
+        if (!passwordHasher.verify(password, storedPassword)) {
             throw new ForbiddenException("Wrong password");
         }
     }
@@ -97,4 +106,17 @@ public class AuthService {
             throw new ValidationException("Password must be between 8 and 30 characters");
         }
     }
+
+    /**
+     * Validates and hashes a new password before persistence.
+     *
+     * @param password plain-text password to validate and hash
+     * @return encoded PBKDF2 credential
+     * @throws ValidationException if the password does not satisfy the policy
+     */
+    String hashPassword(String password) {
+        validatePassword(password);
+        return passwordHasher.hash(password);
+    }
+
 }

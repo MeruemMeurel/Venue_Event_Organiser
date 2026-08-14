@@ -158,21 +158,20 @@ public class UserService {
                 .withAccountStatus(AccountStatus.ACTIVE);
 
         validate(userToInsert);
-        authService.validatePassword(password);
+        String encodedPassword = authService.hashPassword(password);
         return transactionManager.inTransaction(conn ->
-                userRepository.insert(conn,userToInsert,password));
+                userRepository.insert(conn,userToInsert,encodedPassword));
     }
 
     /**
      * Updates an existing user after checking the provided password.
      * @param user the user object with updated data
      * @param password the current password of the user
-     * @throws ValidationException if user data or password are not valid
+     * @throws ValidationException if user data are not valid
      * @throws ForbiddenException if password is wrong
      */
     public void update(User user, String password){
         validate(user);
-        authService.validatePassword(password);
 
         transactionManager.inTransaction(conn -> {
             User storedUser = userRepository.findById(conn,user.getId())
