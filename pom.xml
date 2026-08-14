@@ -56,9 +56,9 @@
                 <artifactId>flyway-maven-plugin</artifactId>
                 <version>9.22.3</version>
                 <configuration>
-                    <url>jdbc:postgresql://localhost:5432/event_manager_db</url>
+                    <url>jdbc:postgresql://localhost:5433/event_manager_db</url>
                     <user>admin</user>
-                    <password>admin</password>
+                    <password>change_me</password>
                     <locations>
                         <location>filesystem:src/main/resources/db/migration</location>
                     </locations>
