@@ -29,7 +29,7 @@ public class PgSpaceRepository implements SpaceRepository {
     /**
      * Executes query to database to get all Spaces
      * @param conn The database connection used
-     * @return List<Space> object
+     * @return {@code List<Space>} object
      */
     @Override
     public List<Space> findAll(Connection conn) {
@@ -53,7 +53,7 @@ public class PgSpaceRepository implements SpaceRepository {
      * Executes query to database to get Space from its id
      * @param conn The database connection used
      * @param spaceId the id of the space
-     * @return Optional<Space> object. Empty if not found
+     * @return {@code Optional<Space>} object. Empty if not found
      */
     @Override
     public Optional<Space> findById(Connection conn, long spaceId) {
@@ -75,7 +75,7 @@ public class PgSpaceRepository implements SpaceRepository {
      * Executes query to database to get all Spaces belonging to a venue
      * @param conn The database connection used
      * @param venueId the id of the venue
-     * @return List<Space> object
+     * @return {@code List<Space>} object
      */
     @Override
     public List<Space> findAllByVenueId(Connection conn, long venueId) {
@@ -99,7 +99,7 @@ public class PgSpaceRepository implements SpaceRepository {
      * Searches in database a name like the parameter name
      * @param conn the db connection
      * @param name the name to search
-     * @return List<Space> results of query
+     * @return {@code List<Space>} results of query
      * @throws DaoException daoException
      */
     @Override
@@ -200,7 +200,7 @@ public class PgSpaceRepository implements SpaceRepository {
      * @param venueId the id of the venue to search in
      * @param begin the start time of the interval
      * @param end the end time of the interval
-     * @return List<Space> object containing available spaces
+     * @return {@code List<Space>} object containing available spaces
      */
     @Override
     public List<Space> findAvailableSpaces(Connection conn, long venueId, LocalDateTime begin, LocalDateTime end) {

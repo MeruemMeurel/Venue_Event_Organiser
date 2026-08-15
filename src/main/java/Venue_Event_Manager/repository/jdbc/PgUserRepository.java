@@ -33,7 +33,7 @@ public class PgUserRepository implements UserRepository {
     /**
      * Executes query to database to get all Users
      * @param conn The database connection used
-     * @return List<User> object
+     * @return {@code List<User>} object
      */
     @Override
     public List<User> findAll(Connection conn) {
@@ -57,7 +57,7 @@ public class PgUserRepository implements UserRepository {
      * Executes query to database to get User from his id
      * @param conn The database connection used
      * @param userId the id of the user
-     * @return Optional<User> object. Empty if not found
+     * @return {@code Optional<User>} object. Empty if not found
      */
     @Override
     public Optional<User> findById(Connection conn, long userId) {
@@ -79,7 +79,7 @@ public class PgUserRepository implements UserRepository {
      * Executes query to database to get User from his username
      * @param conn The database connection used
      * @param username the username of the user
-     * @return Optional<User> object. Empty if not found
+     * @return {@code Optional<User>} object. Empty if not found
      */
     @Override
     public Optional<User> findByUsername(Connection conn, String username) {
@@ -101,7 +101,7 @@ public class PgUserRepository implements UserRepository {
      * Executes query to database to get User from his email
      * @param conn The database connection used
      * @param email the email of the user
-     * @return Optional<User> object. Empty if not found
+     * @return {@code Optional<User>} object. Empty if not found
      */
     @Override
     public Optional<User> findByEmail(Connection conn, String email) {
@@ -123,7 +123,7 @@ public class PgUserRepository implements UserRepository {
      * Executes query to database to get User from his phone
      * @param conn The database connection used
      * @param phone the phone of the user
-     * @return Optional<User> object. Empty if not found
+     * @return {@code Optional<User>} object. Empty if not found
      */
     @Override
     public Optional<User> findByPhone(Connection conn, String phone) {
@@ -145,7 +145,7 @@ public class PgUserRepository implements UserRepository {
      * Executes query to database to get all Users filtered by admin status
      * @param conn The database connection used
      * @param isAdmin the admin status to filter by
-     * @return List<User> object
+     * @return {@code List<User>} object
      */
     @Override
     public List<User> findAllByIsAdmin(Connection conn, boolean isAdmin) {
@@ -168,7 +168,7 @@ public class PgUserRepository implements UserRepository {
      * Executes query to database to get all Users filtered by account status
      * @param conn The database connection used
      * @param accountStatus the account status to filter by
-     * @return List<User> object
+     * @return {@code List<User>} object
      */
     @Override
     public List<User> findAllByAccountStatus(Connection conn, AccountStatus accountStatus) {
@@ -190,7 +190,7 @@ public class PgUserRepository implements UserRepository {
      * Calculates the average review score for a specific user
      * @param conn the database connection
      * @param userId the id of the user
-     * @return Optional<Double> with the average score
+     * @return {@code Optional<Double>} with the average score
      */
     @Override
     public Optional<Double> getAverageRatingGivenByUser(Connection conn, long userId) {

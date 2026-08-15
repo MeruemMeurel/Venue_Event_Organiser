@@ -4,7 +4,6 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import javax.sql.DataSource;
-import java.io.IOException;
 
 /**
  * DataSource for jdbc using singleton design pattern and Hikari
@@ -37,7 +36,7 @@ public class DataSourceSingleton {
     /**
      * Singleton implementation
      * @return DataSource instance if exists, new DataSource if not
-     * @throws IOException
+     * @throws IllegalStateException if the database configuration cannot be loaded
      */
     public static HikariDataSource getInstance() {
         if (instance == null) {
@@ -53,7 +52,7 @@ public class DataSourceSingleton {
     /**
      * Sets up configuration for HikariDataSource and creates it
      * @return new HikariDataSource
-     * @throws IOException
+     * @throws IllegalStateException if the database configuration cannot be loaded
      */
     private static HikariDataSource createDataSource() {
         DbConfig config = DbConfig.load();

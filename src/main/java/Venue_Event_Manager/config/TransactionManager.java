@@ -2,7 +2,6 @@ package Venue_Event_Manager.config;
 
 import com.zaxxer.hikari.HikariDataSource;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.function.Function;
@@ -20,7 +19,7 @@ public class TransactionManager {
     /**
      * Singleton implementation
      * @return instance of transactionManager
-     * @throws IOException
+     * @throws IllegalStateException if the data source cannot be initialized
      */
     public static TransactionManager getInstance() {
         if (instance == null) {

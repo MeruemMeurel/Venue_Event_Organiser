@@ -19,13 +19,13 @@ public final class DbConfig {
     /**
      * DBConfig constructor
      * @param host required Non Blank
-     * @param port
+     * @param port database port in the range 1-65535
      * @param dbName required Non Blank
      * @param user required Non Blank
      * @param password required Non Blank
      * @param sslMode can be null
      * @param schema can be null
-     * @throws IOException
+     * @throws IllegalStateException if a required configuration value is missing
      */
     public DbConfig(String host, int port, String dbName, String user, String password, String sslMode,
                     String schema){
@@ -43,7 +43,7 @@ public final class DbConfig {
     /**
      * Load Db config from application.properties file in project root
      * @return new DbConfig object with configs from application.properties
-     * @throws IOException
+     * @throws IllegalStateException if the properties cannot be read or contain invalid values
      */
     public static DbConfig load() {
         Properties props = loadPropertiesFromClasspath("application.properties");
@@ -85,7 +85,7 @@ public final class DbConfig {
      * Create Properties object from resource
      * @param resourceName file containing properties
      * @return properties object
-     * @throws IOException
+     * @throws IllegalStateException if the resource cannot be read
      */
     private static Properties loadPropertiesFromClasspath(String resourceName) {
         Properties props = new Properties();

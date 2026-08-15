@@ -94,7 +94,7 @@ public class PgEventRepository implements EventRepository {
      * Executes SQL Query to get a Event from its id, setting it for update
      * @param conn the db connection
      * @param eventId the event
-     * @return Optional<Event> optional object containing the event if found
+     * @return {@code Optional<Event>} containing the event if found
      * @throws DaoException daoException
      */
     @Override
@@ -368,7 +368,7 @@ public class PgEventRepository implements EventRepository {
      * Calculates the average review score for a specific event
      * @param conn the database connection
      * @param eventId the id of the event
-     * @return Optional<Double> with the average score
+     * @return {@code Optional<Double>} with the average score
      */
     @Override
     public Optional<Double> getAverageReview(Connection conn, long eventId) {

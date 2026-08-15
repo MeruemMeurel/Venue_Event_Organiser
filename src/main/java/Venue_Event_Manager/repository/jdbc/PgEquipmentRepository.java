@@ -32,7 +32,7 @@ public class PgEquipmentRepository implements EquipmentRepository {
     /**
      * Executes query to database to get all Equipments
      * @param conn The database connection used
-     * @return List<Equipment> object
+     * @return {@code List<Equipment>} object
      */
     @Override
     public List<Equipment> findAll(Connection conn) {
@@ -56,7 +56,7 @@ public class PgEquipmentRepository implements EquipmentRepository {
      * Executes query to database to get Equipment from its id
      * @param conn The database connection used
      * @param equipmentId the id of the equipment
-     * @return Optional<Equipment> object. Empty if not found
+     * @return {@code Optional<Equipment>} object. Empty if not found
      */
     @Override
     public Optional<Equipment> findById(Connection conn, long equipmentId) {
@@ -78,7 +78,7 @@ public class PgEquipmentRepository implements EquipmentRepository {
      * Executes query to database to get all Equipments belonging to a venue
      * @param conn The database connection used
      * @param venueId the id of the venue
-     * @return List<Equipment> object
+     * @return {@code List<Equipment>} object
      */
     @Override
     public List<Equipment> findAllByVenueId(Connection conn, long venueId) {
@@ -102,7 +102,7 @@ public class PgEquipmentRepository implements EquipmentRepository {
      * Searches in database a name like the parameter name
      * @param conn the db connection
      * @param name the name to search
-     * @return List<Equipment> results of query
+     * @return {@code List<Equipment>} results of query
      * @throws DaoException daoException
      */
     @Override
@@ -211,7 +211,7 @@ public class PgEquipmentRepository implements EquipmentRepository {
      * @param venueId the id of the venue to search in
      * @param begin the start time of the interval
      * @param end the end time of the interval
-     * @return List<Equipment> object containing available equipments
+     * @return {@code List<Equipment>} object containing available equipment
      */
     @Override
     public List<Equipment> findAvailableEquipment(Connection conn, long venueId, LocalDateTime begin, LocalDateTime end) {
