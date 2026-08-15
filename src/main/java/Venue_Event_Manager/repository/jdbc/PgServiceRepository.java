@@ -167,7 +167,7 @@ public class PgServiceRepository implements ServiceRepository {
      * get all the available service for a given event
      * @param conn the database connection
      * @param eventId the id of the event to search for his services
-     * @return
+     * @return services not already assigned to the event
      */
     @Override
     public List<Service> findAvailableServicesForEvent(Connection conn, long eventId) {

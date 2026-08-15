@@ -36,8 +36,8 @@ public class TransactionManager {
      * Execute-around design pattern used for executing transactions
      * @param work lambda function with Connection as input and T as output
      * @return result of query
-     * @throws TransactionException
-     * @param <T>
+     * @throws TransactionException if the connection, transaction, commit, or rollback fails
+     * @param <T> result type returned by the work
      */
     public <T> T inTransaction(Function<Connection,T> work){
         try (Connection conn = dataSource.getConnection()){
@@ -67,8 +67,8 @@ public class TransactionManager {
     /**
      * Execute-around design pattern used to handle read only transactions
      * @param work lambda function with Connection as input and T as output
-     * @return T object
-     * @param <T>
+     * @return result produced by the work
+     * @param <T> result type returned by the work
      */
     public <T> T inReadOnly(Function<Connection,T> work){
 
