@@ -163,7 +163,7 @@ public class PgUserRepository implements UserRepository {
     }
 
 
-    private static final String SQL_FIND_ALL_BY_ACCOUNT_STATUS = SQL_FIND_ALL + " WHERE account_status = ?";
+    private static final String SQL_FIND_ALL_BY_ACCOUNT_STATUS = SQL_FIND_ALL + " WHERE account_status = ?::account_status";
     /**
      * Executes query to database to get all Users filtered by account status
      * @param conn The database connection used
