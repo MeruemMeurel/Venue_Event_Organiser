@@ -150,7 +150,7 @@ public class PgReportRepository implements ReportRepository {
     }
 
 
-    private static final String SQL_FIND_ALL_BY_SEVERITY = SQL_FIND_ALL + " WHERE severity = ?";
+    private static final String SQL_FIND_ALL_BY_SEVERITY = SQL_FIND_ALL + " WHERE severity = ?::severity";
     /**
      * Executes SQL query to get all reports with specific severity
      * @param conn the db connection
@@ -229,7 +229,7 @@ public class PgReportRepository implements ReportRepository {
 
     private static final String SQL_INSERT = "INSERT INTO report (user_id, admin_id, event_id, severity, comment, " +
                                                                  "created_at) " +
-                                             "VALUES (?, ?, ?, ?, ?, ?) RETURNING id";
+                                             "VALUES (?, ?, ?, ?::severity, ?, ?) RETURNING id";
     /**
      * Executes SQL query to insert a new report
      * @param conn the db connection
@@ -257,7 +257,7 @@ public class PgReportRepository implements ReportRepository {
 
 
     private static final String SQL_UPDATE = "UPDATE report " +
-                                             "SET severity = ?, comment = ? " +
+                                             "SET severity = ?::severity, comment = ? " +
                                              "WHERE id = ?";
     /**
      * Executes SQL query to update an existing report

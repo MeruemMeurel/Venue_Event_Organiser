@@ -152,7 +152,7 @@ public class PgEventRequestRepository implements EventRequestRepository {
     }
 
 
-    private final static String SQL_FIND_BY_STATUS = SQL_FIND_ALL + " WHERE status = ?";
+    private final static String SQL_FIND_BY_STATUS = SQL_FIND_ALL + " WHERE status = ?::request_status";
     /**
      * Executes SQL query to get all requests filtered by their current status
      * @param conn the db connection
@@ -296,7 +296,7 @@ public class PgEventRequestRepository implements EventRequestRepository {
     private final static String SQL_INSERT = "INSERT INTO event_request (requester_id, handler_id, venue_id, name, " +
                                                                         "description, begin_datetime, end_datetime, " +
                                                                         "status, created_at, closed_at, quote) " +
-                                             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id";
+                                             "VALUES (?, ?, ?, ?, ?, ?, ?, ?::request_status, ?, ?, ?) RETURNING id";
     /**
      * Executes SQL query to insert a new event request into the database
      * @param conn the db connection
@@ -330,7 +330,7 @@ public class PgEventRequestRepository implements EventRequestRepository {
 
     private final static String SQL_UPDATE = "UPDATE event_request " +
                                              "SET requester_id = ?, handler_id = ?, venue_id = ?, name = ?, " +
-                                                 "description = ?, begin_datetime = ?, end_datetime = ?, status = ?, " +
+                                                 "description = ?, begin_datetime = ?, end_datetime = ?, status = ?::request_status, " +
                                                  "created_at = ?, closed_at = ?, quote = ? " +
                                              "WHERE id = ?";
     /**
@@ -363,7 +363,7 @@ public class PgEventRequestRepository implements EventRequestRepository {
 
 
     private final static String SQL_UPDATE_STATUS = "UPDATE event_request " +
-                                                    "SET status = ? " +
+                                                    "SET status = ?::request_status " +
                                                     "WHERE id = ?";
     /**
      * Executes SQL query to update only the status of a specific request

@@ -143,7 +143,7 @@ public class PgBookingRepository implements BookingRepository {
     }
 
 
-    public static final String SQL_FIND_ALL_BY_STATUS = SQL_FIND_ALL + " WHERE status = ?";
+    public static final String SQL_FIND_ALL_BY_STATUS = SQL_FIND_ALL + " WHERE status = ?::booking_status";
     /**
      * Executes SQL query to get all bookings with specific status
      * @param conn the db connection
@@ -168,7 +168,7 @@ public class PgBookingRepository implements BookingRepository {
     }
 
 
-    public static final String SQL_FIND_ALL_BY_USER_AND_STATUS = SQL_FIND_ALL + " WHERE user_id = ? AND status = ?";
+    public static final String SQL_FIND_ALL_BY_USER_AND_STATUS = SQL_FIND_ALL + " WHERE user_id = ? AND status = ?::booking_status";
     /**
      * Executes SQL query to get all bookings with specific status from a user
      * @param conn the db connection
@@ -195,7 +195,7 @@ public class PgBookingRepository implements BookingRepository {
     }
 
 
-    public static final String SQL_FIND_ALL_BY_EVENT_AND_STATUS = SQL_FIND_ALL + " WHERE event_id = ? AND status = ?";
+    public static final String SQL_FIND_ALL_BY_EVENT_AND_STATUS = SQL_FIND_ALL + " WHERE event_id = ? AND status = ?::booking_status";
     /**
      * Executes SQL query to get all bookings with specific status for an event
      * @param conn the db connection
@@ -250,7 +250,7 @@ public class PgBookingRepository implements BookingRepository {
 
 
     public static final String SQL_INSERT = "INSERT INTO booking (user_id, event_id, created_at, status, total_price) " +
-                                            "VALUES (?, ?, ?, ?, ?) RETURNING id";
+                                            "VALUES (?, ?, ?, ?::booking_status, ?) RETURNING id";
     /**
      * Executes SQL Query to add booking to database
      * @param conn the db connection
@@ -277,7 +277,7 @@ public class PgBookingRepository implements BookingRepository {
 
 
     public static final String SQL_UPDATE = "UPDATE booking " +
-                                            "SET user_id = ?, event_id = ?, created_at = ?, status = ?, total_price = ? " +
+                                            "SET user_id = ?, event_id = ?, created_at = ?, status = ?::booking_status, total_price = ? " +
                                             "WHERE id = ?";
     /**
      * Executes SQL Query to update booking and save it to db
@@ -303,7 +303,7 @@ public class PgBookingRepository implements BookingRepository {
 
 
     public static final String SQL_UPDATE_STATUS = "UPDATE booking " +
-                                                   "SET status = ? " +
+                                                   "SET status = ?::booking_status " +
                                                    "WHERE id = ?";
     /**
      * Executes SQL Query to update status of a booking

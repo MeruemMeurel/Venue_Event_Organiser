@@ -187,7 +187,7 @@ public class PgEventRepository implements EventRepository {
     }
 
 
-    private final static String SQL_FIND_ALL_BY_STATUS = SQL_FIND_ALL + " WHERE status = ?";
+    private final static String SQL_FIND_ALL_BY_STATUS = SQL_FIND_ALL + " WHERE status = ?::event_status";
     /**
      * Executes SQL query to get all events with a specific status
      * @param conn the db connection
@@ -212,7 +212,7 @@ public class PgEventRepository implements EventRepository {
     }
 
 
-    private final static String SQL_FIND_ALL_BY_VISIBILITY = SQL_FIND_ALL + " WHERE visibility = ?";
+    private final static String SQL_FIND_ALL_BY_VISIBILITY = SQL_FIND_ALL + " WHERE visibility = ?::visibility";
     /**
      * Executes SQL query to get all events with a specific visibility
      * @param conn the db connection
@@ -382,7 +382,7 @@ public class PgEventRepository implements EventRepository {
                                                                 "description, begin_datetime, end_datetime, " +
                                                                 "poster_filepath, capacity, status, visibility, " +
                                                                 "ticket_price, published_at) " +
-                                             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id";
+                                             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?::event_status, ?::visibility, ?, ?) RETURNING id";
     /**
      * Executes SQL query to insert a new event using JdbcUtils for nullable fields
      * @param conn the db connection
@@ -419,7 +419,7 @@ public class PgEventRepository implements EventRepository {
     private final static String SQL_UPDATE = "UPDATE event " +
                                              "SET venue_id = ?, creator_id = ?, organiser_id = ?, name = ?, description = ?, " +
                                                  "begin_datetime = ?, end_datetime = ?, poster_filepath = ?, capacity = ?, " +
-                                                 "status = ?, visibility = ?, ticket_price = ?, published_at = ? " +
+                                                 "status = ?::event_status, visibility = ?::visibility, ticket_price = ?, published_at = ? " +
                                              "WHERE id = ?";
     /**
      * Executes SQL query to update an existing event
@@ -453,7 +453,7 @@ public class PgEventRepository implements EventRepository {
 
 
     private final static String SQL_UPDATE_STATUS = "UPDATE event " +
-                                                    "SET status = ? " +
+                                                    "SET status = ?::event_status " +
                                                     "WHERE id = ?";
     /**
      * Executes SQL query to update only the status of an event
@@ -476,7 +476,7 @@ public class PgEventRepository implements EventRepository {
 
 
     private final static String SQL_UPDATE_VISIBILITY = "UPDATE event " +
-                                                        "SET visibility = ? " +
+                                                        "SET visibility = ?::visibility " +
                                                         "WHERE id = ?";
     /**
      * Updates only the visibility level of an event
@@ -498,7 +498,7 @@ public class PgEventRepository implements EventRepository {
     }
 
     private final static String SQL_UPDATE_STATUS_AND_PUBLISHED_AT =    "UPDATE event " +
-                                                                        "SET status = ?, published_at = ? " +
+                                                                        "SET status = ?::event_status, published_at = ? " +
                                                                         "WHERE id = ?";
 
     @Override

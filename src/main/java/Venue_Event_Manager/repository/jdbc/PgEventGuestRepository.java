@@ -124,7 +124,7 @@ public class PgEventGuestRepository implements EventGuestRepository {
     }
 
 
-    private final static String SQL_FIND_ALL_BY_STATUS = SQL_FIND_ALL + " WHERE status = ?";
+    private final static String SQL_FIND_ALL_BY_STATUS = SQL_FIND_ALL + " WHERE status = ?::guest_status";
     /**
      * Executes SQL query to get all guests with a specific status
      * @param conn the db connection
@@ -149,7 +149,7 @@ public class PgEventGuestRepository implements EventGuestRepository {
     }
 
 
-    private final static String SQL_FIND_ALL_BY_EVENT_AND_STATUS = SQL_FIND_ALL + " WHERE event_id = ? AND status = ?";
+    private final static String SQL_FIND_ALL_BY_EVENT_AND_STATUS = SQL_FIND_ALL + " WHERE event_id = ? AND status = ?::guest_status";
     /**
      * Executes SQL query to get guests for an event filtered by status
      * @param conn the db connection
@@ -178,7 +178,7 @@ public class PgEventGuestRepository implements EventGuestRepository {
 
     private final static String SQL_INSERT = "INSERT INTO event_guest (event_id, firstname, lastname, birthday, " +
                                                                       "status, note) " +
-                                             "VALUES (?, ?, ?, ?, ?, ?) RETURNING id";
+                                             "VALUES (?, ?, ?, ?, ?::guest_status, ?) RETURNING id";
     /**
      * Executes SQL query to insert a new event guest
      * @param conn the db connection
@@ -206,7 +206,7 @@ public class PgEventGuestRepository implements EventGuestRepository {
 
 
     private final static String SQL_UPDATE = "UPDATE event_guest " +
-                                             "SET event_id = ?, firstname = ?, lastname = ?, birthday = ?, status = ?, " +
+                                             "SET event_id = ?, firstname = ?, lastname = ?, birthday = ?, status = ?::guest_status, " +
                                                  "note = ? " +
                                              "WHERE id = ?";
     /**
@@ -234,7 +234,7 @@ public class PgEventGuestRepository implements EventGuestRepository {
 
 
     private final static String SQL_UPDATE_STATUS = "UPDATE event_guest " +
-                                                    "SET status = ? " +
+                                                    "SET status = ?::guest_status " +
                                                     "WHERE id = ?";
     /**
      * Executes SQL query to update only the status of an event guest
