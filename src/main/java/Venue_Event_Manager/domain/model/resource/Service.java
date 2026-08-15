@@ -13,12 +13,19 @@ public class Service extends Resource {
         super();
     }
 
-    /** Master constructor for full initialization. */
+    /** Master constructor for full initialization.
+     *
+     * @param id persistent identifier
+     * @param name service name
+     * @param description service description */
     public Service(long id, String name, String description){
         super(id, null, name, description);
     }
 
-    /** Constructor for unsaved service (ID defaults to 0). */
+    /** Creates an unsaved service.
+     *
+     * @param name service name
+     * @param description service description */
     public Service(String name, String description){
         super(null, name, description);
     }

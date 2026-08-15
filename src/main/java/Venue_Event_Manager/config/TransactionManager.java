@@ -102,7 +102,7 @@ public class TransactionManager {
 
     /**
      * Executes a rollback avoiding problems due to new possible exceptions covering original problem
-     * @param conn
+     * @param conn connection to roll back
      */
     private static void safeRollback(Connection conn){
         try {
@@ -113,7 +113,7 @@ public class TransactionManager {
 
     /**
      * Sets autoCommit option avoiding problems due to new possible exceptions covering original problem
-     * @param conn
+     * @param conn connection to restore
      */
     private static void safeSetAutoCommit(Connection conn, boolean value){
         try {
@@ -123,8 +123,8 @@ public class TransactionManager {
 
     /**
      * Sets read only in connection to value
-     * @param conn
-     * @param value
+     * @param conn connection to configure
+     * @param value read-only flag
      */
     private static void safeSetReadOnly(Connection conn, boolean value){
         try{

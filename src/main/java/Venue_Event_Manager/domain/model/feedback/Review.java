@@ -22,7 +22,15 @@ public class Review {
     /** Initializes an empty review with default and empty values. */
     public Review(){ this(0 ,0, 0, 0, "", null); }
 
-    /** Master constructor for full initialization. */
+    /** Master constructor for full initialization.
+     *
+     * @param id persistent identifier
+     * @param user_id reviewer identifier
+     * @param event_id reviewed event identifier
+     *
+     * @param rating numeric rating
+     * @param comment optional comment
+     * @param created_at creation timestamp */
     public Review(long id, long user_id, long event_id, int rating, String comment, LocalDateTime created_at){
         this.id = id;
         this.user_id = user_id;
@@ -32,7 +40,14 @@ public class Review {
         this.created_at = created_at;
     }
 
-    /** Constructor for unsaved review (ID defaults to 0). */
+    /** Creates an unsaved review.
+     *
+     * @param user_id reviewer identifier
+     * @param event_id reviewed event identifier
+     * @param rating numeric rating
+     *
+     * @param comment optional comment
+     * @param created_at creation timestamp */
     public Review(long user_id, long event_id, int rating, String comment, LocalDateTime created_at){
         this(0 ,user_id, event_id, rating, comment, created_at);
     }

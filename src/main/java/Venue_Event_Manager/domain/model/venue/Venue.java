@@ -19,7 +19,13 @@ public class Venue {
     /** Initializes an empty venue with default values. */
     public Venue(){ this(0,"","",null); }
 
-    /** Master constructor for full initialization. */
+    /** Master constructor for full initialization.
+     *
+     * @param id persistent identifier
+     * @param name venue name
+     * @param description venue description
+     *
+     * @param address venue address */
     public Venue(long id, String name, String description, Address address){
         this.id = id;
         this.name = name;
@@ -27,7 +33,11 @@ public class Venue {
         this.address = address;
     }
 
-    /** Constructor for unsaved venues (ID defaults to 0). */
+    /** Creates an unsaved venue.
+     *
+     * @param name venue name
+     * @param description venue description
+     * @param address venue address */
     public Venue(String name, String description, Address address){
         this(0, name, description, address);
     }

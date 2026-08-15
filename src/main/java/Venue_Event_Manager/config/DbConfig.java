@@ -99,7 +99,7 @@ public final class DbConfig {
 
     /**
      * Parse port number from string, if null defaults to 5432
-     * @param portStr
+     * @param portStr configured port, or {@code null} to use the default
      * @return port number parsed from string
      * @throws IllegalStateException if port number is not valid
      */
@@ -125,8 +125,8 @@ public final class DbConfig {
 
     /**
      * Checks if required label is blank
-     * @param string
-     * @param label
+     * @param string value to validate
+     * @param label configuration label used in error messages
      * @throws IllegalStateException
      * @return string trimmed without spaces
      */

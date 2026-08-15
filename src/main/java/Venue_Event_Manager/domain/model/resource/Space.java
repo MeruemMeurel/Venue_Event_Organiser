@@ -14,12 +14,22 @@ public class Space extends Resource {
         super();
     }
 
-    /** Master constructor for full initialization. */
+    /** Master constructor for full initialization.
+     *
+     * @param id persistent identifier
+     * @param venue_id hosting venue identifier
+     *
+     * @param name space name
+     * @param description space description */
     public Space(long id, long venue_id, String name, String description){
         super(id, venue_id, name, description);
     }
 
-    /** Constructor for unsaved space (ID defaults to 0). */
+    /** Creates an unsaved space.
+     *
+     * @param venue_id hosting venue identifier
+     * @param name space name
+     * @param description space description */
     public Space(long venue_id, String name, String description){
         super(venue_id, name, description);
     }

@@ -24,7 +24,17 @@ public class Report {
     /** Initializes an empty report with default and empty values. */
     public Report() { this(0, 0, 0, null, null, "", null); }
 
-    /** Master constructor for full initialization. */
+    /** Master constructor for full initialization.
+     *
+     * @param id persistent identifier
+     * @param user_id reporting user identifier
+     * @param admin_id assigned administrator
+     *
+     * @param event_id optional reported event
+     * @param severity report severity
+     * @param comment report description
+     *
+     * @param created_at creation timestamp */
     public Report(long id, long user_id, long admin_id, Long event_id, ReportSeverity severity,
                   String comment, LocalDateTime created_at) {
         this.id = id;
@@ -36,7 +46,16 @@ public class Report {
         this.created_at = created_at;
     }
 
-    /** Constructor for unsaved report (ID defaults to 0). */
+    /** Creates an unsaved report.
+     *
+     * @param user_id reporting user identifier
+     * @param admin_id assigned administrator
+     *
+     * @param event_id optional reported event
+     * @param severity report severity
+     * @param comment report description
+     *
+     * @param created_at creation timestamp */
     public Report(long user_id, long admin_id, Long event_id, ReportSeverity severity, String comment,
                   LocalDateTime created_at) {
         this(0, user_id, admin_id, event_id, severity, comment, created_at);
