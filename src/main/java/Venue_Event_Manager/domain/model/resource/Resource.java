@@ -20,7 +20,13 @@ public abstract class Resource {
         this(0, null, "", "");
     }
 
-    /** Master constructor for full initialization. */
+    /**
+     * Master constructor for full initialization.
+     * @param id persistent identifier
+     * @param venue_id associated venue identifier, or {@code null}
+     * @param name resource name
+     * @param description resource description
+     */
     protected Resource(long id, Long venue_id, String name, String description) {
         this.id = id;
         this.venue_id = venue_id;
@@ -28,22 +34,31 @@ public abstract class Resource {
         this.description = description;
     }
 
-    /** Constructor for unsaved resource (ID defaults to 0). */
+    /**
+     * Constructor for an unsaved resource whose identifier defaults to zero.
+     * @param venue_id associated venue identifier, or {@code null}
+     * @param name resource name
+     * @param description resource description
+     */
     public Resource(Long venue_id, String name, String description){
         this(0, venue_id, name, description);
     }
 
 
     //getters
+    /** @return persistent identifier, or zero for an unsaved resource */
     public long getId() {
         return id;
     }
+    /** @return associated venue identifier, or {@code null} */
     public Long getVenueId() {
         return venue_id;
     }
+    /** @return resource name */
     public String getName() {
         return name;
     }
+    /** @return resource description */
     public String getDescription() {
         return description;
     }

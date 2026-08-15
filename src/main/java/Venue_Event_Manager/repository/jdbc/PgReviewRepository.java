@@ -27,7 +27,7 @@ public class PgReviewRepository implements ReviewRepository {
     /**
      * Executes query to database to get all reviews
      * @param conn The database connection used
-     * @return List<Review> object
+     * @return {@code List<Review>} object
      */
     @Override
     public List<Review> findAll(Connection conn) {
@@ -51,7 +51,7 @@ public class PgReviewRepository implements ReviewRepository {
      * Executes query to database to get review from its id
      * @param conn The database connection used
      * @param reviewId the id of the review
-     * @return Optional<Review> object. Empty if not found
+     * @return {@code Optional<Review>} object. Empty if not found
      */
     @Override
     public Optional<Review> findById(Connection conn, long reviewId) {
@@ -73,7 +73,7 @@ public class PgReviewRepository implements ReviewRepository {
      * Executes query to database to get all reviews from a specific user
      * @param conn The database connection used
      * @param userId the id of the user
-     * @return List<Review> object
+     * @return {@code List<Review>} object
      */
     @Override
     public List<Review> findAllByUserId(Connection conn, long userId) {
@@ -98,7 +98,7 @@ public class PgReviewRepository implements ReviewRepository {
      * Executes query to database to get all reviews for a specific event
      * @param conn The database connection used
      * @param eventId the id of the event
-     * @return List<Review> object
+     * @return {@code List<Review>} object
      */
     @Override
     public List<Review> findAllByEventId(Connection conn, long eventId) {
@@ -123,7 +123,7 @@ public class PgReviewRepository implements ReviewRepository {
      * Executes query to database to get all reviews with a specific rating
      * @param conn The database connection used
      * @param rating the rating score
-     * @return List<Review> object
+     * @return {@code List<Review>} object
      */
     @Override
     public List<Review> findAllByRating(Connection conn, int rating) {
@@ -149,7 +149,7 @@ public class PgReviewRepository implements ReviewRepository {
      * @param conn The database connection used
      * @param userId the user id
      * @param eventId the event id
-     * @return Optional<Review> object
+     * @return {@code Optional<Review>} object
      */
     @Override
     public Optional<Review> findByUserIdAndEventId(Connection conn, long userId, long eventId) {

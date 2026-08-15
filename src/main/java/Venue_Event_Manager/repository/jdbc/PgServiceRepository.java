@@ -27,7 +27,7 @@ public class PgServiceRepository implements ServiceRepository {
     /**
      * Executes query to database to get all Services
      * @param conn The database connection used
-     * @return List<Service> object
+     * @return {@code List<Service>} object
      */
     @Override
     public List<Service> findAll(Connection conn) {
@@ -50,7 +50,7 @@ public class PgServiceRepository implements ServiceRepository {
      * Executes query to database to get Service from its id
      * @param conn The database connection used
      * @param serviceId the id of the service
-     * @return Optional<Service> object. Empty if not found
+     * @return {@code Optional<Service>} object. Empty if not found
      */
     @Override
     public Optional<Service> findById(Connection conn, long serviceId) {
@@ -70,7 +70,7 @@ public class PgServiceRepository implements ServiceRepository {
      * Searches in database a name like the parameter name
      * @param conn the db connection
      * @param name the name to search
-     * @return List<Service> results of query
+     * @return {@code List<Service>} results of query
      * @throws DaoException daoException
      */
     @Override
@@ -167,7 +167,7 @@ public class PgServiceRepository implements ServiceRepository {
      * get all the available service for a given event
      * @param conn the database connection
      * @param eventId the id of the event to search for his services
-     * @return
+     * @return services not already assigned to the event
      */
     @Override
     public List<Service> findAvailableServicesForEvent(Connection conn, long eventId) {

@@ -36,7 +36,21 @@ public class Event {
                 "", 0, null, null, null, null);
     }
 
-    /** Master constructor for full initialization. */
+    /** Master constructor for full initialization.
+     * @param id persistent identifier
+     * @param venue_id hosting venue identifier
+     * @param creator_id administrator who created the event
+     * @param organiser_id optional organiser identifier
+     * @param name event name
+     * @param description event description
+     * @param begin_datetime event start
+     * @param end_datetime event end
+     * @param poster_filepath optional poster path
+     * @param capacity maximum attendance
+     * @param status event status, defaulting to {@link EventStatus#DRAFT} when {@code null}
+     * @param visibility event visibility
+     * @param ticket_price optional ticket price
+     * @param published_at optional publication timestamp */
     public Event(long id, long venue_id, long creator_id, Long organiser_id, String name, String description,
                  LocalDateTime begin_datetime, LocalDateTime end_datetime, String poster_filepath, int capacity,
                  EventStatus status, EventVisibility visibility, BigDecimal ticket_price, LocalDateTime published_at) {
@@ -56,7 +70,20 @@ public class Event {
         this.published_at = published_at;
     }
 
-    /** Constructor for unsaved event (ID defaults to 0). */
+    /** Constructor for an unsaved event whose identifier defaults to zero.
+     * @param venue_id hosting venue identifier
+     * @param creator_id administrator who created the event
+     * @param organiser_id optional organiser identifier
+     * @param name event name
+     * @param description event description
+     * @param begin_datetime event start
+     * @param end_datetime event end
+     * @param poster_filepath optional poster path
+     * @param capacity maximum attendance
+     * @param status event status
+     * @param visibility event visibility
+     * @param ticket_price optional ticket price
+     * @param published_at optional publication timestamp */
     public Event(long venue_id, long creator_id, Long organiser_id, String name, String description,
                  LocalDateTime begin_datetime, LocalDateTime end_datetime, String poster_filepath, int capacity,
                  EventStatus status, EventVisibility visibility, BigDecimal ticket_price, LocalDateTime published_at) {

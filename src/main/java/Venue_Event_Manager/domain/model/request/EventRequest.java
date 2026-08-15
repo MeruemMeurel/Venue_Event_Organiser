@@ -34,7 +34,19 @@ public class EventRequest {
                 null, null, null, null);
     }
 
-    /** Master constructor for full initialization. */
+    /** Master constructor for full initialization.
+     * @param id persistent identifier
+     * @param requester_id requesting user identifier
+     * @param handler_id optional administrator handling the request
+     * @param venue_id requested venue identifier
+     * @param name proposed event name
+     * @param description request description
+     * @param begin_datetime requested start
+     * @param end_datetime requested end
+     * @param status request status, defaulting to {@link EventRequestStatus#PENDING} when {@code null}
+     * @param created_at creation timestamp
+     * @param closed_at optional closure timestamp
+     * @param quote optional quoted price */
     public EventRequest(long id, long requester_id, Long handler_id, long venue_id, String name, String description,
                         LocalDateTime begin_datetime, LocalDateTime end_datetime, EventRequestStatus status,
                         LocalDateTime created_at, LocalDateTime closed_at, BigDecimal quote){
@@ -52,7 +64,18 @@ public class EventRequest {
         this.quote = quote;
     }
 
-    /** Constructor for unsaved ticket (ID defaults to 0). */
+    /** Constructor for an unsaved event request whose identifier defaults to zero.
+     * @param requester_id requesting user identifier
+     * @param handler_id optional administrator handling the request
+     * @param venue_id requested venue identifier
+     * @param name proposed event name
+     * @param description request description
+     * @param begin_datetime requested start
+     * @param end_datetime requested end
+     * @param status request status
+     * @param created_at creation timestamp
+     * @param closed_at optional closure timestamp
+     * @param quote optional quoted price */
     public EventRequest(long requester_id, Long handler_id, long venue_id, String name, String description,
                         LocalDateTime begin_datetime, LocalDateTime end_datetime, EventRequestStatus status,
                         LocalDateTime created_at, LocalDateTime closed_at, BigDecimal quote){

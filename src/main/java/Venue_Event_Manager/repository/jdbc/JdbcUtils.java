@@ -19,7 +19,7 @@ public class JdbcUtils {
      * @param ps Prepared SQL Statement
      * @param index index of the variable in sql statement
      * @param value value to set
-     * @throws SQLException
+     * @throws SQLException if the parameter cannot be bound
      */
     public static void setNullableString(PreparedStatement ps, int index, String value) throws SQLException {
         if (value == null) ps.setNull(index, Types.VARCHAR);
@@ -31,7 +31,7 @@ public class JdbcUtils {
      * @param ps Prepared SQL Statement
      * @param index index of the variable in sql statement
      * @param value value to set
-     * @throws SQLException
+     * @throws SQLException if the parameter cannot be bound
      */
     public static void setNullableInteger(PreparedStatement ps, int index, Integer value) throws SQLException {
         if(value == null) ps.setNull(index, Types.INTEGER);
@@ -43,7 +43,7 @@ public class JdbcUtils {
      * @param ps Prepared SQL Statement
      * @param index index of the variable in sql statement
      * @param value value to set
-     * @throws SQLException
+     * @throws SQLException if the parameter cannot be bound
      */
     public static void setNullableLong(PreparedStatement ps, int index, Long value) throws SQLException {
         if(value == null) ps.setNull(index, Types.BIGINT);
@@ -55,7 +55,7 @@ public class JdbcUtils {
      * @param ps Prepared SQL Statement
      * @param index index of the variable in sql statement
      * @param value value to set
-     * @throws SQLException
+     * @throws SQLException if the parameter cannot be bound
      */
     public static void setNullableDouble(PreparedStatement ps, int index, Double value) throws SQLException {
         if(value == null) ps.setNull(index, Types.DOUBLE);
@@ -67,7 +67,7 @@ public class JdbcUtils {
      * @param ps Prepared SQL Statement
      * @param index index of the variable in sql statement
      * @param value value to set
-     * @throws SQLException
+     * @throws SQLException if the parameter cannot be bound
      */
     public static void setNullableBigDecimal(PreparedStatement ps, int index, BigDecimal value) throws SQLException {
         if(value == null) ps.setNull(index, Types.NUMERIC);
@@ -79,7 +79,7 @@ public class JdbcUtils {
      * @param ps Prepared SQL Statement
      * @param index index of the variable in sql statement
      * @param value value to set
-     * @throws SQLException
+     * @throws SQLException if the parameter cannot be bound
      */
     public static void setNullableLocalDate(PreparedStatement ps, int index, LocalDate value) throws SQLException {
         if(value == null) ps.setNull(index, Types.DATE);
@@ -91,7 +91,7 @@ public class JdbcUtils {
      * @param ps Prepared SQL Statement
      * @param index index of the variable in sql statement
      * @param value value to set
-     * @throws SQLException
+     * @throws SQLException if the parameter cannot be bound
      */
     public static void setNullableLocalDateTime(PreparedStatement ps, int index, LocalDateTime value) throws SQLException {
         if(value == null) ps.setNull(index, Types.TIMESTAMP);
@@ -103,7 +103,7 @@ public class JdbcUtils {
      * @param ps Prepared SQL Statement
      * @param index index of the variable in sql statement
      * @param value value to set
-     * @throws SQLException
+     * @throws SQLException if the parameter cannot be bound
      */
     public static void setNullableBoolean(PreparedStatement ps, int index, Boolean value) throws SQLException {
         if(value == null) ps.setNull(index, Types.BOOLEAN);
@@ -115,7 +115,7 @@ public class JdbcUtils {
      * @param updated rows updated
      * @param expected rows expected
      * @param operation operation executed
-     * @throws DaoException
+     * @throws DaoException if the updated row count differs from {@code expected}
      */
     public static void requireUpdatedExactly(int updated, int expected, String operation){
         if(updated != expected){
@@ -129,7 +129,7 @@ public class JdbcUtils {
      * @param updated rows updated
      * @param min rows expected
      * @param operation operation executed
-     * @throws DaoException
+     * @throws DaoException if fewer than {@code min} rows were updated
      */
     public static void requiredUpdatedMin(int updated, int min, String operation){
         if(updated < min){

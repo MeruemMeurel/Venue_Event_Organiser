@@ -2,7 +2,6 @@ package Venue_Event_Manager.config;
 
 import com.zaxxer.hikari.HikariDataSource;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.function.Function;
@@ -20,7 +19,7 @@ public class TransactionManager {
     /**
      * Singleton implementation
      * @return instance of transactionManager
-     * @throws IOException
+     * @throws IllegalStateException if the data source cannot be initialized
      */
     public static TransactionManager getInstance() {
         if (instance == null) {
@@ -37,8 +36,8 @@ public class TransactionManager {
      * Execute-around design pattern used for executing transactions
      * @param work lambda function with Connection as input and T as output
      * @return result of query
-     * @throws TransactionException
-     * @param <T>
+     * @throws TransactionException if the connection, transaction, commit, or rollback fails
+     * @param <T> result type returned by the work
      */
     public <T> T inTransaction(Function<Connection,T> work){
         try (Connection conn = dataSource.getConnection()){
@@ -68,8 +67,8 @@ public class TransactionManager {
     /**
      * Execute-around design pattern used to handle read only transactions
      * @param work lambda function with Connection as input and T as output
-     * @return T object
-     * @param <T>
+     * @return result produced by the work
+     * @param <T> result type returned by the work
      */
     public <T> T inReadOnly(Function<Connection,T> work){
 
@@ -103,7 +102,7 @@ public class TransactionManager {
 
     /**
      * Executes a rollback avoiding problems due to new possible exceptions covering original problem
-     * @param conn
+     * @param conn connection to roll back
      */
     private static void safeRollback(Connection conn){
         try {
@@ -114,7 +113,7 @@ public class TransactionManager {
 
     /**
      * Sets autoCommit option avoiding problems due to new possible exceptions covering original problem
-     * @param conn
+     * @param conn connection to restore
      */
     private static void safeSetAutoCommit(Connection conn, boolean value){
         try {
@@ -124,8 +123,8 @@ public class TransactionManager {
 
     /**
      * Sets read only in connection to value
-     * @param conn
-     * @param value
+     * @param conn connection to configure
+     * @param value read-only flag
      */
     private static void safeSetReadOnly(Connection conn, boolean value){
         try{

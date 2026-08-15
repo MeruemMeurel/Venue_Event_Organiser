@@ -28,7 +28,20 @@ public class User {
         this(0, "", "", "", null, "", "", null, null);
     }
 
-    /** Master constructor for full initialization */
+    /** Master constructor for full initialization.
+     *
+     * @param id persistent identifier
+     * @param username unique username
+     * @param firstname first name
+     *
+     * @param lastname last name
+     * @param birthday birth date
+     * @param email unique email address
+     *
+     * @param phone optional phone number
+     * @param is_admin whether the user is an administrator
+     *
+     * @param account_status account status */
     public User(long id, String username, String firstname, String lastname, LocalDate birthday, String email,
                 String phone, Boolean is_admin, AccountStatus account_status) {
         this.id = id;
@@ -42,7 +55,18 @@ public class User {
         this.account_status = account_status != null ? account_status : ACTIVE;
     }
 
-    /** Constructor for unsaved user (ID defaults to 0). */
+    /** Creates an unsaved user.
+     *
+     * @param username unique username
+     * @param firstname first name
+     * @param lastname last name
+     *
+     * @param birthday birth date
+     * @param email unique email address
+     * @param phone optional phone number
+     *
+     * @param is_admin whether the user is an administrator
+     * @param account_status account status */
     public User(String username, String firstname, String lastname, LocalDate birthday, String email, String phone,
                 boolean is_admin, AccountStatus account_status) {
         this(0, username, firstname, lastname, birthday, email, phone, is_admin, account_status);
