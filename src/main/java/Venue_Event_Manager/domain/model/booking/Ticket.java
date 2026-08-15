@@ -21,7 +21,12 @@ public class Ticket {
     /** Initializes an empty ticket with default and empty values. */
     public Ticket(){ this(0, 0, "", "", null); }
 
-    /** Master constructor for full initialization. */
+    /** Master constructor for full initialization.
+     * @param id persistent identifier
+     * @param booking_id associated booking identifier
+     * @param firstname attendee first name
+     * @param lastname attendee last name
+     * @param starts_at ticket validity start */
     public Ticket(long id, long booking_id, String firstname, String lastname, LocalDateTime starts_at){
         this.id = id;
         this.booking_id = booking_id;
@@ -30,12 +35,18 @@ public class Ticket {
         this.starts_at = starts_at;
     }
 
-    /** Constructor for unsaved ticket (ID defaults to 0). */
+    /** Constructor for an unsaved ticket whose identifier defaults to zero.
+     * @param booking_id associated booking identifier
+     * @param firstname attendee first name
+     * @param lastname attendee last name
+     * @param startsAt ticket validity start */
     public Ticket(long booking_id, String firstname, String lastname, LocalDateTime startsAt){
         this(0, booking_id, firstname, lastname, startsAt);
     }
 
-    /** Constructor for ticket not yet booked.     */
+    /** Constructor for a ticket not yet associated with a booking.
+     * @param firstname attendee first name
+     * @param lastname attendee last name */
     public Ticket(String firstname, String lastname) {
         this.id=0;
         this.booking_id=0;
@@ -45,27 +56,47 @@ public class Ticket {
     }
 
     //getters and withers
+    /** @return persistent identifier, or zero when unsaved */
     public long getId(){ return id; }
+    /** Returns a copy with a different identifier.
+     * @param newId replacement identifier
+     * @return a copy with the supplied identifier */
     public Ticket withId(long newId){
         return new Ticket(newId, booking_id, firstname, lastname, starts_at);
     }
 
+    /** @return associated booking identifier */
     public long getBookingId(){ return booking_id; }
+    /** Returns a copy associated with a different booking.
+     * @param newBookingId replacement booking identifier
+     * @return a copy associated with the supplied booking */
     public Ticket withBookingId(long newBookingId){
         return new Ticket(id, newBookingId, firstname, lastname, starts_at);
     }
 
+    /** @return attendee first name */
     public String getFirstname(){ return firstname; }
+    /** Returns a copy with a different first name.
+     * @param newFirstname replacement first name
+     * @return a copy with the supplied first name */
     public Ticket withFirstname(String newFirstname){
         return new Ticket(id, booking_id, newFirstname, lastname, starts_at);
     }
 
+    /** @return attendee last name */
     public String getLastname(){ return lastname; }
+    /** Returns a copy with a different last name.
+     * @param newLastname replacement last name
+     * @return a copy with the supplied last name */
     public Ticket withLastname(String newLastname){
         return new Ticket(id, booking_id, firstname, newLastname, starts_at);
     }
 
+    /** @return ticket validity start */
     public LocalDateTime getStartsAt(){ return starts_at; }
+    /** Returns a copy with a different validity start.
+     * @param newStartsAt replacement validity start
+     * @return a copy with the supplied validity start */
     public Ticket withStartsAt(LocalDateTime newStartsAt){
         return new Ticket(id, booking_id, firstname, lastname, newStartsAt);
     }
