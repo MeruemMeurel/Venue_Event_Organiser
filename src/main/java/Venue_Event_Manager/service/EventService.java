@@ -192,7 +192,7 @@ public class EventService {
      */
     public long createEvent(Event event){
         return transactionManager.inTransaction(conn->{
-            validate(event);
+            validate(conn,event);
             Event draftEvent = event
                     .withStatus(EventStatus.DRAFT)
                     .withPublishedAt(null);
@@ -216,7 +216,7 @@ public class EventService {
                     .withStatus(storedEvent.getStatus())
                     .withPublishedAt(storedEvent.getPublishedAt());
 
-            validate(eventToUpdate);
+            validate(conn,eventToUpdate);
             eventRepository.update(conn,eventToUpdate);
             return null;
         });
@@ -314,7 +314,7 @@ public class EventService {
                     .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId));
             if (old_event.getEndDatetime().isBefore(LocalDateTime.now())) throw new ForbiddenException("Can't reschedule finished event");
             Event new_event = old_event.withBeginDateTime(new_begin).withEndDateTime(new_end);
-            validate(new_event);
+            validate(conn,new_event);
             eventRepository.update(conn,new_event);
             return null;
         });
@@ -337,7 +337,7 @@ public class EventService {
 
             Event new_event = event.withCapacity(capacity);
 
-            validate(new_event);
+            validate(conn,new_event);
             eventRepository.update(conn,new_event);
             return null;
         });
@@ -357,7 +357,7 @@ public class EventService {
             Event new_event = eventRepository.findByIdForUpdate(conn,eventId)
                     .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId))
                     .withOrganiserId(organiserId);
-            validate(new_event);
+            validate(conn,new_event);
             eventRepository.update(conn,new_event);
             return null;
         });
@@ -373,7 +373,7 @@ public class EventService {
             Event new_event = eventRepository.findByIdForUpdate(conn,eventId)
                     .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId))
                     .withOrganiserId(null);
-            validate(new_event);
+            validate(conn,new_event);
             eventRepository.update(conn,new_event);
             return null;
         });
@@ -391,7 +391,7 @@ public class EventService {
             Event new_event = eventRepository.findByIdForUpdate(conn,eventId)
                     .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId))
                     .withPosterFilepath(filepath);
-            validate(new_event);
+            validate(conn,new_event);
             eventRepository.update(conn,new_event);
             return null;
         });
@@ -409,7 +409,7 @@ public class EventService {
             Event new_event = eventRepository.findByIdForUpdate(conn,eventId)
                     .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId))
                     .withTicketPrice(ticketPrice);
-            validate(new_event);
+            validate(conn,new_event);
             eventRepository.update(conn,new_event);
             return null;
         });
@@ -423,19 +423,20 @@ public class EventService {
     //Validation
     /**
      * Validates all event fields before insert or update.
+     * @param conn active transaction connection used for relational checks
      * @param event the event to validate
      * @throws ValidationException if one or more fields are not valid
      */
-    private void validate(Event event){
+    private void validate(Connection conn, Event event){
         if(event == null) throw new ValidationException("Event cannot be null");
         validateName(event.getName());
         validateBeginAndEndDate(event.getBeginDatetime(), event.getEndDatetime());
         if(event.getCapacity() <= 0) throw new ValidationException("Capacity must be greater than 0");
         if(event.getTicketPrice() != null && event.getTicketPrice().compareTo(BigDecimal.ZERO) < 0)
             throw new ValidationException("Ticket price cannot be negative");
-        validateVenueId(event.getVenueId());
-        validateCreatorId(event.getCreatorId());
-        if(event.getOrganiserId() != null) validateOrganiserId(event.getOrganiserId());
+        validateVenueId(conn,event.getVenueId());
+        validateCreatorId(conn,event.getCreatorId());
+        if(event.getOrganiserId() != null) validateOrganiserId(conn,event.getOrganiserId());
     }
 
     /**
@@ -504,44 +505,26 @@ public class EventService {
 
     /**
      * Validates if a venue exists.
+     * @param conn active transaction connection
      * @param venueId the id of the venue to validate
      * @throws ValidationException if no venue is found with such id
      */
-    private void validateVenueId(long venueId){
+    private void validateVenueId(Connection conn, long venueId){
         if(venueId <= 0) throw new ValidationException("Venue id is not valid");
-
-        transactionManager.inReadOnly(conn-> {
-            venueRepository.findById(conn,venueId)
-                    .orElseThrow(() -> new ValidationException("No venue found with id "+venueId));
-            return null;
-        });
+        venueRepository.findById(conn,venueId)
+                .orElseThrow(() -> new ValidationException("No venue found with id "+venueId));
     }
 
     /**
      * Validates if a creator user exists.
+     * @param conn active transaction connection
      * @param creatorId the id of the creator to validate
      * @throws ValidationException if no user is found with such id
      */
-    private void validateCreatorId(long creatorId){
+    private void validateCreatorId(Connection conn, long creatorId){
         if(creatorId <= 0) throw new ValidationException("Creator id is not valid");
-
-        transactionManager.inReadOnly(conn-> {
-            userRepository.findById(conn,creatorId)
-                    .orElseThrow(() -> new ValidationException("No user found with id "+creatorId));
-            return null;
-        });
-    }
-
-    /**
-     * Validates if an organiser exists and is not an admin.
-     * @param organiserId the id of the organiser to validate
-     * @throws ValidationException if organiser id is not valid
-     */
-    private void validateOrganiserId(long organiserId){
-        transactionManager.inReadOnly(conn-> {
-            validateOrganiserId(conn,organiserId);
-            return null;
-        });
+        userRepository.findById(conn,creatorId)
+                .orElseThrow(() -> new ValidationException("No user found with id "+creatorId));
     }
 
     /**
