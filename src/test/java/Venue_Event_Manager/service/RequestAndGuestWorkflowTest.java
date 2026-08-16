@@ -125,6 +125,34 @@ class RequestAndGuestWorkflowTest {
         verify(guests, never()).insert(any(), any());
     }
 
+    @Test
+    void guestManagementShouldPreserveEventAndStatusAndUseLockedTransitions() {
+        EventGuestRepository guests = mock(EventGuestRepository.class);
+        EventRepository events = mock(EventRepository.class);
+        EventGuestService service = new EventGuestService(guests, events);
+        EventGuest stored = TestDataFactory.createDefaultGuest("Mario", "Rossi", 3).withId(7);
+        when(guests.findByIdForUpdate(any(Connection.class), eq(7L))).thenReturn(Optional.of(stored));
+
+        service.updateGuest(stored.withEventId(99).withStatus(EventGuestStatus.CONFIRMED).withNote("Updated"));
+        ArgumentCaptor<EventGuest> captor = ArgumentCaptor.forClass(EventGuest.class);
+        verify(guests).update(any(Connection.class), captor.capture());
+        assertEquals(3L, captor.getValue().getEventId());
+        assertEquals(EventGuestStatus.INVITED, captor.getValue().getStatus());
+
+        service.confirmInvitation(7);
+        verify(guests).updateEventGuestStatus(any(Connection.class), eq(7L), eq(EventGuestStatus.CONFIRMED));
+
+        reset(guests);
+        when(guests.findByIdForUpdate(any(Connection.class), eq(7L)))
+                .thenReturn(Optional.of(stored.withStatus(EventGuestStatus.CONFIRMED)));
+        service.cancelInvitation(7);
+        verify(guests).updateEventGuestStatus(any(Connection.class), eq(7L), eq(EventGuestStatus.CANCELLED));
+
+        when(guests.findById(any(Connection.class), eq(7L))).thenReturn(Optional.of(stored));
+        service.removeGuest(7);
+        verify(guests).deleteById(any(Connection.class), eq(7L));
+    }
+
     private void assertUpdatedRequest(EventRequestStatus status, BigDecimal quote) {
         ArgumentCaptor<EventRequest> captor = ArgumentCaptor.forClass(EventRequest.class);
         verify(requests).update(any(Connection.class), captor.capture());

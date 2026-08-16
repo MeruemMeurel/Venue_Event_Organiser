@@ -105,6 +105,36 @@ class EventServiceWorkflowTest {
         verify(events, never()).update(any(), any());
     }
 
+    @Test
+    void eventManagementOperationsShouldPreserveAndPersistRequestedChanges() {
+        Event draft = validEvent(EventStatus.DRAFT);
+        Event published = validEvent(EventStatus.PUBLISHED);
+        when(events.findByIdForUpdate(any(Connection.class), eq(6L))).thenReturn(Optional.of(draft));
+        service.confirmEvent(6);
+        verify(events).updateStatus(any(Connection.class), eq(6L), eq(EventStatus.CONFIRMED));
+
+        when(events.findById(any(Connection.class), eq(6L))).thenReturn(Optional.of(published));
+        LocalDateTime newBegin = LocalDateTime.now().plusDays(15);
+        service.rescheduleEvent(6, newBegin, newBegin.plusHours(4));
+        service.changeCapacity(6, 80);
+        service.updatePoster(6, "poster/new.png");
+        service.setTicketPrice(6, new BigDecimal("25.00"));
+        service.removeOrganiser(6);
+        verify(events, times(5)).update(any(Connection.class), any(Event.class));
+
+        when(users.findById(any(Connection.class), eq(4L)))
+                .thenReturn(Optional.of(TestDataFactory.createDefaultUser("organiser").withId(4)));
+        service.assignOrganiser(6, 4);
+        ArgumentCaptor<Event> captor = ArgumentCaptor.forClass(Event.class);
+        verify(events, times(6)).update(any(Connection.class), captor.capture());
+        assertEquals(4L, captor.getValue().getOrganiserId());
+
+        service.changeVisibility(6, EventVisibility.PRIVATE_GUEST_LIST);
+        service.deleteEvent(6);
+        verify(events).updateVisibility(any(Connection.class), eq(6L), eq(EventVisibility.PRIVATE_GUEST_LIST));
+        verify(events).deleteById(any(Connection.class), eq(6L));
+    }
+
     private Event validEvent(EventStatus status) {
         LocalDateTime begin = LocalDateTime.now().plusDays(8);
         return new Event(6, 2, 1, null, "Event", "Description", begin, begin.plusHours(3), null,

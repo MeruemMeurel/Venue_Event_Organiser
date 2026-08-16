@@ -143,6 +143,23 @@ class SecondaryServiceWorkflowTest {
         verify(spaces).insert(any(Connection.class), eq(space));
         verify(equipment).insert(any(Connection.class), eq(item));
         verify(services).insert(any(Connection.class), eq(support));
+
+        Space storedSpace = space.withId(11);
+        Equipment storedItem = item.withId(12);
+        Venue_Event_Manager.domain.model.resource.Service storedSupport = support.withId(13);
+        service.update(storedSpace);
+        service.update(storedItem);
+        service.update(storedSupport);
+        verify(spaces).update(any(Connection.class), eq(storedSpace));
+        verify(equipment).update(any(Connection.class), eq(storedItem));
+        verify(services).update(any(Connection.class), eq(storedSupport));
+
+        service.delete(storedSpace);
+        service.delete(ResourceType.EQUIPMENT, 12);
+        service.delete(ResourceType.SERVICE, 13);
+        verify(spaces).deleteById(any(Connection.class), eq(11L));
+        verify(equipment).deleteById(any(Connection.class), eq(12L));
+        verify(services).deleteById(any(Connection.class), eq(13L));
     }
 
     @Test
