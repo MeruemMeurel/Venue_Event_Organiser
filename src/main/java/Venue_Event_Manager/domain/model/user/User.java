@@ -74,53 +74,138 @@ public class User {
 
 
     //getters and withers
+    /**
+     * Performs the {@code getId} operation.
+     * @return operation result
+     */
     public long getId() { return id; }
+    /**
+     * Performs the {@code withId} operation.
+     * @param newId newId value
+     * @return operation result
+     */
     public User withId(long newId) {
         return new User(newId, username, firstname, lastname, birthday, email, phone, is_admin, account_status);
     }
 
+    /**
+     * Performs the {@code getUsername} operation.
+     * @return operation result
+     */
     public String getUsername() { return username; }
+    /**
+     * Performs the {@code withUsername} operation.
+     * @param newUsername newUsername value
+     * @return operation result
+     */
     public User withUsername(String newUsername) {
         return new User(id, newUsername, firstname, lastname, birthday, email, phone, is_admin, account_status);
     }
 
+    /**
+     * Performs the {@code getFirstname} operation.
+     * @return operation result
+     */
     public String getFirstname() { return firstname; }
+    /**
+     * Performs the {@code withFirstName} operation.
+     * @param newFirstname newFirstname value
+     * @return operation result
+     */
     public User withFirstName(String newFirstname) {
         return new User(id, username, newFirstname, lastname, birthday, email, phone, is_admin, account_status);
     }
 
+    /**
+     * Performs the {@code getLastname} operation.
+     * @return operation result
+     */
     public String getLastname() { return lastname; }
+    /**
+     * Performs the {@code withLastName} operation.
+     * @param newLastname newLastname value
+     * @return operation result
+     */
     public User withLastName(String newLastname) {
         return new User(id, username, firstname, newLastname, birthday, email, phone, is_admin, account_status);
     }
 
+    /**
+     * Performs the {@code getBirthday} operation.
+     * @return operation result
+     */
     public LocalDate getBirthday() { return birthday; }
+    /**
+     * Performs the {@code withBirthday} operation.
+     * @param newBirthday newBirthday value
+     * @return operation result
+     */
     public User withBirthday(LocalDate newBirthday) {
         return new User(id, username, firstname, lastname, newBirthday, email, phone, is_admin, account_status);
     }
 
+    /**
+     * Performs the {@code getEmail} operation.
+     * @return operation result
+     */
     public String getEmail() { return email; }
+    /**
+     * Performs the {@code withEmail} operation.
+     * @param newEmail newEmail value
+     * @return operation result
+     */
     public User withEmail(String newEmail) {
         return new User(id, username, firstname, lastname, birthday, newEmail, phone, is_admin, account_status);
     }
 
+    /**
+     * Performs the {@code getPhone} operation.
+     * @return operation result
+     */
     public String getPhone() { return phone; }
+    /**
+     * Performs the {@code withPhone} operation.
+     * @param newPhone newPhone value
+     * @return operation result
+     */
     public User withPhone(String newPhone) {
         return new User(id, username, firstname, lastname, birthday, email, newPhone, is_admin, account_status);
     }
 
+    /**
+     * Performs the {@code isAdmin} operation.
+     * @return operation result
+     */
     public boolean isAdmin() { return is_admin; }
+    /**
+     * Performs the {@code withIsAdmin} operation.
+     * @param newIsAdmin newIsAdmin value
+     * @return operation result
+     */
     public User withIsAdmin(boolean newIsAdmin) {
         return new User(id, username, firstname, lastname, birthday, email, phone, newIsAdmin, account_status);
     }
 
+    /**
+     * Performs the {@code getAccountStatus} operation.
+     * @return operation result
+     */
     public AccountStatus getAccountStatus() { return account_status; }
+    /**
+     * Performs the {@code withAccountStatus} operation.
+     * @param newAccountStatus newAccountStatus value
+     * @return operation result
+     */
     public User withAccountStatus(AccountStatus newAccountStatus) {
         return new User(id, username, firstname, lastname, birthday, email, phone, is_admin, newAccountStatus);
     }
 
 
     @Override
+    /**
+     * Performs the {@code toString} operation.
+     * @return operation result
+     */
     public String toString() {
         return "User{" +
                 "id=" + id + "; " +
@@ -137,6 +222,11 @@ public class User {
 
     /** Compares users based on ID or username and email uniqueness. */
     @Override
+    /**
+     * Performs the {@code equals} operation.
+     * @param other other value
+     * @return operation result
+     */
     public boolean equals(Object other) {
         if (this == other) return true;
         if (other == null || getClass() != other.getClass()) return false;
@@ -148,6 +238,10 @@ public class User {
     }
 
     @Override
+    /**
+     * Performs the {@code hashCode} operation.
+     * @return operation result
+     */
     public int hashCode() {
         if(id != 0){
             return Objects.hash(id);

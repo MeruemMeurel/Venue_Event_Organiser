@@ -8,9 +8,13 @@ import java.util.Objects;
 public abstract class Resource {
 
     //attributes
+    /** Persistent resource identifier. */
     protected final long id;
-    protected final Long venue_id; //reference to Venue, NULLABLE for Equipment, everytime null for Service
+    /** Associated venue identifier, when the resource type supports one. */
+    protected final Long venue_id;
+    /** Human-readable resource name. */
     protected final String name;
+    /** Optional resource description. */
     protected final String description;
 
 
@@ -46,25 +50,49 @@ public abstract class Resource {
 
 
     //getters
-    /** @return persistent identifier, or zero for an unsaved resource */
+    /** Gets the persistent identifier.
+     * @return persistent identifier, or zero for an unsaved resource */
+    /**
+     * Performs the {@code getId} operation.
+     * @return operation result
+     */
     public long getId() {
         return id;
     }
-    /** @return associated venue identifier, or {@code null} */
+    /** Gets the associated venue identifier.
+     * @return associated venue identifier, or {@code null} */
+    /**
+     * Performs the {@code getVenueId} operation.
+     * @return operation result
+     */
     public Long getVenueId() {
         return venue_id;
     }
-    /** @return resource name */
+    /** Gets the resource name.
+     * @return resource name */
+    /**
+     * Performs the {@code getName} operation.
+     * @return operation result
+     */
     public String getName() {
         return name;
     }
-    /** @return resource description */
+    /** Gets the resource description.
+     * @return resource description */
+    /**
+     * Performs the {@code getDescription} operation.
+     * @return operation result
+     */
     public String getDescription() {
         return description;
     }
 
 
     @Override
+    /**
+     * Performs the {@code toString} operation.
+     * @return operation result
+     */
     public String toString() {
         return "Resource{" +
                 "class="  + this.getClass() + "; " +
@@ -77,6 +105,11 @@ public abstract class Resource {
 
     /** Compares equipment based on ID uniqueness */
     @Override
+    /**
+     * Performs the {@code equals} operation.
+     * @param other other value
+     * @return operation result
+     */
     public boolean equals(Object other) {
         if (this == other) return true;
         if (other == null || getClass() != other.getClass()) return false;
@@ -88,6 +121,10 @@ public abstract class Resource {
     }
 
     @Override
+    /**
+     * Performs the {@code hashCode} operation.
+     * @return operation result
+     */
     public int hashCode() {
         if (id == 0){
             return super.hashCode();

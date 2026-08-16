@@ -32,20 +32,39 @@ public class Service extends Resource {
 
 
     //whiters
+    /**
+     * Performs the {@code withId} operation.
+     * @param newId newId value
+     * @return operation result
+     */
     public Service withId(long newId){
         return new Service(newId, name, description);
     }
 
+    /**
+     * Performs the {@code withName} operation.
+     * @param newName newName value
+     * @return operation result
+     */
     public Service withName(String newName){
         return new Service(id, newName, description);
     }
 
+    /**
+     * Performs the {@code withDescription} operation.
+     * @param newDescription newDescription value
+     * @return operation result
+     */
     public Service withDescription(String newDescription){
         return new Service(id, name, newDescription);
     }
 
 
     @Override
+    /**
+     * Performs the {@code toString} operation.
+     * @return operation result
+     */
     public String toString() {
         return "Service{" +
                 "id=" + id + "; " +
@@ -56,6 +75,11 @@ public class Service extends Resource {
 
     /** Compares service based on ID or name uniqueness. */
     @Override
+    /**
+     * Performs the {@code equals} operation.
+     * @param other other value
+     * @return operation result
+     */
     public boolean equals(Object other){
         if (this == other) return true;
         if (other == null || getClass() != other.getClass()) return false;
@@ -67,6 +91,10 @@ public class Service extends Resource {
     }
 
     @Override
+    /**
+     * Performs the {@code hashCode} operation.
+     * @return operation result
+     */
     public int hashCode() {
         if (id != 0){
             return Objects.hash(id);

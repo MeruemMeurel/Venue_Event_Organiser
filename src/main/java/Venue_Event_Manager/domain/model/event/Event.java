@@ -92,113 +92,211 @@ public class Event {
     }
 
     //getters and withers
+    /** Gets the persistent identifier.
+     * @return event identifier, or zero when unsaved
+     */
     public long getId() {
         return id;
     }
+    /** Returns a copy with another identifier.
+     * @param newId replacement identifier
+     * @return updated copy
+     */
     public Event withId(long newId) {
         return new Event(newId, venue_id, creator_id, organiser_id, name, description, begin_datetime, end_datetime,
                 poster_filepath, capacity, status, visibility, ticket_price, published_at);
     }
 
+    /** Gets the venue identifier.
+     * @return associated venue identifier
+     */
     public long getVenueId() {
         return venue_id;
     }
+    /** Returns a copy assigned to another venue.
+     * @param newVenueId replacement venue identifier
+     * @return updated copy
+     */
     public Event withVenueId(long newVenueId) {
         return new Event(id, newVenueId, creator_id, organiser_id, name, description, begin_datetime, end_datetime,
                 poster_filepath, capacity, status, visibility, ticket_price, published_at);
     }
 
+    /** Gets the creator identifier.
+     * @return creator identifier
+     */
     public long getCreatorId() {
         return creator_id;
     }
+    /** Returns a copy with another creator.
+     * @param newCreatorId replacement creator identifier
+     * @return updated copy
+     */
     public Event withCreatorId(long newCreatorId) {
         return new Event(id, venue_id, newCreatorId, organiser_id, name, description, begin_datetime, end_datetime,
                 poster_filepath, capacity, status, visibility, ticket_price, published_at);
     }
 
+    /** Gets the optional organiser identifier.
+     * @return organiser identifier, or {@code null}
+     */
     public Long getOrganiserId() {
         return organiser_id;
     }
+    /** Returns a copy with another organiser.
+     * @param newOrganiserId replacement organiser, possibly {@code null}
+     * @return updated copy
+     */
     public Event withOrganiserId(Long newOrganiserId) {
         return new Event(id, venue_id, creator_id, newOrganiserId, name, description, begin_datetime, end_datetime,
                 poster_filepath, capacity, status, visibility, ticket_price, published_at);
     }
 
+    /** Gets the event name.
+     * @return event name
+     */
     public String getName() {
         return name;
     }
+    /** Returns a copy with another name.
+     * @param newName replacement name
+     * @return updated copy
+     */
     public Event withName(String newName) {
         return new Event(id, venue_id, creator_id, organiser_id, newName, description, begin_datetime, end_datetime,
                 poster_filepath, capacity, status, visibility, ticket_price, published_at);
     }
 
+    /** Gets the event description.
+     * @return event description
+     */
     public String getDescription() {
         return description;
     }
+    /** Returns a copy with another description.
+     * @param newDescription replacement description
+     * @return updated copy
+     */
     public Event withDescription(String newDescription) {
         return new Event(id, venue_id, creator_id, organiser_id, name, newDescription, begin_datetime, end_datetime,
                 poster_filepath, capacity, status, visibility, ticket_price, published_at);
     }
 
+    /** Gets the beginning date and time.
+     * @return event beginning
+     */
     public LocalDateTime getBeginDatetime() {
         return begin_datetime;
     }
+    /** Returns a copy with another beginning.
+     * @param newBeginDateTime replacement beginning
+     * @return updated copy
+     */
     public Event withBeginDateTime(LocalDateTime newBeginDateTime) {
         return new Event(id, venue_id, creator_id, organiser_id, name, description, newBeginDateTime, end_datetime,
                 poster_filepath, capacity, status, visibility, ticket_price, published_at);
     }
 
+    /** Gets the ending date and time.
+     * @return event ending
+     */
     public LocalDateTime getEndDatetime() {
         return end_datetime;
     }
+    /** Returns a copy with another ending.
+     * @param newEndDateTime replacement ending
+     * @return updated copy
+     */
     public Event withEndDateTime(LocalDateTime newEndDateTime) {
         return new Event(id, venue_id, creator_id, organiser_id, name, description, begin_datetime, newEndDateTime,
                 poster_filepath, capacity, status, visibility, ticket_price, published_at);
     }
 
+    /** Gets the optional poster path.
+     * @return poster file path, or {@code null}
+     */
     public String getPosterFilepath() {
         return poster_filepath;
     }
+    /** Returns a copy with another poster path.
+     * @param newPosterFilepath replacement path
+     * @return updated copy
+     */
     public Event withPosterFilepath(String newPosterFilepath) {
         return new Event(id, venue_id, creator_id, organiser_id, name, description, begin_datetime, end_datetime,
                 newPosterFilepath, capacity, status, visibility, ticket_price, published_at);
     }
 
+    /** Gets the attendee capacity.
+     * @return event capacity
+     */
     public int getCapacity() {
         return capacity;
     }
+    /** Returns a copy with another capacity.
+     * @param newCapacity replacement capacity
+     * @return updated copy
+     */
     public Event withCapacity(int newCapacity) {
         return new Event(id, venue_id, creator_id, organiser_id, name, description, begin_datetime, end_datetime,
                 poster_filepath, newCapacity, status, visibility, ticket_price, published_at);
     }
 
+    /** Gets the lifecycle status.
+     * @return event status
+     */
     public EventStatus getStatus() {
         return status;
     }
+    /** Returns a copy with another status.
+     * @param newStatus replacement status
+     * @return updated copy
+     */
     public Event withStatus(EventStatus newStatus) {
         return new Event(id, venue_id, creator_id, organiser_id, name, description, begin_datetime, end_datetime,
                 poster_filepath, capacity, newStatus, visibility, ticket_price, published_at);
     }
 
+    /** Gets the visibility policy.
+     * @return event visibility
+     */
     public EventVisibility getVisibility() {
         return visibility;
     }
+    /** Returns a copy with another visibility.
+     * @param newVisibility replacement visibility
+     * @return updated copy
+     */
     public Event withVisibility(EventVisibility newVisibility) {
         return new Event(id, venue_id, creator_id, organiser_id, name, description, begin_datetime, end_datetime,
                 poster_filepath, capacity, status, newVisibility, ticket_price, published_at);
     }
 
+    /** Gets the ticket price.
+     * @return ticket price, or {@code null}
+     */
     public BigDecimal getTicketPrice() {
         return ticket_price;
     }
+    /** Returns a copy with another ticket price.
+     * @param newTicketPrice replacement price
+     * @return updated copy
+     */
     public Event withTicketPrice(BigDecimal newTicketPrice) {
         return new Event(id, venue_id, creator_id, organiser_id, name, description, begin_datetime, end_datetime,
                 poster_filepath, capacity, status, visibility, newTicketPrice, published_at);
     }
 
+    /** Gets the publication timestamp.
+     * @return publication timestamp, or {@code null}
+     */
     public LocalDateTime getPublishedAt() {
         return published_at;
     }
+    /** Returns a copy with another publication timestamp.
+     * @param newPublishedAt replacement timestamp
+     * @return updated copy
+     */
     public Event withPublishedAt(LocalDateTime newPublishedAt) {
         return new Event(id, venue_id, creator_id, organiser_id, name, description, begin_datetime, end_datetime,
                 poster_filepath, capacity, status, visibility, ticket_price, newPublishedAt);
@@ -206,6 +304,10 @@ public class Event {
 
 
     @Override
+    /**
+     * Performs the {@code toString} operation.
+     * @return operation result
+     */
     public String toString() {
         return "Event{" +
                 "id=" + id + "; " +
@@ -227,6 +329,11 @@ public class Event {
 
     /** Compares event based on ID or name, venue_id and begin_datetime uniqueness. */
     @Override
+    /**
+     * Performs the {@code equals} operation.
+     * @param other other value
+     * @return operation result
+     */
     public boolean equals(Object other) {
         if (this == other) return true;
         if (other == null || getClass() != other.getClass()) return false;
@@ -239,6 +346,10 @@ public class Event {
     }
 
     @Override
+    /**
+     * Performs the {@code hashCode} operation.
+     * @return operation result
+     */
     public int hashCode() {
         if (id != 0){
             return Objects.hash(id);

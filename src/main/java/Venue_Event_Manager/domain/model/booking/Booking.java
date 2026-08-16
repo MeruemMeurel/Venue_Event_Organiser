@@ -53,62 +53,126 @@ public class Booking {
 
 
     //getters and withers
-    /** @return persistent identifier, or zero when unsaved */
+    /** Gets the persistent identifier.
+     * @return persistent identifier, or zero when unsaved */
+    /**
+     * Performs the {@code getId} operation.
+     * @return operation result
+     */
     public long getId() { return id; }
     /** Returns a copy with a different identifier.
      * @param newId replacement identifier
      * @return a copy with the supplied identifier */
+    /**
+     * Performs the {@code withId} operation.
+     * @param newId newId value
+     * @return operation result
+     */
     public Booking withId(long newId){
         return new Booking(newId, user_id, event_id, created_at, status, total_price);
     }
 
-    /** @return booking owner identifier */
+    /** Gets the booking owner identifier.
+     * @return booking owner identifier */
+    /**
+     * Performs the {@code getUserId} operation.
+     * @return operation result
+     */
     public long getUserId(){ return user_id; }
     /** Returns a copy with a different owner.
      * @param newUserId replacement owner identifier
      * @return a copy with the supplied owner */
+    /**
+     * Performs the {@code withUserId} operation.
+     * @param newUserId newUserId value
+     * @return operation result
+     */
     public Booking withUserId(long newUserId){
         return new Booking(id, newUserId, event_id, created_at, status, total_price);
     }
 
-    /** @return booked event identifier */
+    /** Gets the booked event identifier.
+     * @return booked event identifier */
+    /**
+     * Performs the {@code getEventId} operation.
+     * @return operation result
+     */
     public long getEventId(){ return event_id; }
     /** Returns a copy for a different event.
      * @param newEventId replacement event identifier
      * @return a copy with the supplied event */
+    /**
+     * Performs the {@code withEventId} operation.
+     * @param newEventId newEventId value
+     * @return operation result
+     */
     public Booking withEventId(long newEventId){
         return new Booking(id, user_id, newEventId, created_at, status, total_price);
     }
 
-    /** @return creation timestamp */
+    /** Gets the creation timestamp.
+     * @return creation timestamp */
+    /**
+     * Performs the {@code getCreatedAt} operation.
+     * @return operation result
+     */
     public LocalDateTime getCreatedAt(){ return created_at; }
     /** Returns a copy with a different creation timestamp.
      * @param newCreatedAt replacement timestamp
      * @return a copy with the supplied timestamp */
+    /**
+     * Performs the {@code withCreatedAt} operation.
+     * @param newCreatedAt newCreatedAt value
+     * @return operation result
+     */
     public Booking withCreatedAt(LocalDateTime newCreatedAt){
         return new Booking(id, user_id, event_id, newCreatedAt, status, total_price);
     }
 
-    /** @return current booking status */
+    /** Gets the current booking status.
+     * @return current booking status */
+    /**
+     * Performs the {@code getStatus} operation.
+     * @return operation result
+     */
     public BookingStatus getStatus(){ return status; }
     /** Returns a copy with a different status.
      * @param newStatus replacement status
      * @return a copy with the supplied status */
+    /**
+     * Performs the {@code withStatus} operation.
+     * @param newStatus newStatus value
+     * @return operation result
+     */
     public Booking withStatus(BookingStatus newStatus){
         return new Booking(id, user_id, event_id, created_at, newStatus, total_price);
     }
 
-    /** @return total booking price */
+    /** Gets the total booking price.
+     * @return total booking price */
+    /**
+     * Performs the {@code getTotalPrice} operation.
+     * @return operation result
+     */
     public BigDecimal getTotalPrice(){ return total_price; }
     /** Returns a copy with a different total price.
      * @param newTotalPrice replacement price
      * @return a copy with the supplied price */
+    /**
+     * Performs the {@code withTotalPrice} operation.
+     * @param newTotalPrice newTotalPrice value
+     * @return operation result
+     */
     public Booking withTotalPrice(BigDecimal newTotalPrice){
         return new Booking(id, user_id, event_id, created_at, status, newTotalPrice);
     }
 
 
     @Override
+    /**
+     * Performs the {@code toString} operation.
+     * @return operation result
+     */
     public String toString(){
         return "Booking{" +
                 "id=" + id + "; " +
@@ -122,6 +186,11 @@ public class Booking {
 
     /** Compares booking based on ID or user_id, event_id and created_at uniqueness */
     @Override
+    /**
+     * Performs the {@code equals} operation.
+     * @param other other value
+     * @return operation result
+     */
     public boolean equals(Object other){
         if (this == other) return true;
         if (other == null || getClass() != other.getClass()) return false;
@@ -134,6 +203,10 @@ public class Booking {
     }
 
     @Override
+    /**
+     * Performs the {@code hashCode} operation.
+     * @return operation result
+     */
     public int hashCode(){
         if(id != 0){
             return Objects.hash(id);
