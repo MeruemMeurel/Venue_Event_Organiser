@@ -8,6 +8,8 @@ The project intentionally focuses on domain modelling, service-layer business ru
 
 The application follows a layered design:
 
+Production code uses the conventional lowercase root package `venue.event.manager`.
+
 ```text
 Domain models
     ↑
@@ -63,6 +65,12 @@ Apply every Flyway migration:
 mvn flyway:migrate
 ```
 
+Flyway defaults are declared once as Maven properties. Override them when needed, for example:
+
+```bash
+mvn flyway:migrate -Ddb.host=localhost -Ddb.port=5433 -Ddb.name=event_manager_db -Ddb.user=admin -Ddb.password=change_me
+```
+
 The default local database is available at `localhost:5433`, database `event_manager_db`. Application settings may be overridden through these environment variables:
 
 - `DB_HOST`
@@ -81,8 +89,8 @@ The seed migration creates two local demonstration accounts:
 
 | Role | Username | Password |
 |---|---|---|
-| Administrator | `admin` | `Admin123!` |
-| Standard user | `user` | `User1234!` |
+| Administrator | `admin_mario` | `Admin123!` |
+| Standard user | `user_luigi` | `User1234!` |
 
 These credentials exist only for local development and demonstrations. Passwords are stored in the database as PBKDF2 hashes, not as plaintext.
 
