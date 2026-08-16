@@ -131,7 +131,7 @@ public final class DbConfig {
      * @return string trimmed without spaces
      */
     private static String requireNonBlank(String string, String label) {
-        if(string == null || string.isEmpty()) {
+        if(string == null || string.isBlank()) {
             throw new IllegalStateException("Missing config: " + label);
         }
         return string.trim();
