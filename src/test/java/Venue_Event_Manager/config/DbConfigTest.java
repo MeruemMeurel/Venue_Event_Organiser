@@ -23,4 +23,12 @@ class DbConfigTest {
         assertEquals("user", config.getUser());
         assertEquals("password", config.getPassword());
     }
+
+    @Test
+    void constructorShouldRejectPortsOutsideTheValidRange() {
+        assertThrows(IllegalStateException.class,
+                () -> new DbConfig("localhost", 0, "database", "user", "password", "disable", "public"));
+        assertThrows(IllegalStateException.class,
+                () -> new DbConfig("localhost", 65536, "database", "user", "password", "disable", "public"));
+    }
 }

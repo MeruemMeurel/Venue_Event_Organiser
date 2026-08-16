@@ -30,7 +30,7 @@ public final class DbConfig {
     public DbConfig(String host, int port, String dbName, String user, String password, String sslMode,
                     String schema){
         this.host = requireNonBlank(host, "db.host/DB_HOST");
-        this.port = port;
+        this.port = requireValidPort(port);
         this.dbName = requireNonBlank(dbName, "db.name/DB_NAME");
         this.user = requireNonBlank(user, "db.user/DB_USER");
         this.password = requireNonBlank(password, "db.password/DB_PASSWORD");
@@ -112,6 +112,19 @@ public final class DbConfig {
         }catch (NumberFormatException e){
             throw new IllegalStateException("Invalid port number "+portStr);
         }
+    }
+
+    /**
+     * Checks that a port is inside the valid TCP/UDP range.
+     * @param port port number to validate
+     * @return the validated port
+     * @throws IllegalStateException if the port is outside the valid range
+     */
+    private static int requireValidPort(int port) {
+        if(port < 1 || port > 65535) {
+            throw new IllegalStateException("Invalid port number " + port);
+        }
+        return port;
     }
 
     /**
