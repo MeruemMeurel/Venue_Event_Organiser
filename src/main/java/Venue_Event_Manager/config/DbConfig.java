@@ -72,9 +72,15 @@ public final class DbConfig {
     }
 
     //getters
+    /** Gets the database user.
+     * @return configured database username
+     */
     public String getUser() {
         return user;
     }
+    /** Gets the database password.
+     * @return configured database password
+     */
     public String getPassword() {
         return password;
     }

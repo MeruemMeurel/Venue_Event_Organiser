@@ -15,6 +15,7 @@ import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/** Coordinates event creation, updates and lifecycle transitions. */
 public class EventService {
     private final TransactionManager transactionManager;
     private final EventRepository eventRepository;

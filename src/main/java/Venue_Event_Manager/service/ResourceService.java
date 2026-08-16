@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/** Coordinates spaces, equipment and service resources. */
 public class ResourceService {
 
     private final TransactionManager transactionManager;
@@ -35,6 +36,7 @@ public class ResourceService {
      * @param equipmentRepository repository used to access equipment data
      * @param serviceRepository repository used to access service data
      * @param venueRepository repository used to access venue data
+     * @param eventRepository repository used to resolve event resource availability
      */
     public ResourceService(SpaceRepository spaceRepository, EquipmentRepository equipmentRepository,
                            ServiceRepository serviceRepository, VenueRepository venueRepository, EventRepository eventRepository) {

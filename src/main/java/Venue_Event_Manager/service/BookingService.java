@@ -22,6 +22,7 @@ import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/** Coordinates booking, ticket and capacity business rules. */
 public class BookingService {
 
     private TransactionManager transactionManager;

@@ -5,12 +5,17 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.function.Function;
 
+/** Executes read-write and read-only work within managed JDBC transactions. */
 public class TransactionManager {
 
     private static volatile TransactionManager instance;
 
     private final DataSource dataSource;
 
+    /**
+     * Creates a transaction manager backed by a data source.
+     * @param dataSource source of JDBC connections
+     */
     public TransactionManager(DataSource dataSource) {
         this.dataSource = dataSource;
     }

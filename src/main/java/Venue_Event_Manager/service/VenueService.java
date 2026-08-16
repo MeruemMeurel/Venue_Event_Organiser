@@ -10,6 +10,7 @@ import Venue_Event_Manager.repository.VenueRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/** Coordinates venue validation, queries and persistence. */
 public class VenueService {
 
     private final TransactionManager transactionManager;

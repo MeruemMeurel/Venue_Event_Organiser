@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
+/** Coordinates report creation, validation and moderation queries. */
 public class ReportService {
 
     private final TransactionManager transactionManager;

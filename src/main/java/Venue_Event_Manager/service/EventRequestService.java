@@ -16,6 +16,7 @@ import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/** Coordinates event-request validation and lifecycle transitions. */
 public class EventRequestService {
 
     private final TransactionManager transactionManager;

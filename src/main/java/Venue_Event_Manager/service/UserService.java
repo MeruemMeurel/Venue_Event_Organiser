@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+/** Coordinates user profiles, registration and account moderation. */
 public class UserService {
 
     private final TransactionManager transactionManager;

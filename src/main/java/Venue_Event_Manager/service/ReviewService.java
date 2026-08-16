@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
+/** Coordinates review eligibility, validation and persistence. */
 public class ReviewService {
 
     private final TransactionManager transactionManager;
