@@ -109,7 +109,7 @@ public class User {
     public String getFirstname() { return firstname; }
     /**
      * Returns a copy with an updated first name.
-     * @param newFirstName replacement first name
+     * @param newFirstname replacement first name
      * @return copy with the updated first name
      */
     public User withFirstName(String newFirstname) {
@@ -123,7 +123,7 @@ public class User {
     public String getLastname() { return lastname; }
     /**
      * Returns a copy with an updated last name.
-     * @param newLastName replacement last name
+     * @param newLastname replacement last name
      * @return copy with the updated last name
      */
     public User withLastName(String newLastname) {
