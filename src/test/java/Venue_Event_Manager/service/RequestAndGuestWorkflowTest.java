@@ -53,7 +53,7 @@ class RequestAndGuestWorkflowTest {
         EventRequest pending = futureRequest().withId(4);
         User admin = TestDataFactory.createAdminUser("admin").withId(8);
         when(users.findById(any(Connection.class), eq(8L))).thenReturn(Optional.of(admin));
-        when(requests.findById(any(Connection.class), eq(4L))).thenReturn(Optional.of(pending));
+        when(requests.findByIdForUpdate(any(Connection.class), eq(4L))).thenReturn(Optional.of(pending));
         requestService.assignHandler(4, 8);
         ArgumentCaptor<EventRequest> captor = ArgumentCaptor.forClass(EventRequest.class);
         verify(requests).update(any(Connection.class), captor.capture());
@@ -72,24 +72,24 @@ class RequestAndGuestWorkflowTest {
     @Test
     void acceptRejectAndCancelShouldClosePendingRequest() {
         EventRequest pending = futureRequest().withId(4).withHandlerId(8L);
-        when(requests.findById(any(Connection.class), eq(4L))).thenReturn(Optional.of(pending));
+        when(requests.findByIdForUpdate(any(Connection.class), eq(4L))).thenReturn(Optional.of(pending));
         requestService.acceptRequest(4, new BigDecimal("99.90"));
         assertUpdatedRequest(EventRequestStatus.ACCEPTED, new BigDecimal("99.90"));
 
         reset(requests);
-        when(requests.findById(any(Connection.class), eq(4L))).thenReturn(Optional.of(pending));
+        when(requests.findByIdForUpdate(any(Connection.class), eq(4L))).thenReturn(Optional.of(pending));
         requestService.rejectRequest(4);
         assertUpdatedRequest(EventRequestStatus.REJECTED, pending.getQuote());
 
         reset(requests);
-        when(requests.findById(any(Connection.class), eq(4L))).thenReturn(Optional.of(pending));
+        when(requests.findByIdForUpdate(any(Connection.class), eq(4L))).thenReturn(Optional.of(pending));
         requestService.cancelRequest(4);
         assertUpdatedRequest(EventRequestStatus.CANCELLED, pending.getQuote());
     }
 
     @Test
     void acceptedRequestCannotBeClosedAgain() {
-        when(requests.findById(any(Connection.class), anyLong()))
+        when(requests.findByIdForUpdate(any(Connection.class), anyLong()))
                 .thenReturn(Optional.of(futureRequest().withId(4).withStatus(EventRequestStatus.ACCEPTED)));
         assertThrows(ConflictException.class, () -> requestService.rejectRequest(4));
         verify(requests, never()).update(any(), any());

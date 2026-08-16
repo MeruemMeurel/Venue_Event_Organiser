@@ -221,7 +221,7 @@ public class EventRequestService {
         transactionManager.inTransaction(conn->{
             validateHandlerId(conn,handlerId);
 
-            EventRequest request = eventRequestRepository.findById(conn,requestId)
+            EventRequest request = eventRequestRepository.findByIdForUpdate(conn,requestId)
                     .orElseThrow(() -> new NotFoundException("No event request found with id "+requestId));
             validateRequestIsPending(request);
 
@@ -243,7 +243,7 @@ public class EventRequestService {
         validateAcceptedQuote(quote);
 
         transactionManager.inTransaction(conn->{
-            EventRequest request = eventRequestRepository.findById(conn,requestId)
+            EventRequest request = eventRequestRepository.findByIdForUpdate(conn,requestId)
                     .orElseThrow(() -> new NotFoundException("No event request found with id "+requestId));
             validateRequestIsPending(request);
             validateRequestHasHandler(request);
@@ -268,7 +268,7 @@ public class EventRequestService {
         validateId(requestId,"Request id");
 
         transactionManager.inTransaction(conn->{
-            EventRequest request = eventRequestRepository.findById(conn,requestId)
+            EventRequest request = eventRequestRepository.findByIdForUpdate(conn,requestId)
                     .orElseThrow(() -> new NotFoundException("No event request found with id "+requestId));
             validateRequestIsPending(request);
 
@@ -291,7 +291,7 @@ public class EventRequestService {
         validateId(requestId,"Request id");
 
         transactionManager.inTransaction(conn->{
-            EventRequest request = eventRequestRepository.findById(conn,requestId)
+            EventRequest request = eventRequestRepository.findByIdForUpdate(conn,requestId)
                     .orElseThrow(() -> new NotFoundException("No event request found with id "+requestId));
             validateRequestIsPending(request);
 

@@ -13,6 +13,8 @@ public interface EventRequestRepository {
 
     Optional<EventRequest> findById(Connection conn, long eventRequestId);
 
+    Optional<EventRequest> findByIdForUpdate(Connection conn, long eventRequestId);
+
     List<EventRequest> findAllByRequesterId(Connection conn, long requesterId);
 
     List<EventRequest> findAllByHandlerId(Connection conn, long handlerId);
