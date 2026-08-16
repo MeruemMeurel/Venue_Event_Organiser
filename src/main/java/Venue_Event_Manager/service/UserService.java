@@ -199,12 +199,11 @@ public class UserService {
      * @throws ForbiddenException if admin privileges are missing or password is wrong
      */
     public void ban(long adminId,String adminPassword,long userId){
-        authService.requireAdminCredentials(adminId,adminPassword);
-        validateUserCanBeBanned(adminId,userId);
-
         transactionManager.inTransaction(conn -> {
-                userRepository.updateAccountStatus(conn,userId,AccountStatus.BANNED);
-                return null;
+            authService.requireAdminCredentials(conn,adminId,adminPassword);
+            validateUserCanBeBanned(conn,adminId,userId);
+            userRepository.updateAccountStatus(conn,userId,AccountStatus.BANNED);
+            return null;
         });
 
     }
@@ -217,9 +216,9 @@ public class UserService {
      * @throws ForbiddenException if admin privileges are missing or password is wrong
      */
     public void unban(long adminId,String adminPassword,long userId){
-        authService.requireAdminCredentials(adminId,adminPassword);
-        validateUserCanBeUnbanned(adminId,userId);
         transactionManager.inTransaction(conn -> {
+            authService.requireAdminCredentials(conn,adminId,adminPassword);
+            validateUserCanBeUnbanned(conn,adminId,userId);
             userRepository.updateAccountStatus(conn,userId,AccountStatus.ACTIVE);
             return null;
         });
@@ -339,17 +338,17 @@ public class UserService {
 
     /**
      * Validates if a user can be banned.
+     * @param conn active transaction connection
      * @param adminId the id of the admin performing the action
      * @param userId the id of the user to ban
      * @throws ForbiddenException if admin is trying to ban himself or another admin
      * @throws ConflictException if user is already banned
      */
-    private void validateUserCanBeBanned(long adminId, long userId){
+    private void validateUserCanBeBanned(Connection conn, long adminId, long userId){
         if(adminId == userId) throw new ForbiddenException("Admin cannot ban himself");
 
-        User user = transactionManager.inReadOnly(conn ->
-                userRepository.findById(conn,userId)
-                        .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found")));
+        User user = userRepository.findById(conn,userId)
+                .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found"));
 
         if(user.isAdmin()) throw new ForbiddenException("Cannot ban an admin user");
         if(user.getAccountStatus() == AccountStatus.BANNED) throw new ConflictException("User is already banned");
@@ -357,17 +356,17 @@ public class UserService {
 
     /**
      * Validates if a user can be unbanned.
+     * @param conn active transaction connection
      * @param adminId the id of the admin performing the action
      * @param userId the id of the user to unban
      * @throws ForbiddenException if admin is trying to unban himself or another admin
      * @throws ConflictException if user is already active
      */
-    private void validateUserCanBeUnbanned(long adminId, long userId){
+    private void validateUserCanBeUnbanned(Connection conn, long adminId, long userId){
         if(adminId == userId) throw new ForbiddenException("Admin cannot unban himself");
 
-        User user = transactionManager.inReadOnly(conn ->
-                userRepository.findById(conn,userId)
-                        .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found")));
+        User user = userRepository.findById(conn,userId)
+                .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found"));
 
         if(user.isAdmin()) throw new ForbiddenException("Cannot unban an admin user");
         if(user.getAccountStatus() == AccountStatus.ACTIVE) throw new ConflictException("User is already active");
