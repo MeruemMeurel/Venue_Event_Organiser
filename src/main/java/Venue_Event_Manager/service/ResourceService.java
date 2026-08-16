@@ -15,6 +15,7 @@ import Venue_Event_Manager.repository.ServiceRepository;
 import Venue_Event_Manager.repository.SpaceRepository;
 import Venue_Event_Manager.repository.VenueRepository;
 
+import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -204,9 +205,8 @@ public class ResourceService {
      * @return List of venue resources linked to the venue
      */
     public List<Resource> getResourcesByVenue(long venueId){
-        validateVenueId(venueId);
-
         return transactionManager.inReadOnly(conn-> {
+            validateVenueId(conn,venueId);
             ArrayList<Resource> resources = new ArrayList<>();
             resources.addAll(spaceRepository.findAllByVenueId(conn,venueId));
             resources.addAll(equipmentRepository.findAllByVenueId(conn,venueId));
@@ -220,10 +220,10 @@ public class ResourceService {
      * @return List of spaces linked to the venue
      */
     public List<Space> getSpaceByVenue(long venueId){
-        validateVenueId(venueId);
-
-        return transactionManager.inReadOnly(conn->
-                spaceRepository.findAllByVenueId(conn,venueId));
+        return transactionManager.inReadOnly(conn->{
+            validateVenueId(conn,venueId);
+            return spaceRepository.findAllByVenueId(conn,venueId);
+        });
     }
 
     /**
@@ -232,10 +232,10 @@ public class ResourceService {
      * @return List of equipments linked to the venue
      */
     public List<Equipment> getEquipmentByVenue(long venueId){
-        validateVenueId(venueId);
-
-        return transactionManager.inReadOnly(conn->
-                equipmentRepository.findAllByVenueId(conn,venueId));
+        return transactionManager.inReadOnly(conn->{
+            validateVenueId(conn,venueId);
+            return equipmentRepository.findAllByVenueId(conn,venueId);
+        });
     }
 
     /**
@@ -245,9 +245,8 @@ public class ResourceService {
      * @throws ValidationException if resource data or resource type are not valid
      */
     public long create(Resource resource){
-        validate(resource);
-
         return transactionManager.inTransaction(conn->{
+            validate(conn,resource);
             if(resource instanceof Space){
                 return spaceRepository.insert(conn,(Space)resource);
             }else if(resource instanceof Service){
@@ -265,9 +264,8 @@ public class ResourceService {
      * @throws ValidationException if resource data or resource type are not valid
      */
     public void update(Resource resource){
-        validate(resource);
-
         transactionManager.inTransaction(conn->{
+            validate(conn,resource);
             if(resource instanceof Space){
                 spaceRepository.update(conn,(Space) resource);
             }else if(resource instanceof Service){
@@ -395,17 +393,18 @@ public class ResourceService {
     //validation
     /**
      * Validates all common resource fields before insert or update.
+     * @param conn active transaction connection used for relational checks
      * @param resource the resource to validate
      * @throws ValidationException if one or more fields are not valid
      */
-    private void validate(Resource resource){
+    private void validate(Connection conn, Resource resource){
         validateResourceNotNull(resource);
         validateName(resource.getName());
 
         if(resource instanceof Space){
-            validateVenueId(resource.getVenueId());
+            validateVenueId(conn,resource.getVenueId());
         }else if(resource instanceof Equipment){
-            validateNullableVenueId(resource.getVenueId());
+            validateNullableVenueId(conn,resource.getVenueId());
             validateQuantity((Equipment) resource);
         }else if(resource instanceof Service){
             validateServiceVenueId(resource.getVenueId());
@@ -416,29 +415,28 @@ public class ResourceService {
 
     /**
      * Validates if a venue exists.
+     * @param conn active transaction connection
      * @param venueId the id of the venue to validate
      * @throws ValidationException if no venue is found with such id
      */
-    private void validateVenueId(Long venueId){
+    private void validateVenueId(Connection conn, Long venueId){
         if(venueId == null || venueId <= 0) {
             throw new ValidationException("Venue id is not valid");
         }
 
-        transactionManager.inReadOnly(conn-> {
-                venueRepository.findById(conn,venueId)
-                        .orElseThrow(() -> new ValidationException("No venue found with id "+venueId));
-                return null;
-        });
+        venueRepository.findById(conn,venueId)
+                .orElseThrow(() -> new ValidationException("No venue found with id "+venueId));
     }
 
     /**
      * Validates if a nullable venue exists when it is provided.
+     * @param conn active transaction connection
      * @param venueId the nullable id of the venue to validate
      * @throws ValidationException if venue id is invalid or no venue is found with such id
      */
-    private void validateNullableVenueId(Long venueId){
+    private void validateNullableVenueId(Connection conn, Long venueId){
         if(venueId != null){
-            validateVenueId(venueId);
+            validateVenueId(conn,venueId);
         }
     }
 
