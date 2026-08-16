@@ -2,6 +2,9 @@ package Venue_Event_Manager.repository.jdbc;
 
 import Venue_Event_Manager.domain.model.booking.*;
 import Venue_Event_Manager.domain.model.event.*;
+import Venue_Event_Manager.domain.model.feedback.Review;
+import Venue_Event_Manager.domain.model.request.EventRequest;
+import Venue_Event_Manager.domain.model.request.EventRequestStatus;
 import Venue_Event_Manager.domain.model.user.*;
 import Venue_Event_Manager.domain.model.venue.*;
 import org.junit.jupiter.api.BeforeAll;
@@ -80,6 +83,67 @@ class PostgresTransactionAndConcurrencyIntegrationTest {
     }
 
     @Test
+    void eventLockShouldSerializeCapacityChangesAndBookings() throws SQLException {
+        Fixture fixture = createFixture();
+        try (Connection first = connection(false); Connection second = connection(false)) {
+            PgEventRepository repository = new PgEventRepository();
+            assertTrue(repository.findByIdForUpdate(first, fixture.eventId).isPresent());
+            setShortLockTimeout(second);
+
+            assertThrows(DaoException.class, () -> repository.findByIdForUpdate(second, fixture.eventId));
+
+            first.rollback();
+            second.rollback();
+        } finally {
+            deleteFixture(fixture);
+        }
+    }
+
+    @Test
+    void eventRequestLockShouldSerializeCompetingTransitions() throws SQLException {
+        Fixture fixture = createFixture();
+        try (Connection first = connection(false); Connection second = connection(false)) {
+            PgEventRequestRepository repository = new PgEventRequestRepository();
+            assertTrue(repository.findByIdForUpdate(first, fixture.requestId).isPresent());
+            setShortLockTimeout(second);
+
+            assertThrows(DaoException.class, () -> repository.findByIdForUpdate(second, fixture.requestId));
+
+            first.rollback();
+            second.rollback();
+        } finally {
+            deleteFixture(fixture);
+        }
+    }
+
+    @Test
+    void concurrentDuplicateReviewsShouldBeRejectedByTheDatabase() throws SQLException {
+        Fixture fixture = createFixture();
+        PgReviewRepository repository = new PgReviewRepository();
+        try (Connection first = connection(false); Connection second = connection(false)) {
+            repository.insert(first, new Review(fixture.userId, fixture.eventId, 5,
+                    "First review", LocalDateTime.now()));
+            setShortLockTimeout(second);
+
+            assertThrows(DaoException.class, () -> repository.insert(second,
+                    new Review(fixture.userId, fixture.eventId, 4,
+                            "Concurrent duplicate", LocalDateTime.now())));
+
+            second.rollback();
+            first.commit();
+        }
+
+        try (Connection verification = connection(false)) {
+            assertThrows(DaoException.class, () -> repository.insert(verification,
+                    new Review(fixture.userId, fixture.eventId, 3,
+                            "Committed duplicate", LocalDateTime.now())));
+            verification.rollback();
+        } finally {
+            deleteFixture(fixture);
+        }
+    }
+
+    @Test
     void updatingOrDeletingMissingRowsShouldFailExplicitly() throws SQLException {
         try (Connection connection = connection(false)) {
             PgTicketRepository repository = new PgTicketRepository();
@@ -106,8 +170,11 @@ class PostgresTransactionAndConcurrencyIntegrationTest {
                             EventVisibility.PUBLIC, BigDecimal.TEN, LocalDateTime.now()));
             long bookingId = new PgBookingRepository().insert(connection,
                     new Booking(userId, eventId, LocalDateTime.now(), BookingStatus.PENDING_PAYMENT, BigDecimal.TEN));
+            long requestId = new PgEventRequestRepository().insert(connection,
+                    new EventRequest(userId, null, venueId, "Lock request " + suffix, null, startsAt,
+                            startsAt.plusHours(2), EventRequestStatus.PENDING, LocalDateTime.now(), null, null));
             connection.commit();
-            return new Fixture(userId, venueId, eventId, bookingId, startsAt);
+            return new Fixture(userId, venueId, eventId, bookingId, requestId, startsAt);
         }
     }
 
@@ -134,5 +201,12 @@ class PostgresTransactionAndConcurrencyIntegrationTest {
         return connection;
     }
 
-    private record Fixture(long userId, long venueId, long eventId, long bookingId, LocalDateTime startsAt) {}
+    private void setShortLockTimeout(Connection connection) throws SQLException {
+        try (Statement statement = connection.createStatement()) {
+            statement.execute("SET LOCAL lock_timeout = '250ms'");
+        }
+    }
+
+    private record Fixture(long userId, long venueId, long eventId, long bookingId, long requestId,
+                           LocalDateTime startsAt) {}
 }
