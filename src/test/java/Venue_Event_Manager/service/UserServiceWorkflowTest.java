@@ -72,7 +72,8 @@ class UserServiceWorkflowTest {
         User admin = TestDataFactory.createAdminUser("admin").withId(1);
         User target = TestDataFactory.createDefaultUser("target").withId(2);
         when(users.findById(any(Connection.class), eq(1L))).thenReturn(Optional.of(admin));
-        when(users.findById(any(Connection.class), eq(2L))).thenReturn(Optional.of(target));
+        when(users.findById(any(Connection.class), eq(2L)))
+                .thenReturn(Optional.of(target), Optional.of(target.withAccountStatus(AccountStatus.BANNED)));
         when(users.getPasswordById(any(Connection.class), eq(1L))).thenReturn(Optional.of(hasher.hash(PASSWORD)));
         service.ban(1, PASSWORD, 2);
         service.unban(1, PASSWORD, 2);
@@ -89,6 +90,18 @@ class UserServiceWorkflowTest {
         when(users.getPasswordById(any(Connection.class), eq(1L))).thenReturn(Optional.of(hasher.hash(PASSWORD)));
         assertThrows(ForbiddenException.class, () -> service.ban(1, PASSWORD, 1));
         assertThrows(ForbiddenException.class, () -> service.ban(1, PASSWORD, 2));
+        verify(users, never()).updateAccountStatus(any(), anyLong(), any());
+    }
+
+    @Test
+    void adminCannotUnbanAnAlreadyActiveUser() {
+        User admin = TestDataFactory.createAdminUser("admin").withId(1);
+        User activeTarget = TestDataFactory.createDefaultUser("target").withId(2);
+        when(users.findById(any(Connection.class), eq(1L))).thenReturn(Optional.of(admin));
+        when(users.findById(any(Connection.class), eq(2L))).thenReturn(Optional.of(activeTarget));
+        when(users.getPasswordById(any(Connection.class), eq(1L))).thenReturn(Optional.of(hasher.hash(PASSWORD)));
+
+        assertThrows(ConflictException.class, () -> service.unban(1, PASSWORD, 2));
         verify(users, never()).updateAccountStatus(any(), anyLong(), any());
     }
 

@@ -215,6 +215,7 @@ public class UserService {
      */
     public void unban(long adminId,String adminPassword,long userId){
         authService.requireAdminCredentials(adminId,adminPassword);
+        validateUserCanBeUnbanned(adminId,userId);
         transactionManager.inTransaction(conn -> {
             userRepository.updateAccountStatus(conn,userId,AccountStatus.ACTIVE);
             return null;
@@ -348,6 +349,24 @@ public class UserService {
 
         if(user.isAdmin()) throw new ForbiddenException("Cannot ban an admin user");
         if(user.getAccountStatus() == AccountStatus.BANNED) throw new ConflictException("User is already banned");
+    }
+
+    /**
+     * Validates if a user can be unbanned.
+     * @param adminId the id of the admin performing the action
+     * @param userId the id of the user to unban
+     * @throws ForbiddenException if admin is trying to unban himself or another admin
+     * @throws ConflictException if user is already active
+     */
+    private void validateUserCanBeUnbanned(long adminId, long userId){
+        if(adminId == userId) throw new ForbiddenException("Admin cannot unban himself");
+
+        User user = transactionManager.inReadOnly(conn ->
+                userRepository.findById(conn,userId)
+                        .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found")));
+
+        if(user.isAdmin()) throw new ForbiddenException("Cannot unban an admin user");
+        if(user.getAccountStatus() == AccountStatus.ACTIVE) throw new ConflictException("User is already active");
     }
 
 
