@@ -49,6 +49,11 @@ public class Equipment extends Resource {
     /** Returns a copy with a different identifier.
      * @param newId replacement identifier
      * @return a copy with the supplied identifier */
+    /**
+     * Performs the {@code withId} operation.
+     * @param newId newId value
+     * @return operation result
+     */
     public Equipment withId(long newId){
         return new Equipment(newId, venue_id, name, description, total_quantity);
     }
@@ -56,6 +61,11 @@ public class Equipment extends Resource {
     /** Returns a copy associated with a different venue.
      * @param newVenueId replacement venue identifier
      * @return a copy with the supplied venue */
+    /**
+     * Performs the {@code withVenueId} operation.
+     * @param newVenueId newVenueId value
+     * @return operation result
+     */
     public Equipment withVenueId(long newVenueId){
         return new Equipment(id, newVenueId, name, description, total_quantity);
     }
@@ -63,6 +73,11 @@ public class Equipment extends Resource {
     /** Returns a copy with a different name.
      * @param newName replacement name
      * @return a copy with the supplied name */
+    /**
+     * Performs the {@code withName} operation.
+     * @param newName newName value
+     * @return operation result
+     */
     public Equipment withName(String newName){
         return new Equipment(id, venue_id, newName, description, total_quantity);
     }
@@ -70,22 +85,40 @@ public class Equipment extends Resource {
     /** Returns a copy with a different description.
      * @param newDescription replacement description
      * @return a copy with the supplied description */
+    /**
+     * Performs the {@code withDescription} operation.
+     * @param newDescription newDescription value
+     * @return operation result
+     */
     public Equipment withDescription(String newDescription){
         return new Equipment(id, venue_id, name, newDescription, total_quantity);
     }
 
     /** Returns the total number of available units.
      * @return total available quantity */
+    /**
+     * Performs the {@code getTotalQuantity} operation.
+     * @return operation result
+     */
     public int getTotalQuantity(){ return total_quantity; }
     /** Returns a copy with a different total quantity.
      * @param newTotalQuantity replacement quantity
      * @return a copy with the supplied quantity */
+    /**
+     * Performs the {@code withTotalQuantity} operation.
+     * @param newTotalQuantity newTotalQuantity value
+     * @return operation result
+     */
     public Equipment withTotalQuantity(int newTotalQuantity){
         return new Equipment(id, venue_id, name, description, newTotalQuantity);
     }
 
 
     @Override
+    /**
+     * Performs the {@code toString} operation.
+     * @return operation result
+     */
     public String toString() {
         return "Equipment{" +
                 "id=" + id + "; " +
@@ -98,6 +131,11 @@ public class Equipment extends Resource {
 
     /** Compares equipment based on ID or venue_id and name uniqueness */
     @Override
+    /**
+     * Performs the {@code equals} operation.
+     * @param other other value
+     * @return operation result
+     */
     public boolean equals(Object other){
         if (this == other) return true;
         if (other == null || getClass() != other.getClass()) return false;
@@ -109,6 +147,10 @@ public class Equipment extends Resource {
     }
 
     @Override
+    /**
+     * Performs the {@code hashCode} operation.
+     * @return operation result
+     */
     public int hashCode() {
         if (id != 0){
             return Objects.hash(id);

@@ -16,6 +16,7 @@ import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/** Coordinates event-request validation and lifecycle transitions. */
 public class EventRequestService {
 
     private final TransactionManager transactionManager;
@@ -172,10 +173,10 @@ public class EventRequestService {
         EventRequest requestToInsert = request.getCreatedAt() == null
                 ? request.withCreatedAt(LocalDateTime.now())
                 : request;
-        validate(requestToInsert);
-
-        return transactionManager.inTransaction(conn->
-                eventRequestRepository.insert(conn,requestToInsert));
+        return transactionManager.inTransaction(conn->{
+            validate(conn,requestToInsert);
+            return eventRequestRepository.insert(conn,requestToInsert);
+        });
     }
 
     /**
@@ -184,9 +185,8 @@ public class EventRequestService {
      * @throws ValidationException if request data or id are not valid
      */
     public void updateRequest(EventRequest request){
-        validateForUpdate(request);
-
         transactionManager.inTransaction(conn->{
+            validateForUpdate(conn,request);
             eventRequestRepository.update(conn,request);
             return null;
         });
@@ -221,7 +221,7 @@ public class EventRequestService {
         transactionManager.inTransaction(conn->{
             validateHandlerId(conn,handlerId);
 
-            EventRequest request = eventRequestRepository.findById(conn,requestId)
+            EventRequest request = eventRequestRepository.findByIdForUpdate(conn,requestId)
                     .orElseThrow(() -> new NotFoundException("No event request found with id "+requestId));
             validateRequestIsPending(request);
 
@@ -243,7 +243,7 @@ public class EventRequestService {
         validateAcceptedQuote(quote);
 
         transactionManager.inTransaction(conn->{
-            EventRequest request = eventRequestRepository.findById(conn,requestId)
+            EventRequest request = eventRequestRepository.findByIdForUpdate(conn,requestId)
                     .orElseThrow(() -> new NotFoundException("No event request found with id "+requestId));
             validateRequestIsPending(request);
             validateRequestHasHandler(request);
@@ -268,7 +268,7 @@ public class EventRequestService {
         validateId(requestId,"Request id");
 
         transactionManager.inTransaction(conn->{
-            EventRequest request = eventRequestRepository.findById(conn,requestId)
+            EventRequest request = eventRequestRepository.findByIdForUpdate(conn,requestId)
                     .orElseThrow(() -> new NotFoundException("No event request found with id "+requestId));
             validateRequestIsPending(request);
 
@@ -291,7 +291,7 @@ public class EventRequestService {
         validateId(requestId,"Request id");
 
         transactionManager.inTransaction(conn->{
-            EventRequest request = eventRequestRepository.findById(conn,requestId)
+            EventRequest request = eventRequestRepository.findByIdForUpdate(conn,requestId)
                     .orElseThrow(() -> new NotFoundException("No event request found with id "+requestId));
             validateRequestIsPending(request);
 
@@ -306,14 +306,15 @@ public class EventRequestService {
 
     /**
      * Validates all request fields before insert.
+     * @param conn active transaction connection used for relational checks
      * @param request the request to validate
      * @throws ValidationException if one or more fields are not valid
      */
-    private void validate(EventRequest request){
+    private void validate(Connection conn, EventRequest request){
         validateRequestNotNull(request);
-        validateRequesterId(request.getRequesterId());
-        if(request.getHandlerId() != null) validateHandlerId(request.getHandlerId());
-        validateVenueId(request.getVenueId());
+        validateRequesterId(conn,request.getRequesterId());
+        if(request.getHandlerId() != null) validateHandlerId(conn,request.getHandlerId());
+        validateVenueId(conn,request.getVenueId());
         validateName(request.getName());
         validateDescription(request.getDescription());
         validateTimeRange(request.getBeginDatetime(),request.getEndDatetime());
@@ -325,11 +326,12 @@ public class EventRequestService {
 
     /**
      * Validates all request fields before update.
+     * @param conn active transaction connection used for relational checks
      * @param request the request to validate
      * @throws ValidationException if one or more fields are not valid
      */
-    private void validateForUpdate(EventRequest request){
-        validate(request);
+    private void validateForUpdate(Connection conn, EventRequest request){
+        validate(conn,request);
         validateId(request.getId(),"Request id");
     }
 
@@ -344,32 +346,15 @@ public class EventRequestService {
 
     /**
      * Validates requester id and checks that requester exists and is not an admin.
+     * @param conn active transaction connection
      * @param requesterId the requester id to validate
      * @throws ValidationException if requester is not valid
      */
-    private void validateRequesterId(long requesterId){
+    private void validateRequesterId(Connection conn, long requesterId){
         validateId(requesterId,"Requester id");
-
-        transactionManager.inReadOnly(conn->{
-            User requester = userRepository.findById(conn,requesterId)
-                    .orElseThrow(() -> new ValidationException("No requester found with id "+requesterId));
-            if(requester.isAdmin()) throw new ValidationException("Requester cannot be an admin");
-            return null;
-        });
-    }
-
-    /**
-     * Validates handler id and checks that handler exists and is an admin.
-     * @param handlerId the handler id to validate
-     * @throws ValidationException if handler is not valid
-     */
-    private void validateHandlerId(long handlerId){
-        validateId(handlerId,"Handler id");
-
-        transactionManager.inReadOnly(conn->{
-            validateHandlerId(conn,handlerId);
-            return null;
-        });
+        User requester = userRepository.findById(conn,requesterId)
+                .orElseThrow(() -> new ValidationException("No requester found with id "+requesterId));
+        if(requester.isAdmin()) throw new ValidationException("Requester cannot be an admin");
     }
 
     /**
@@ -379,6 +364,7 @@ public class EventRequestService {
      * @throws ValidationException if handler is not valid
      */
     private void validateHandlerId(Connection conn, long handlerId){
+        validateId(handlerId,"Handler id");
         User handler = userRepository.findById(conn,handlerId)
                 .orElseThrow(() -> new ValidationException("No handler found with id "+handlerId));
         if(!handler.isAdmin()) throw new ValidationException("Handler must be an admin");
@@ -386,17 +372,14 @@ public class EventRequestService {
 
     /**
      * Validates venue id and checks that venue exists.
+     * @param conn active transaction connection
      * @param venueId the venue id to validate
      * @throws ValidationException if venue is not valid
      */
-    private void validateVenueId(long venueId){
+    private void validateVenueId(Connection conn, long venueId){
         validateId(venueId,"Venue id");
-
-        transactionManager.inReadOnly(conn->{
-            venueRepository.findById(conn,venueId)
-                    .orElseThrow(() -> new ValidationException("No venue found with id "+venueId));
-            return null;
-        });
+        venueRepository.findById(conn,venueId)
+                .orElseThrow(() -> new ValidationException("No venue found with id "+venueId));
     }
 
     /**

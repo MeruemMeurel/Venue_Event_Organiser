@@ -91,6 +91,10 @@ public record Address(
 
 
     @Override
+    /**
+     * Performs the {@code toString} operation.
+     * @return operation result
+     */
     public String toString(){
         return "Address{" +
                 "street=" + street + "; " +

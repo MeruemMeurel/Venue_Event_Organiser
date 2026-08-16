@@ -30,7 +30,7 @@ public final class DbConfig {
     public DbConfig(String host, int port, String dbName, String user, String password, String sslMode,
                     String schema){
         this.host = requireNonBlank(host, "db.host/DB_HOST");
-        this.port = port;
+        this.port = requireValidPort(port);
         this.dbName = requireNonBlank(dbName, "db.name/DB_NAME");
         this.user = requireNonBlank(user, "db.user/DB_USER");
         this.password = requireNonBlank(password, "db.password/DB_PASSWORD");
@@ -72,9 +72,15 @@ public final class DbConfig {
     }
 
     //getters
+    /** Gets the database user.
+     * @return configured database username
+     */
     public String getUser() {
         return user;
     }
+    /** Gets the database password.
+     * @return configured database password
+     */
     public String getPassword() {
         return password;
     }
@@ -115,6 +121,19 @@ public final class DbConfig {
     }
 
     /**
+     * Checks that a port is inside the valid TCP/UDP range.
+     * @param port port number to validate
+     * @return the validated port
+     * @throws IllegalStateException if the port is outside the valid range
+     */
+    private static int requireValidPort(int port) {
+        if(port < 1 || port > 65535) {
+            throw new IllegalStateException("Invalid port number " + port);
+        }
+        return port;
+    }
+
+    /**
      * Encodes url from string
      * @param s string to encode into url
      * @return encoded url from string
@@ -131,7 +150,7 @@ public final class DbConfig {
      * @return string trimmed without spaces
      */
     private static String requireNonBlank(String string, String label) {
-        if(string == null || string.isEmpty()) {
+        if(string == null || string.isBlank()) {
             throw new IllegalStateException("Missing config: " + label);
         }
         return string.trim();

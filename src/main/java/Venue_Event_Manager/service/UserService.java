@@ -8,10 +8,12 @@ import Venue_Event_Manager.exception.ForbiddenException;
 import Venue_Event_Manager.exception.NotFoundException;
 import Venue_Event_Manager.exception.ValidationException;
 
+import java.sql.Connection;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+/** Coordinates user profiles, registration and account moderation. */
 public class UserService {
 
     private final TransactionManager transactionManager;
@@ -157,10 +159,11 @@ public class UserService {
                 .withIsAdmin(false)
                 .withAccountStatus(AccountStatus.ACTIVE);
 
-        validate(userToInsert);
         String encodedPassword = authService.hashPassword(password);
-        return transactionManager.inTransaction(conn ->
-                userRepository.insert(conn,userToInsert,encodedPassword));
+        return transactionManager.inTransaction(conn -> {
+            validate(conn,userToInsert);
+            return userRepository.insert(conn,userToInsert,encodedPassword);
+        });
     }
 
     /**
@@ -171,9 +174,10 @@ public class UserService {
      * @throws ForbiddenException if password is wrong
      */
     public void update(User user, String password){
-        validate(user);
+        if(user == null) throw new ValidationException("User cannot be null");
 
         transactionManager.inTransaction(conn -> {
+            validate(conn,user);
             User storedUser = userRepository.findById(conn,user.getId())
                     .orElseThrow(() -> new NotFoundException("User with id " + user.getId() + " not found"));
 
@@ -196,12 +200,11 @@ public class UserService {
      * @throws ForbiddenException if admin privileges are missing or password is wrong
      */
     public void ban(long adminId,String adminPassword,long userId){
-        authService.requireAdminCredentials(adminId,adminPassword);
-        validateUserCanBeBanned(adminId,userId);
-
         transactionManager.inTransaction(conn -> {
-                userRepository.updateAccountStatus(conn,userId,AccountStatus.BANNED);
-                return null;
+            authService.requireAdminCredentials(conn,adminId,adminPassword);
+            validateUserCanBeBanned(conn,adminId,userId);
+            userRepository.updateAccountStatus(conn,userId,AccountStatus.BANNED);
+            return null;
         });
 
     }
@@ -214,8 +217,9 @@ public class UserService {
      * @throws ForbiddenException if admin privileges are missing or password is wrong
      */
     public void unban(long adminId,String adminPassword,long userId){
-        authService.requireAdminCredentials(adminId,adminPassword);
         transactionManager.inTransaction(conn -> {
+            authService.requireAdminCredentials(conn,adminId,adminPassword);
+            validateUserCanBeUnbanned(conn,adminId,userId);
             userRepository.updateAccountStatus(conn,userId,AccountStatus.ACTIVE);
             return null;
         });
@@ -250,15 +254,16 @@ public class UserService {
 
     /**
      * Validates all user fields before insert or update.
+     * @param conn active transaction connection used for uniqueness checks
      * @param user the user to validate
      * @throws ValidationException if one or more fields are not valid
      */
-    private void validate(User user){
+    private void validate(Connection conn, User user){
         if(user == null) throw new ValidationException("User cannot be null");
         validateUsername(user.getUsername());
         validateFirstName(user.getFirstname());
         validateLastName(user.getLastname());
-        validateEmail(user.getEmail(), user.getId());
+        validateEmail(conn,user.getEmail(), user.getId());
         validatePhone(user.getPhone());
         validateBirthday(user.getBirthday());
     }
@@ -295,17 +300,17 @@ public class UserService {
 
     /**
      * Validates email format and uniqueness.
+     * @param conn active transaction connection
      * @param email the email to validate
      * @param currentUserId the id of the user being validated
      * @throws ValidationException if email is empty, invalid or already used
      */
-    private void validateEmail(String email, long currentUserId){
+    private void validateEmail(Connection conn, String email, long currentUserId){
         if(email == null || email.isEmpty()) throw new ValidationException("Email cannot be empty");
         if(!email.matches("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) throw new ValidationException("Invalid email format");
-        if(transactionManager.inReadOnly(conn ->
-                userRepository.findByEmail(conn,email)
-                        .map(existingUser -> existingUser.getId() != currentUserId)
-                        .orElse(false))) {
+        if(userRepository.findByEmail(conn,email)
+                .map(existingUser -> existingUser.getId() != currentUserId)
+                .orElse(false)) {
             throw new ValidationException("Email already used");
         }
     }
@@ -334,20 +339,38 @@ public class UserService {
 
     /**
      * Validates if a user can be banned.
+     * @param conn active transaction connection
      * @param adminId the id of the admin performing the action
      * @param userId the id of the user to ban
      * @throws ForbiddenException if admin is trying to ban himself or another admin
      * @throws ConflictException if user is already banned
      */
-    private void validateUserCanBeBanned(long adminId, long userId){
+    private void validateUserCanBeBanned(Connection conn, long adminId, long userId){
         if(adminId == userId) throw new ForbiddenException("Admin cannot ban himself");
 
-        User user = transactionManager.inReadOnly(conn ->
-                userRepository.findById(conn,userId)
-                        .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found")));
+        User user = userRepository.findById(conn,userId)
+                .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found"));
 
         if(user.isAdmin()) throw new ForbiddenException("Cannot ban an admin user");
         if(user.getAccountStatus() == AccountStatus.BANNED) throw new ConflictException("User is already banned");
+    }
+
+    /**
+     * Validates if a user can be unbanned.
+     * @param conn active transaction connection
+     * @param adminId the id of the admin performing the action
+     * @param userId the id of the user to unban
+     * @throws ForbiddenException if admin is trying to unban himself or another admin
+     * @throws ConflictException if user is already active
+     */
+    private void validateUserCanBeUnbanned(Connection conn, long adminId, long userId){
+        if(adminId == userId) throw new ForbiddenException("Admin cannot unban himself");
+
+        User user = userRepository.findById(conn,userId)
+                .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found"));
+
+        if(user.isAdmin()) throw new ForbiddenException("Cannot unban an admin user");
+        if(user.getAccountStatus() == AccountStatus.ACTIVE) throw new ConflictException("User is already active");
     }
 
 

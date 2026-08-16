@@ -9,7 +9,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/** PostgreSQL repository implementation. */
 public class PgEventGuestRepository implements EventGuestRepository {
+
+    /** Creates a repository instance. */
+    public PgEventGuestRepository() {}
+
 
     /**
      * Lambda function to map event_guest sql results to an EventGuest object

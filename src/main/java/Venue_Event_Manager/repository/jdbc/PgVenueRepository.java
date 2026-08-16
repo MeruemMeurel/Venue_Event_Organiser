@@ -9,7 +9,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/** PostgreSQL repository implementation. */
 public class PgVenueRepository implements VenueRepository {
+
+    /** Creates a repository instance. */
+    public PgVenueRepository() {}
+
 
     /**
      * Lambda function to map a single row of venue (including address columns)

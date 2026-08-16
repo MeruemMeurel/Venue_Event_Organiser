@@ -10,7 +10,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/** PostgreSQL repository implementation. */
 public class PgServiceRepository implements ServiceRepository {
+
+    /** Creates a repository instance. */
+    public PgServiceRepository() {}
+
 
     /**
      * Lambda function to implement RowMapper interface

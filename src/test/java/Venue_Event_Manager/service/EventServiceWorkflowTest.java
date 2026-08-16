@@ -99,7 +99,7 @@ class EventServiceWorkflowTest {
 
     @Test
     void capacityCannotDropBelowSoldTickets() {
-        when(events.findById(any(Connection.class), eq(6L))).thenReturn(Optional.of(validEvent(EventStatus.PUBLISHED)));
+        when(events.findByIdForUpdate(any(Connection.class), eq(6L))).thenReturn(Optional.of(validEvent(EventStatus.PUBLISHED)));
         when(tickets.countTicketsForEvent(any(Connection.class), eq(6L))).thenReturn(10);
         assertThrows(ForbiddenException.class, () -> service.changeCapacity(6, 9));
         verify(events, never()).update(any(), any());

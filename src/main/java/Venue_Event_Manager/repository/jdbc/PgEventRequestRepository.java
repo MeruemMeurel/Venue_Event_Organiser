@@ -10,7 +10,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/** PostgreSQL repository implementation. */
 public class PgEventRequestRepository implements EventRequestRepository {
+
+    /** Creates a repository instance. */
+    public PgEventRequestRepository() {}
+
 
     /**
      * Lambda function to map event_request sql results to an EventRequest object
@@ -79,6 +84,27 @@ public class PgEventRequestRepository implements EventRequestRepository {
             }
         } catch (SQLException e) {
             throw new DaoException("Error while trying to find event request id = " + eventRequestId, e);
+        }
+    }
+
+    private static final String SQL_FIND_BY_ID_FOR_UPDATE = SQL_FIND_BY_ID + " FOR UPDATE";
+
+    /**
+     * Gets an event request and locks its row until the current transaction ends.
+     * @param conn the active transaction connection
+     * @param eventRequestId the id to find and lock
+     * @return the locked request, or an empty optional if it does not exist
+     */
+    @Override
+    public Optional<EventRequest> findByIdForUpdate(Connection conn, long eventRequestId) {
+        try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_ID_FOR_UPDATE)) {
+            ps.setLong(1, eventRequestId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) return Optional.empty();
+                return Optional.of(request_mapper.mapRow(rs));
+            }
+        } catch (SQLException e) {
+            throw new DaoException("Error while locking event request id = " + eventRequestId, e);
         }
     }
 

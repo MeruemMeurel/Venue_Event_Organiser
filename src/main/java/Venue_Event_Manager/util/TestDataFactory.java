@@ -18,11 +18,16 @@ import java.time.LocalDateTime;
  */
 public class TestDataFactory {
 
+    /** Utility class; instances are not required. */
+    private TestDataFactory() {}
+
     /**
      * USER PACKET
      */
     /**
      * Creates a standard, active, non-admin, unsaved User with default mock data.
+     * @param username username value
+     * @return operation result
      */
     public static User createDefaultUser(String username) {
         return new User(
@@ -40,6 +45,8 @@ public class TestDataFactory {
 
     /**
      * Creates an admin unsaved User with default mock data.
+     * @param username username value
+     * @return operation result
      */
     public static User createAdminUser(String username) {
         return createDefaultUser(username).withIsAdmin(true);
@@ -47,6 +54,8 @@ public class TestDataFactory {
 
     /**
      * Creates a banned unsaved User with default mock data.
+     * @param username username value
+     * @return operation result
      */
     public static User createBannedUser(String username) {
         return createDefaultUser(username).withAccountStatus(AccountStatus.BANNED);
@@ -58,6 +67,7 @@ public class TestDataFactory {
      */
     /**
      * Creates a standard Address record with full mock data.
+     * @return operation result
      */
     public static Address createDefaultAddress() {
         return new Address(
@@ -72,6 +82,8 @@ public class TestDataFactory {
 
     /**
      * Creates a standard unsaved Venue with default mock data.
+     * @param name name value
+     * @return operation result
      */
     public static Venue createDefaultVenue(String name) {
         return new Venue(
@@ -88,6 +100,8 @@ public class TestDataFactory {
      */
     /**
      * Creates a standard unsaved Equipment without a specific Venue and default mock data.
+     * @param name name value
+     * @return operation result
      */
     public static Equipment createGenericEquipment(String name) {
         return new Equipment(
@@ -101,6 +115,9 @@ public class TestDataFactory {
 
     /**
      * Creates a standard unsaved Equipment with a specific Venue and default mock data.
+     * @param name name value
+     * @param venueId venueId value
+     * @return operation result
      */
     public static Equipment createVenueEquipment(String name, long venueId) {
         return new Equipment(
@@ -114,6 +131,8 @@ public class TestDataFactory {
 
     /**
      * Creates a standard unsaved Service with default mock data.
+     * @param name name value
+     * @return operation result
      */
     public static Service createDefaultService(String name) {
         return new Service(
@@ -125,6 +144,9 @@ public class TestDataFactory {
 
     /**
      * Creates a standard unsaved Space bound to a venue with default mock data.
+     * @param name name value
+     * @param venueId venueId value
+     * @return operation result
      */
     public static Space createDefaultSpace(String name, long venueId) {
         return new Space(
@@ -141,6 +163,10 @@ public class TestDataFactory {
      */
     /**
      * Creates a standard unsaved Event with default mock data.
+     * @param name name value
+     * @param venueId venueId value
+     * @param creatorId creatorId value
+     * @return operation result
      */
     public static Event createDefaultEvent(String name, long venueId, long creatorId) {
         return new Event(
@@ -163,6 +189,10 @@ public class TestDataFactory {
 
     /**
      * Creates a standard unsaved EventGuest bound to an event with default mock data.
+     * @param firstname firstname value
+     * @param lastname lastname value
+     * @param eventId eventId value
+     * @return operation result
      */
     public static EventGuest createDefaultGuest(String firstname, String lastname, long eventId) {
         return new EventGuest(
@@ -182,6 +212,9 @@ public class TestDataFactory {
      */
     /**
      * Creates a standard unsaved Booking with default mock data.
+     * @param userId userId value
+     * @param eventId eventId value
+     * @return operation result
      */
     public static Booking createDefaultBooking(long userId, long eventId) {
         return new Booking(
@@ -196,6 +229,10 @@ public class TestDataFactory {
 
     /**
      * Creates a standard unsaved Ticket bound to a booking with default mock data.
+     * @param bookingId bookingId value
+     * @param firstname firstname value
+     * @param lastname lastname value
+     * @return operation result
      */
     public static Ticket createDefaultTicket(long bookingId, String firstname, String lastname) {
         return new Ticket(
@@ -213,6 +250,10 @@ public class TestDataFactory {
      */
     /**
      * Creates a default unsaved EventRequest with default mock data.
+     * @param requesterId requesterId value
+     * @param venueId venueId value
+     * @param name name value
+     * @return operation result
      */
     public static EventRequest createDefaultRequest(long requesterId, long venueId, String name) {
         return new EventRequest(
@@ -237,6 +278,10 @@ public class TestDataFactory {
      */
     /**
      * Creates a standard unsaved Report with default mock data.
+     * @param userId userId value
+     * @param adminId adminId value
+     * @param eventId eventId value
+     * @return operation result
      */
     public static Report createDefaultReport(long userId, long adminId, Long eventId) {
         return new Report(
@@ -252,6 +297,9 @@ public class TestDataFactory {
 
     /**
      * Creates a standard unsaved Review with default mock data.
+     * @param userId userId value
+     * @param eventId eventId value
+     * @return operation result
      */
     public static Review createDefaultReview(long userId, long eventId) {
         return new Review(

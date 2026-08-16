@@ -11,7 +11,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/** PostgreSQL repository implementation. */
 public class PgEquipmentRepository implements EquipmentRepository {
+
+    /** Creates a repository instance. */
+    public PgEquipmentRepository() {}
+
 
     /**
      * Lambda function to implement RowMapper interface

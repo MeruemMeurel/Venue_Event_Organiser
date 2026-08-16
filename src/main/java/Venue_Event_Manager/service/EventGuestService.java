@@ -14,6 +14,7 @@ import Venue_Event_Manager.repository.EventRepository;
 
 import java.util.List;
 
+/** Coordinates invitations and lifecycle transitions for private-event guests. */
 public class EventGuestService {
 
     private final TransactionManager transactionManager;

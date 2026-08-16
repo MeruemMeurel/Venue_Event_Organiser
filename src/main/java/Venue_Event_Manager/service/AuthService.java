@@ -65,16 +65,28 @@ public class AuthService {
      */
     void requireAdminCredentials(long adminId, String password) {
         transactionManager.inReadOnly(conn -> {
-            User admin = userRepository.findById(conn,adminId)
-                    .orElseThrow(() -> new NotFoundException("Admin does not exist"));
-
-            if(!admin.isAdmin()) {
-                throw new ForbiddenException("Admin privileges required for such action");
-            }
-
-            requireValidPassword(conn,adminId,password);
+            requireAdminCredentials(conn,adminId,password);
             return null;
         });
+    }
+
+    /**
+     * Requires valid administrator credentials using an existing transaction.
+     * @param conn active database connection
+     * @param adminId id of the user expected to be an administrator
+     * @param password administrator password to verify
+     * @throws NotFoundException if the administrator does not exist
+     * @throws ForbiddenException if the user is not an administrator or the password is incorrect
+     */
+    void requireAdminCredentials(Connection conn, long adminId, String password) {
+        User admin = userRepository.findById(conn,adminId)
+                .orElseThrow(() -> new NotFoundException("Admin does not exist"));
+
+        if(!admin.isAdmin()) {
+            throw new ForbiddenException("Admin privileges required for such action");
+        }
+
+        requireValidPassword(conn,adminId,password);
     }
 
     /**

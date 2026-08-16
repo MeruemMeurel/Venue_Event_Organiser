@@ -7,7 +7,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/** PostgreSQL repository implementation. */
 public class PgReviewRepository implements ReviewRepository {
+
+    /** Creates a repository instance. */
+    public PgReviewRepository() {}
+
 
     /**
      * Lambda function to map review sql results to a Review object

@@ -8,7 +8,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/** PostgreSQL repository implementation. */
 public class PgReportRepository implements ReportRepository {
+
+    /** Creates a repository instance. */
+    public PgReportRepository() {}
+
 
     /**
      * Lambda function to map report sql results to a Report object
