@@ -11,7 +11,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/** PostgreSQL repository implementation. */
 public class PgSpaceRepository implements SpaceRepository {
+
+    /** Creates a repository instance. */
+    public PgSpaceRepository() {}
+
 
     /**
      * Lambda function to implement RowMapper interface

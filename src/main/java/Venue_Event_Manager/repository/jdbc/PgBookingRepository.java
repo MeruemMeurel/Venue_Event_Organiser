@@ -8,12 +8,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/** PostgreSQL implementation of booking persistence. */
 public class PgBookingRepository implements BookingRepository {
+    /** Creates a booking repository. */
+    public PgBookingRepository() {}
 
     /**
      * Lambda function to map booking sql results to a Booking object
      */
-    public static final RowMapper<Booking> booking_mapper = rs -> new Booking(
+    private static final RowMapper<Booking> booking_mapper = rs -> new Booking(
             rs.getLong("id"),
             rs.getLong("user_id"),
             rs.getLong("event_id"),
@@ -23,7 +26,7 @@ public class PgBookingRepository implements BookingRepository {
     );
 
 
-    public static final String SQL_FIND_ALL = "SELECT id, user_id, event_id, created_at, status, total_price " +
+    private static final String SQL_FIND_ALL = "SELECT id, user_id, event_id, created_at, status, total_price " +
                                               "FROM booking";
     /**
      * Executes SQL query to get all bookings
@@ -47,7 +50,7 @@ public class PgBookingRepository implements BookingRepository {
     }
 
 
-    public static final String SQL_FIND_BY_ID = SQL_FIND_ALL + " WHERE id = ?";
+    private static final String SQL_FIND_BY_ID = SQL_FIND_ALL + " WHERE id = ?";
     /**
      * Executes SQL query to get booking with specific id
      * @param conn the db connection
@@ -93,7 +96,7 @@ public class PgBookingRepository implements BookingRepository {
     }
 
 
-    public static final String SQL_FIND_ALL_BY_USER_ID = SQL_FIND_ALL + " WHERE user_id = ?";
+    private static final String SQL_FIND_ALL_BY_USER_ID = SQL_FIND_ALL + " WHERE user_id = ?";
     /**
      * Executes SQL query to get all bookings made by specific User
      * @param conn the db connection
@@ -118,7 +121,7 @@ public class PgBookingRepository implements BookingRepository {
     }
 
 
-    public static final String SQL_FIND_ALL_BY_EVENT_ID = SQL_FIND_ALL + " WHERE event_id = ?";
+    private static final String SQL_FIND_ALL_BY_EVENT_ID = SQL_FIND_ALL + " WHERE event_id = ?";
     /**
      * Executes SQL query to get all bookings for an event
      * @param conn the db connection
@@ -143,7 +146,7 @@ public class PgBookingRepository implements BookingRepository {
     }
 
 
-    public static final String SQL_FIND_ALL_BY_STATUS = SQL_FIND_ALL + " WHERE status = ?::booking_status";
+    private static final String SQL_FIND_ALL_BY_STATUS = SQL_FIND_ALL + " WHERE status = ?::booking_status";
     /**
      * Executes SQL query to get all bookings with specific status
      * @param conn the db connection
@@ -168,7 +171,7 @@ public class PgBookingRepository implements BookingRepository {
     }
 
 
-    public static final String SQL_FIND_ALL_BY_USER_AND_STATUS = SQL_FIND_ALL + " WHERE user_id = ? AND status = ?::booking_status";
+    private static final String SQL_FIND_ALL_BY_USER_AND_STATUS = SQL_FIND_ALL + " WHERE user_id = ? AND status = ?::booking_status";
     /**
      * Executes SQL query to get all bookings with specific status from a user
      * @param conn the db connection
@@ -195,7 +198,7 @@ public class PgBookingRepository implements BookingRepository {
     }
 
 
-    public static final String SQL_FIND_ALL_BY_EVENT_AND_STATUS = SQL_FIND_ALL + " WHERE event_id = ? AND status = ?::booking_status";
+    private static final String SQL_FIND_ALL_BY_EVENT_AND_STATUS = SQL_FIND_ALL + " WHERE event_id = ? AND status = ?::booking_status";
     /**
      * Executes SQL query to get all bookings with specific status for an event
      * @param conn the db connection
@@ -222,7 +225,7 @@ public class PgBookingRepository implements BookingRepository {
     }
 
 
-    public static final String SQL_FIND_ALL_BY_USER_AND_EVENT = SQL_FIND_ALL + " WHERE user_id = ? AND event_id = ?";
+    private static final String SQL_FIND_ALL_BY_USER_AND_EVENT = SQL_FIND_ALL + " WHERE user_id = ? AND event_id = ?";
     /**
      * Executes SQL query to get all bookings from a user for an event
      * @param conn the db connection
@@ -249,7 +252,7 @@ public class PgBookingRepository implements BookingRepository {
     }
 
 
-    public static final String SQL_INSERT = "INSERT INTO booking (user_id, event_id, created_at, status, total_price) " +
+    private static final String SQL_INSERT = "INSERT INTO booking (user_id, event_id, created_at, status, total_price) " +
                                             "VALUES (?, ?, ?, ?::booking_status, ?) RETURNING id";
     /**
      * Executes SQL Query to add booking to database
@@ -276,7 +279,7 @@ public class PgBookingRepository implements BookingRepository {
     }
 
 
-    public static final String SQL_UPDATE = "UPDATE booking " +
+    private static final String SQL_UPDATE = "UPDATE booking " +
                                             "SET user_id = ?, event_id = ?, created_at = ?, status = ?::booking_status, total_price = ? " +
                                             "WHERE id = ?";
     /**
@@ -302,7 +305,7 @@ public class PgBookingRepository implements BookingRepository {
     }
 
 
-    public static final String SQL_UPDATE_STATUS = "UPDATE booking " +
+    private static final String SQL_UPDATE_STATUS = "UPDATE booking " +
                                                    "SET status = ?::booking_status " +
                                                    "WHERE id = ?";
     /**
@@ -346,7 +349,7 @@ public class PgBookingRepository implements BookingRepository {
     }
 
 
-    public static final String SQL_DELETE = "DELETE FROM booking " +
+    private static final String SQL_DELETE = "DELETE FROM booking " +
                                             "WHERE id = ?";
     /**
      * Executes SQL Query to delete booking from db from its id

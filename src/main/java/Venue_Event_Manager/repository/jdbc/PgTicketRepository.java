@@ -7,7 +7,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/** PostgreSQL repository implementation. */
 public class PgTicketRepository implements TicketRepository {
+
+    /** Creates a repository instance. */
+    public PgTicketRepository() {}
+
 
     /**
      * Lambda function to map ticket sql results to a Ticket object
@@ -119,7 +124,7 @@ public class PgTicketRepository implements TicketRepository {
             throw new DaoException("Error while trying to find tickets for event id = " + eventId, e);
         }    }
 
-    public static String SQL_COUNT_TICKETS =    "SELECT COUNT(*) AS total_tickets " +
+    private static final String SQL_COUNT_TICKETS =    "SELECT COUNT(*) AS total_tickets " +
                                                 "FROM ticket t " +
                                                 "INNER JOIN booking b ON b.id = t.booking_id " +
                                                 "WHERE b.event_id = ? " +

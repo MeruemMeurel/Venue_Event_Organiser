@@ -12,7 +12,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/** PostgreSQL repository implementation. */
 public class PgEventRepository implements EventRepository {
+
+    /** Creates a repository instance. */
+    public PgEventRepository() {}
+
 
     /**
      * Lambda function to map event sql results to an Event object
@@ -87,7 +92,7 @@ public class PgEventRepository implements EventRepository {
         }
     }
 
-    public static String SQL_FIND_BY_ID_FOR_UPDATE = SQL_FIND_ALL + " WHERE id = ?" +
+    private static final String SQL_FIND_BY_ID_FOR_UPDATE = SQL_FIND_ALL + " WHERE id = ?" +
                                                                     " FOR UPDATE";
 
     /**
@@ -502,6 +507,13 @@ public class PgEventRepository implements EventRepository {
                                                                         "WHERE id = ?";
 
     @Override
+    /**
+     * Performs the {@code updateStatusAndPublishedAt} operation.
+     * @param conn conn value
+     * @param eventId eventId value
+     * @param status status value
+     * @param publishedAt publishedAt value
+     */
     public void updateStatusAndPublishedAt(Connection conn, long eventId, EventStatus status, LocalDateTime publishedAt) {
         try (PreparedStatement ps = conn.prepareStatement(SQL_UPDATE_STATUS_AND_PUBLISHED_AT)) {
             ps.setString(1, status.name());

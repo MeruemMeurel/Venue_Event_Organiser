@@ -10,7 +10,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/** PostgreSQL repository implementation. */
 public class PgEventRequestRepository implements EventRequestRepository {
+
+    /** Creates a repository instance. */
+    public PgEventRequestRepository() {}
+
 
     /**
      * Lambda function to map event_request sql results to an EventRequest object
