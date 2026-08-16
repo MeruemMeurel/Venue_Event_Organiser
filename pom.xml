@@ -12,6 +12,11 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.version>5.10.2</junit.version>
         <jacoco.version>0.8.15</jacoco.version>
+        <db.host>localhost</db.host>
+        <db.port>5433</db.port>
+        <db.name>event_manager_db</db.name>
+        <db.user>admin</db.user>
+        <db.password>change_me</db.password>
     </properties>
 
     <dependencies>
@@ -84,9 +89,9 @@
                 <artifactId>flyway-maven-plugin</artifactId>
                 <version>9.22.3</version>
                 <configuration>
-                    <url>jdbc:postgresql://localhost:5433/event_manager_db</url>
-                    <user>admin</user>
-                    <password>change_me</password>
+                    <url>jdbc:postgresql://${db.host}:${db.port}/${db.name}</url>
+                    <user>${db.user}</user>
+                    <password>${db.password}</password>
                     <locations>
                         <location>filesystem:src/main/resources/db/migration</location>
                     </locations>
