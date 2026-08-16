@@ -8,6 +8,7 @@ import Venue_Event_Manager.exception.ForbiddenException;
 import Venue_Event_Manager.exception.NotFoundException;
 import Venue_Event_Manager.exception.ValidationException;
 
+import java.sql.Connection;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -157,10 +158,11 @@ public class UserService {
                 .withIsAdmin(false)
                 .withAccountStatus(AccountStatus.ACTIVE);
 
-        validate(userToInsert);
         String encodedPassword = authService.hashPassword(password);
-        return transactionManager.inTransaction(conn ->
-                userRepository.insert(conn,userToInsert,encodedPassword));
+        return transactionManager.inTransaction(conn -> {
+            validate(conn,userToInsert);
+            return userRepository.insert(conn,userToInsert,encodedPassword);
+        });
     }
 
     /**
@@ -171,9 +173,10 @@ public class UserService {
      * @throws ForbiddenException if password is wrong
      */
     public void update(User user, String password){
-        validate(user);
+        if(user == null) throw new ValidationException("User cannot be null");
 
         transactionManager.inTransaction(conn -> {
+            validate(conn,user);
             User storedUser = userRepository.findById(conn,user.getId())
                     .orElseThrow(() -> new NotFoundException("User with id " + user.getId() + " not found"));
 
@@ -251,15 +254,16 @@ public class UserService {
 
     /**
      * Validates all user fields before insert or update.
+     * @param conn active transaction connection used for uniqueness checks
      * @param user the user to validate
      * @throws ValidationException if one or more fields are not valid
      */
-    private void validate(User user){
+    private void validate(Connection conn, User user){
         if(user == null) throw new ValidationException("User cannot be null");
         validateUsername(user.getUsername());
         validateFirstName(user.getFirstname());
         validateLastName(user.getLastname());
-        validateEmail(user.getEmail(), user.getId());
+        validateEmail(conn,user.getEmail(), user.getId());
         validatePhone(user.getPhone());
         validateBirthday(user.getBirthday());
     }
@@ -296,17 +300,17 @@ public class UserService {
 
     /**
      * Validates email format and uniqueness.
+     * @param conn active transaction connection
      * @param email the email to validate
      * @param currentUserId the id of the user being validated
      * @throws ValidationException if email is empty, invalid or already used
      */
-    private void validateEmail(String email, long currentUserId){
+    private void validateEmail(Connection conn, String email, long currentUserId){
         if(email == null || email.isEmpty()) throw new ValidationException("Email cannot be empty");
         if(!email.matches("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) throw new ValidationException("Invalid email format");
-        if(transactionManager.inReadOnly(conn ->
-                userRepository.findByEmail(conn,email)
-                        .map(existingUser -> existingUser.getId() != currentUserId)
-                        .orElse(false))) {
+        if(userRepository.findByEmail(conn,email)
+                .map(existingUser -> existingUser.getId() != currentUserId)
+                .orElse(false)) {
             throw new ValidationException("Email already used");
         }
     }
