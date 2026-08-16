@@ -310,7 +310,7 @@ public class EventService {
      */
     public void rescheduleEvent(long eventId, LocalDateTime new_begin, LocalDateTime new_end){
         transactionManager.inTransaction(conn->{
-            Event old_event = eventRepository.findById(conn,eventId)
+            Event old_event = eventRepository.findByIdForUpdate(conn,eventId)
                     .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId));
             if (old_event.getEndDatetime().isBefore(LocalDateTime.now())) throw new ForbiddenException("Can't reschedule finished event");
             Event new_event = old_event.withBeginDateTime(new_begin).withEndDateTime(new_end);
@@ -329,7 +329,7 @@ public class EventService {
      */
     public void changeCapacity(long eventId, int capacity){
         transactionManager.inTransaction(conn->{
-            Event event = eventRepository.findById(conn,eventId)
+            Event event = eventRepository.findByIdForUpdate(conn,eventId)
                     .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId));
 
             if(capacity < ticketRepository.countTicketsForEvent(conn,eventId))
@@ -354,7 +354,7 @@ public class EventService {
         transactionManager.inTransaction(conn->{
             validateOrganiserId(conn,organiserId);
 
-            Event new_event = eventRepository.findById(conn,eventId)
+            Event new_event = eventRepository.findByIdForUpdate(conn,eventId)
                     .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId))
                     .withOrganiserId(organiserId);
             validate(new_event);
@@ -370,7 +370,7 @@ public class EventService {
      */
     public void removeOrganiser(long eventId){
         transactionManager.inTransaction(conn->{
-            Event new_event = eventRepository.findById(conn,eventId)
+            Event new_event = eventRepository.findByIdForUpdate(conn,eventId)
                     .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId))
                     .withOrganiserId(null);
             validate(new_event);
@@ -388,7 +388,7 @@ public class EventService {
      */
     public void updatePoster(long eventId, String filepath){
         transactionManager.inTransaction(conn->{
-            Event new_event = eventRepository.findById(conn,eventId)
+            Event new_event = eventRepository.findByIdForUpdate(conn,eventId)
                     .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId))
                     .withPosterFilepath(filepath);
             validate(new_event);
@@ -406,7 +406,7 @@ public class EventService {
      */
     public void setTicketPrice(long eventId, BigDecimal ticketPrice){
         transactionManager.inTransaction(conn->{
-            Event new_event = eventRepository.findById(conn,eventId)
+            Event new_event = eventRepository.findByIdForUpdate(conn,eventId)
                     .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId))
                     .withTicketPrice(ticketPrice);
             validate(new_event);
