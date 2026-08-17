@@ -40,7 +40,23 @@ public class ResourceService {
      */
     public ResourceService(SpaceRepository spaceRepository, EquipmentRepository equipmentRepository,
                            ServiceRepository serviceRepository, VenueRepository venueRepository, EventRepository eventRepository) {
-        this.transactionManager = TransactionManager.getInstance();
+        this(TransactionManager.getInstance(), spaceRepository, equipmentRepository, serviceRepository,
+                venueRepository, eventRepository);
+    }
+
+    /**
+     * Initializes the service with an explicit transaction manager.
+     * @param transactionManager transaction manager used to execute database work
+     * @param spaceRepository repository used to access space data
+     * @param equipmentRepository repository used to access equipment data
+     * @param serviceRepository repository used to access service data
+     * @param venueRepository repository used to access venue data
+     * @param eventRepository repository used to access event data
+     */
+    public ResourceService(TransactionManager transactionManager, SpaceRepository spaceRepository,
+                           EquipmentRepository equipmentRepository, ServiceRepository serviceRepository,
+                           VenueRepository venueRepository, EventRepository eventRepository) {
+        this.transactionManager = transactionManager;
         this.spaceRepository = spaceRepository;
         this.equipmentRepository = equipmentRepository;
         this.serviceRepository = serviceRepository;

@@ -21,7 +21,16 @@ public class VenueService {
      * @param venueRepository repository used to access venue data
      */
     public VenueService(VenueRepository venueRepository) {
-        this.transactionManager = TransactionManager.getInstance();
+        this(TransactionManager.getInstance(), venueRepository);
+    }
+
+    /**
+     * Initializes the service with an explicit transaction manager.
+     * @param transactionManager transaction manager used to execute database work
+     * @param venueRepository repository used to access venue data
+     */
+    public VenueService(TransactionManager transactionManager, VenueRepository venueRepository) {
+        this.transactionManager = transactionManager;
         this.venueRepository = venueRepository;
     }
 

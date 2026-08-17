@@ -25,11 +25,21 @@ public class UserService {
      * @param userRepository repository used to access user data
      */
     public UserService(UserRepository userRepository){
-        this(userRepository,new AuthService(userRepository));
+        this(TransactionManager.getInstance(), userRepository, new AuthService(userRepository));
     }
 
     UserService(UserRepository userRepository, AuthService authService){
-        this.transactionManager = TransactionManager.getInstance();
+        this(TransactionManager.getInstance(), userRepository, authService);
+    }
+
+    /**
+     * Initializes the user service with explicit infrastructure dependencies.
+     * @param transactionManager transaction manager used to execute database work
+     * @param userRepository repository used to access user data
+     * @param authService service used to hash new credentials
+     */
+    UserService(TransactionManager transactionManager, UserRepository userRepository, AuthService authService){
+        this.transactionManager = transactionManager;
         this.userRepository = userRepository;
         this.authService = authService;
     }

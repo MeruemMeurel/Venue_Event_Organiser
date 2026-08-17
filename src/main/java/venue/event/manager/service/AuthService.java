@@ -23,7 +23,7 @@ public class AuthService {
      * @param userRepository repository used to load and update user credentials
      */
     public AuthService(UserRepository userRepository) {
-        this(userRepository, new PasswordHasher());
+        this(TransactionManager.getInstance(), userRepository, new PasswordHasher());
     }
 
     /**
@@ -33,7 +33,18 @@ public class AuthService {
      * @param passwordHasher component used to hash and verify credentials
      */
     AuthService(UserRepository userRepository, PasswordHasher passwordHasher) {
-        this.transactionManager = TransactionManager.getInstance();
+        this(TransactionManager.getInstance(), userRepository, passwordHasher);
+    }
+
+    /**
+     * Initializes the authentication service with explicit infrastructure dependencies.
+     * @param transactionManager transaction manager used to execute database work
+     * @param userRepository repository used to access user credentials
+     * @param passwordHasher component used to hash and verify credentials
+     */
+    AuthService(TransactionManager transactionManager, UserRepository userRepository,
+                PasswordHasher passwordHasher) {
+        this.transactionManager = transactionManager;
         this.userRepository = userRepository;
         this.passwordHasher = passwordHasher;
     }

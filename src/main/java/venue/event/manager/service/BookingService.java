@@ -25,11 +25,11 @@ import java.util.List;
 /** Coordinates booking, ticket and capacity business rules. */
 public class BookingService {
 
-    private TransactionManager transactionManager;
-    private BookingRepository bookingRepository;
-    private TicketRepository ticketRepository;
-    private EventRepository eventRepository;
-    private UserRepository userRepository;
+    private final TransactionManager transactionManager;
+    private final BookingRepository bookingRepository;
+    private final TicketRepository ticketRepository;
+    private final EventRepository eventRepository;
+    private final UserRepository userRepository;
 
     /**
      * Initializes BookingService with all repositories needed to handle bookings and tickets.
@@ -40,7 +40,22 @@ public class BookingService {
      */
     public BookingService(BookingRepository bookingRepository, TicketRepository ticketRepository, EventRepository eventRepository,
                           UserRepository userRepository) {
-        this.transactionManager = TransactionManager.getInstance();
+        this(TransactionManager.getInstance(), bookingRepository, ticketRepository, eventRepository, userRepository);
+    }
+
+    /**
+     * Initializes BookingService with an explicit transaction manager and its repositories.
+     * This constructor allows callers such as unit tests to provide an isolated transaction boundary.
+     * @param transactionManager transaction manager used to execute database work
+     * @param bookingRepository repository used to access booking data
+     * @param ticketRepository repository used to access ticket data
+     * @param eventRepository repository used to access event data
+     * @param userRepository repository used to access user data
+     */
+    public BookingService(TransactionManager transactionManager, BookingRepository bookingRepository,
+                          TicketRepository ticketRepository, EventRepository eventRepository,
+                          UserRepository userRepository) {
+        this.transactionManager = transactionManager;
         this.bookingRepository = bookingRepository;
         this.ticketRepository = ticketRepository;
         this.eventRepository = eventRepository;
