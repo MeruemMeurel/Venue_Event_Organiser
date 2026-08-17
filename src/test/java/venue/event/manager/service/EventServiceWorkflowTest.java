@@ -17,6 +17,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static venue.event.manager.util.TestTransactionManagerFactory.create;
 
 class EventServiceWorkflowTest {
     private EventRepository events;
@@ -39,7 +40,8 @@ class EventServiceWorkflowTest {
                 .thenReturn(Optional.of(TestDataFactory.createDefaultVenue("Venue").withId(2)));
         when(users.findById(any(Connection.class), eq(1L)))
                 .thenReturn(Optional.of(TestDataFactory.createDefaultUser("creator").withId(1)));
-        service = new EventService(events, mock(EventRequestRepository.class), tickets, bookings, guests, venues, users);
+        service = new EventService(create(), events, mock(EventRequestRepository.class), tickets, bookings, guests,
+                venues, users);
     }
 
     @Test

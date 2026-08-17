@@ -27,7 +27,18 @@ public class EventGuestService {
      * @param eventRepository repository used to access event data for validation
      */
     public EventGuestService(EventGuestRepository eventGuestRepository, EventRepository eventRepository) {
-        this.transactionManager = TransactionManager.getInstance();
+        this(TransactionManager.getInstance(), eventGuestRepository, eventRepository);
+    }
+
+    /**
+     * Initializes the service with an explicit transaction manager.
+     * @param transactionManager transaction manager used to execute database work
+     * @param eventGuestRepository repository used to access guest data
+     * @param eventRepository repository used to access event data
+     */
+    public EventGuestService(TransactionManager transactionManager, EventGuestRepository eventGuestRepository,
+                             EventRepository eventRepository) {
+        this.transactionManager = transactionManager;
         this.eventGuestRepository = eventGuestRepository;
         this.eventRepository = eventRepository;
     }

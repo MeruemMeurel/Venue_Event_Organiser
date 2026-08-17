@@ -14,6 +14,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static venue.event.manager.util.TestTransactionManagerFactory.create;
 
 class UserServiceValidationTest {
     private UserService service;
@@ -22,7 +23,9 @@ class UserServiceValidationTest {
     @BeforeEach void setUp() {
         repository = mock(UserRepository.class);
         when(repository.findByEmail(any(Connection.class), anyString())).thenReturn(Optional.empty());
-        service = new UserService(repository, new AuthService(repository));
+        var transactionManager = create();
+        service = new UserService(transactionManager, repository,
+                new AuthService(transactionManager, repository, new PasswordHasher()));
     }
 
     @Test void nullUserShouldBeRejected() { assertThrows(ValidationException.class, () -> service.insert(null, "Password1!")); }

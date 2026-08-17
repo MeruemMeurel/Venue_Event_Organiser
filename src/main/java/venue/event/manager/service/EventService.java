@@ -40,7 +40,26 @@ public class EventService {
                         TicketRepository ticketRepository, BookingRepository bookingRepository,
                         EventGuestRepository eventGuestRepository, VenueRepository venueRepository,
                         UserRepository userRepository) {
-        transactionManager = TransactionManager.getInstance();
+        this(TransactionManager.getInstance(), eventRepository, eventRequestRepository, ticketRepository,
+                bookingRepository, eventGuestRepository, venueRepository, userRepository);
+    }
+
+    /**
+     * Initializes the service with an explicit transaction manager.
+     * @param transactionManager transaction manager used to execute database work
+     * @param eventRepository repository used to access event data
+     * @param eventRequestRepository repository used to access request data
+     * @param ticketRepository repository used to access ticket data
+     * @param bookingRepository repository used to access booking data
+     * @param eventGuestRepository repository used to access guest data
+     * @param venueRepository repository used to access venue data
+     * @param userRepository repository used to access user data
+     */
+    public EventService(TransactionManager transactionManager, EventRepository eventRepository,
+                        EventRequestRepository eventRequestRepository, TicketRepository ticketRepository,
+                        BookingRepository bookingRepository, EventGuestRepository eventGuestRepository,
+                        VenueRepository venueRepository, UserRepository userRepository) {
+        this.transactionManager = transactionManager;
         this.eventRepository = eventRepository;
         this.eventRequestRepository = eventRequestRepository;
         this.ticketRepository = ticketRepository;

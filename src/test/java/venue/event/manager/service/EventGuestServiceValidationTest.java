@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
+import static venue.event.manager.util.TestTransactionManagerFactory.create;
 
 class EventGuestServiceValidationTest {
 
@@ -17,7 +18,7 @@ class EventGuestServiceValidationTest {
 
     @BeforeEach
     void setUp() {
-        service = new EventGuestService(mock(EventGuestRepository.class), mock(EventRepository.class));
+        service = new EventGuestService(create(), mock(EventGuestRepository.class), mock(EventRepository.class));
     }
 
     @Test void nullGuestShouldBeRejected() {

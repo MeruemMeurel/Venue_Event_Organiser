@@ -21,6 +21,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static venue.event.manager.util.TestTransactionManagerFactory.create;
 
 class SecondaryServiceWorkflowTest {
 
@@ -29,7 +30,7 @@ class SecondaryServiceWorkflowTest {
         ReviewRepository reviews = mock(ReviewRepository.class);
         EventRepository events = mock(EventRepository.class);
         BookingRepository bookings = mock(BookingRepository.class);
-        ReviewService service = new ReviewService(reviews, events, bookings);
+        ReviewService service = new ReviewService(create(), reviews, events, bookings);
         when(events.findById(any(Connection.class), eq(2L))).thenReturn(Optional.of(endedEvent()));
         when(bookings.findAllByUserIdAndEventId(any(Connection.class), eq(1L), eq(2L)))
                 .thenReturn(List.of(TestDataFactory.createDefaultBooking(1, 2)
@@ -50,7 +51,7 @@ class SecondaryServiceWorkflowTest {
         ReviewRepository reviews = mock(ReviewRepository.class);
         EventRepository events = mock(EventRepository.class);
         BookingRepository bookings = mock(BookingRepository.class);
-        ReviewService service = new ReviewService(reviews, events, bookings);
+        ReviewService service = new ReviewService(create(), reviews, events, bookings);
         when(events.findById(any(Connection.class), anyLong())).thenReturn(Optional.of(endedEvent()));
         when(bookings.findAllByUserIdAndEventId(any(Connection.class), anyLong(), anyLong()))
                 .thenReturn(List.of(TestDataFactory.createDefaultBooking(1, 2)
@@ -72,7 +73,8 @@ class SecondaryServiceWorkflowTest {
     @Test
     void reviewUpdateShouldProtectOwnershipFields() {
         ReviewRepository reviews = mock(ReviewRepository.class);
-        ReviewService service = new ReviewService(reviews, mock(EventRepository.class), mock(BookingRepository.class));
+        ReviewService service = new ReviewService(create(), reviews, mock(EventRepository.class),
+                mock(BookingRepository.class));
         Review stored = TestDataFactory.createDefaultReview(1, 2).withId(3);
         when(reviews.findById(any(Connection.class), eq(3L))).thenReturn(Optional.of(stored));
         assertThrows(ValidationException.class, () -> service.updateReview(stored.withUserId(9)));
@@ -86,7 +88,7 @@ class SecondaryServiceWorkflowTest {
         ReportRepository reports = mock(ReportRepository.class);
         EventRepository events = mock(EventRepository.class);
         UserRepository users = mock(UserRepository.class);
-        ReportService service = new ReportService(reports, events, users);
+        ReportService service = new ReportService(create(), reports, events, users);
         when(users.findById(any(Connection.class), eq(2L)))
                 .thenReturn(Optional.of(TestDataFactory.createDefaultUser("target").withId(2)));
         when(users.findById(any(Connection.class), eq(8L)))
@@ -104,7 +106,7 @@ class SecondaryServiceWorkflowTest {
     void reportShouldRequireAdminAndNonAdminTarget() {
         ReportRepository reports = mock(ReportRepository.class);
         UserRepository users = mock(UserRepository.class);
-        ReportService service = new ReportService(reports, mock(EventRepository.class), users);
+        ReportService service = new ReportService(create(), reports, mock(EventRepository.class), users);
         when(users.findById(any(Connection.class), eq(8L)))
                 .thenReturn(Optional.of(TestDataFactory.createDefaultUser("not_admin").withId(8)));
         assertThrows(ForbiddenException.class,
@@ -128,7 +130,8 @@ class SecondaryServiceWorkflowTest {
         VenueRepository venues = mock(VenueRepository.class);
         when(venues.findById(any(Connection.class), eq(1L)))
                 .thenReturn(Optional.of(TestDataFactory.createDefaultVenue("Venue").withId(1)));
-        ResourceService service = new ResourceService(spaces, equipment, services, venues, mock(EventRepository.class));
+        ResourceService service = new ResourceService(create(), spaces, equipment, services, venues,
+                mock(EventRepository.class));
         Space space = TestDataFactory.createDefaultSpace("Hall", 1);
         Equipment item = TestDataFactory.createVenueEquipment("Projector", 1);
         venue.event.manager.domain.model.resource.Service support = TestDataFactory.createDefaultService("Support");
@@ -168,7 +171,8 @@ class SecondaryServiceWorkflowTest {
         EquipmentRepository equipment = mock(EquipmentRepository.class);
         ServiceRepository services = mock(ServiceRepository.class);
         EventRepository events = mock(EventRepository.class);
-        ResourceService service = new ResourceService(spaces, equipment, services, mock(VenueRepository.class), events);
+        ResourceService service = new ResourceService(create(), spaces, equipment, services,
+                mock(VenueRepository.class), events);
         Event event = endedEvent().withId(2);
         Space space = TestDataFactory.createDefaultSpace("Hall", event.getVenueId());
         Equipment item = TestDataFactory.createVenueEquipment("Projector", event.getVenueId());
@@ -185,7 +189,7 @@ class SecondaryServiceWorkflowTest {
     @Test
     void venueServiceShouldForwardValidatedCrudOperations() {
         VenueRepository venues = mock(VenueRepository.class);
-        VenueService service = new VenueService(venues);
+        VenueService service = new VenueService(create(), venues);
         Venue newVenue = TestDataFactory.createDefaultVenue("New venue");
         Venue stored = newVenue.withId(5);
         when(venues.insert(any(Connection.class), eq(newVenue))).thenReturn(5L);

@@ -14,6 +14,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static venue.event.manager.util.TestTransactionManagerFactory.create;
 
 class ResourceServiceValidationTest {
     private ResourceService service;
@@ -23,7 +24,7 @@ class ResourceServiceValidationTest {
         venues = mock(VenueRepository.class);
         when(venues.findById(any(Connection.class), anyLong()))
                 .thenReturn(Optional.of(TestDataFactory.createDefaultVenue("Venue").withId(1)));
-        service = new ResourceService(mock(SpaceRepository.class), mock(EquipmentRepository.class),
+        service = new ResourceService(create(), mock(SpaceRepository.class), mock(EquipmentRepository.class),
                 mock(ServiceRepository.class), venues, mock(EventRepository.class));
     }
 

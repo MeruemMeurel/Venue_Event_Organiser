@@ -16,6 +16,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static venue.event.manager.util.TestTransactionManagerFactory.create;
+
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
@@ -26,7 +28,7 @@ class BookingServiceValidationTest {
 
     @BeforeEach
     void setUp() {
-        service = new BookingService(mock(BookingRepository.class), mock(TicketRepository.class),
+        service = new BookingService(create(), mock(BookingRepository.class), mock(TicketRepository.class),
                 mock(EventRepository.class), mock(UserRepository.class));
     }
 

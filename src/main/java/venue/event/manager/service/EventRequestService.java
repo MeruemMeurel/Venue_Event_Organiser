@@ -32,7 +32,19 @@ public class EventRequestService {
      */
     public EventRequestService(EventRequestRepository eventRequestRepository, UserRepository userRepository,
                                VenueRepository venueRepository) {
-        this.transactionManager = TransactionManager.getInstance();
+        this(TransactionManager.getInstance(), eventRequestRepository, userRepository, venueRepository);
+    }
+
+    /**
+     * Initializes the service with an explicit transaction manager.
+     * @param transactionManager transaction manager used to execute database work
+     * @param eventRequestRepository repository used to access request data
+     * @param userRepository repository used to access user data
+     * @param venueRepository repository used to access venue data
+     */
+    public EventRequestService(TransactionManager transactionManager, EventRequestRepository eventRequestRepository,
+                               UserRepository userRepository, VenueRepository venueRepository) {
+        this.transactionManager = transactionManager;
         this.eventRequestRepository = eventRequestRepository;
         this.userRepository = userRepository;
         this.venueRepository = venueRepository;

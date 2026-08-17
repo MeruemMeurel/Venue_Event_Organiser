@@ -33,7 +33,19 @@ public class ReviewService {
      * @param bookingRepository repository used to access booking data
      */
     public ReviewService(ReviewRepository reviewRepository, EventRepository eventRepository, BookingRepository bookingRepository) {
-        this.transactionManager = TransactionManager.getInstance();
+        this(TransactionManager.getInstance(), reviewRepository, eventRepository, bookingRepository);
+    }
+
+    /**
+     * Initializes the service with an explicit transaction manager.
+     * @param transactionManager transaction manager used to execute database work
+     * @param reviewRepository repository used to access review data
+     * @param eventRepository repository used to access event data
+     * @param bookingRepository repository used to access booking data
+     */
+    public ReviewService(TransactionManager transactionManager, ReviewRepository reviewRepository,
+                         EventRepository eventRepository, BookingRepository bookingRepository) {
+        this.transactionManager = transactionManager;
         this.reviewRepository = reviewRepository;
         this.eventRepository = eventRepository;
         this.bookingRepository = bookingRepository;

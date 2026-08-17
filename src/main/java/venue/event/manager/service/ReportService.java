@@ -32,7 +32,19 @@ public class ReportService {
      * @param userRepository repository used to access user data
      */
     public ReportService(ReportRepository reportRepository, EventRepository eventRepository, UserRepository userRepository) {
-        this.transactionManager = TransactionManager.getInstance();
+        this(TransactionManager.getInstance(), reportRepository, eventRepository, userRepository);
+    }
+
+    /**
+     * Initializes the service with an explicit transaction manager.
+     * @param transactionManager transaction manager used to execute database work
+     * @param reportRepository repository used to access report data
+     * @param eventRepository repository used to access event data
+     * @param userRepository repository used to access user data
+     */
+    public ReportService(TransactionManager transactionManager, ReportRepository reportRepository,
+                         EventRepository eventRepository, UserRepository userRepository) {
+        this.transactionManager = transactionManager;
         this.reportRepository = reportRepository;
         this.userRepository = userRepository;
         this.eventRepository = eventRepository;

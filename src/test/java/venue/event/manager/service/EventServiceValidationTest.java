@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
+import static venue.event.manager.util.TestTransactionManagerFactory.create;
 
 class EventServiceValidationTest {
 
@@ -38,7 +39,7 @@ class EventServiceValidationTest {
         when(users.findById(any(Connection.class), anyLong()))
                 .thenReturn(Optional.of(TestDataFactory.createDefaultUser("creator").withId(1)));
         when(events.insert(any(Connection.class), any(Event.class))).thenReturn(42L);
-        service = new EventService(events, mock(EventRequestRepository.class), mock(TicketRepository.class),
+        service = new EventService(create(), events, mock(EventRequestRepository.class), mock(TicketRepository.class),
                 mock(BookingRepository.class), mock(EventGuestRepository.class), venues, users);
     }
 
