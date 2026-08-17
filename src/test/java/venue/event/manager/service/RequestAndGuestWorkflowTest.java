@@ -18,6 +18,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static venue.event.manager.util.TestTransactionManagerFactory.create;
 
 class RequestAndGuestWorkflowTest {
     private EventRequestRepository requests;
@@ -30,7 +31,7 @@ class RequestAndGuestWorkflowTest {
         requests = mock(EventRequestRepository.class);
         users = mock(UserRepository.class);
         venues = mock(VenueRepository.class);
-        requestService = new EventRequestService(requests, users, venues);
+        requestService = new EventRequestService(create(), requests, users, venues);
     }
 
     @Test
@@ -99,7 +100,7 @@ class RequestAndGuestWorkflowTest {
     void privateEventInvitationShouldForceInvitedStatus() {
         EventGuestRepository guests = mock(EventGuestRepository.class);
         EventRepository events = mock(EventRepository.class);
-        EventGuestService service = new EventGuestService(guests, events);
+        EventGuestService service = new EventGuestService(create(), guests, events);
         Event event = privateEvent();
         when(events.findByIdForUpdate(any(Connection.class), eq(3L))).thenReturn(Optional.of(event));
         when(guests.insert(any(Connection.class), any())).thenReturn(12L);
@@ -115,7 +116,7 @@ class RequestAndGuestWorkflowTest {
     void publicOrMissingEventShouldNotInsertGuest() {
         EventGuestRepository guests = mock(EventGuestRepository.class);
         EventRepository events = mock(EventRepository.class);
-        EventGuestService service = new EventGuestService(guests, events);
+        EventGuestService service = new EventGuestService(create(), guests, events);
         EventGuest guest = TestDataFactory.createDefaultGuest("Mario", "Rossi", 3);
         when(events.findByIdForUpdate(any(Connection.class), anyLong())).thenReturn(Optional.empty());
         assertThrows(NotFoundException.class, () -> service.inviteGuest(guest));
@@ -129,7 +130,7 @@ class RequestAndGuestWorkflowTest {
     void guestManagementShouldPreserveEventAndStatusAndUseLockedTransitions() {
         EventGuestRepository guests = mock(EventGuestRepository.class);
         EventRepository events = mock(EventRepository.class);
-        EventGuestService service = new EventGuestService(guests, events);
+        EventGuestService service = new EventGuestService(create(), guests, events);
         EventGuest stored = TestDataFactory.createDefaultGuest("Mario", "Rossi", 3).withId(7);
         when(guests.findByIdForUpdate(any(Connection.class), eq(7L))).thenReturn(Optional.of(stored));
 

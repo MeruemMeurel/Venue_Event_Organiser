@@ -14,6 +14,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static venue.event.manager.util.TestTransactionManagerFactory.create;
 
 class UserServiceWorkflowTest {
     private static final String PASSWORD = "Password1!";
@@ -26,7 +27,9 @@ class UserServiceWorkflowTest {
         users = mock(UserRepository.class);
         hasher = new PasswordHasher();
         when(users.findByEmail(any(Connection.class), anyString())).thenReturn(Optional.empty());
-        service = new UserService(users, new AuthService(users, hasher));
+        var transactionManager = create();
+        service = new UserService(transactionManager, users,
+                new AuthService(transactionManager, users, hasher));
     }
 
     @Test

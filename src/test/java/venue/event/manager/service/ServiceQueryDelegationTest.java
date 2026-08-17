@@ -19,6 +19,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static venue.event.manager.util.TestTransactionManagerFactory.create;
 
 class ServiceQueryDelegationTest {
 
@@ -27,7 +28,8 @@ class ServiceQueryDelegationTest {
         BookingRepository bookings = mock(BookingRepository.class);
         TicketRepository tickets = mock(TicketRepository.class);
         EventRepository events = mock(EventRepository.class);
-        BookingService service = new BookingService(bookings, tickets, events, mock(UserRepository.class));
+        BookingService service = new BookingService(create(), bookings, tickets, events,
+                mock(UserRepository.class));
         Booking booking = TestDataFactory.createDefaultBooking(1, 2).withId(3);
         Ticket ticket = TestDataFactory.createDefaultTicket(3, "Mario", "Rossi").withId(4);
         when(bookings.findAll(any())).thenReturn(List.of(booking));
@@ -64,7 +66,7 @@ class ServiceQueryDelegationTest {
     @Test
     void eventQueriesShouldDelegateEverySupportedFilter() {
         EventRepository events = mock(EventRepository.class);
-        EventService service = new EventService(events, mock(EventRequestRepository.class), mock(TicketRepository.class),
+        EventService service = new EventService(create(), events, mock(EventRequestRepository.class), mock(TicketRepository.class),
                 mock(BookingRepository.class), mock(EventGuestRepository.class), mock(VenueRepository.class),
                 mock(UserRepository.class));
         Event event = futureEvent();
@@ -95,7 +97,8 @@ class ServiceQueryDelegationTest {
     @Test
     void requestQueriesShouldDelegateEverySupportedFilter() {
         EventRequestRepository requests = mock(EventRequestRepository.class);
-        EventRequestService service = new EventRequestService(requests, mock(UserRepository.class), mock(VenueRepository.class));
+        EventRequestService service = new EventRequestService(create(), requests, mock(UserRepository.class),
+                mock(VenueRepository.class));
         EventRequest request = TestDataFactory.createDefaultRequest(1, 2, "Request").withId(3);
         LocalDateTime start = request.getBeginDatetime();
         LocalDateTime end = request.getEndDatetime();
@@ -124,7 +127,8 @@ class ServiceQueryDelegationTest {
         EquipmentRepository equipment = mock(EquipmentRepository.class);
         ServiceRepository services = mock(ServiceRepository.class);
         VenueRepository venues = mock(VenueRepository.class);
-        ResourceService service = new ResourceService(spaces, equipment, services, venues, mock(EventRepository.class));
+        ResourceService service = new ResourceService(create(), spaces, equipment, services, venues,
+                mock(EventRepository.class));
         Space space = TestDataFactory.createDefaultSpace("Hall", 1).withId(2);
         Equipment item = TestDataFactory.createVenueEquipment("Projector", 1).withId(3);
         venue.event.manager.domain.model.resource.Service support = TestDataFactory.createDefaultService("Support").withId(4);
@@ -154,7 +158,8 @@ class ServiceQueryDelegationTest {
     @Test
     void feedbackQueriesShouldDelegateAndReturnAggregates() {
         ReviewRepository reviews = mock(ReviewRepository.class);
-        ReviewService reviewService = new ReviewService(reviews, mock(EventRepository.class), mock(BookingRepository.class));
+        ReviewService reviewService = new ReviewService(create(), reviews, mock(EventRepository.class),
+                mock(BookingRepository.class));
         Review review = TestDataFactory.createDefaultReview(1, 2).withId(3);
         when(reviews.findAll(any())).thenReturn(List.of(review));
         when(reviews.findById(any(), eq(3L))).thenReturn(Optional.of(review));
@@ -171,7 +176,8 @@ class ServiceQueryDelegationTest {
         assertEquals(4.5, reviewService.getAverageRatingByEvent(2));
 
         ReportRepository reports = mock(ReportRepository.class);
-        ReportService reportService = new ReportService(reports, mock(EventRepository.class), mock(UserRepository.class));
+        ReportService reportService = new ReportService(create(), reports, mock(EventRepository.class),
+                mock(UserRepository.class));
         Report report = TestDataFactory.createDefaultReport(1, 8, 2L).withId(4);
         when(reports.findAll(any())).thenReturn(List.of(report));
         when(reports.findById(any(), eq(4L))).thenReturn(Optional.of(report));
@@ -189,7 +195,9 @@ class ServiceQueryDelegationTest {
     @Test
     void userVenueAndGuestQueriesShouldDelegateCorrectly() {
         UserRepository users = mock(UserRepository.class);
-        UserService userService = new UserService(users);
+        var transactionManager = create();
+        UserService userService = new UserService(transactionManager, users,
+                new AuthService(transactionManager, users, new PasswordHasher()));
         User user = TestDataFactory.createDefaultUser("user").withId(1);
         when(users.findAll(any())).thenReturn(List.of(user));
         when(users.findById(any(), eq(1L))).thenReturn(Optional.of(user));
@@ -208,7 +216,7 @@ class ServiceQueryDelegationTest {
         assertEquals(Optional.of(4.0), userService.getAverageRatingGivenByUser(1));
 
         VenueRepository venues = mock(VenueRepository.class);
-        VenueService venueService = new VenueService(venues);
+        VenueService venueService = new VenueService(create(), venues);
         Venue venue = TestDataFactory.createDefaultVenue("Venue").withId(2);
         when(venues.findAll(any())).thenReturn(List.of(venue));
         when(venues.findById(any(), eq(2L))).thenReturn(Optional.of(venue));
@@ -222,7 +230,7 @@ class ServiceQueryDelegationTest {
 
         EventGuestRepository guests = mock(EventGuestRepository.class);
         EventRepository events = mock(EventRepository.class);
-        EventGuestService guestService = new EventGuestService(guests, events);
+        EventGuestService guestService = new EventGuestService(create(), guests, events);
         EventGuest guest = TestDataFactory.createDefaultGuest("Mario", "Rossi", 2).withId(5);
         when(guests.findById(any(), eq(5L))).thenReturn(Optional.of(guest));
         when(events.findById(any(), eq(2L))).thenReturn(Optional.of(futureEvent()));

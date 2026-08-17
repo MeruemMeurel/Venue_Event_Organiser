@@ -19,6 +19,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static venue.event.manager.util.TestTransactionManagerFactory.create;
 
 class SecondaryServiceValidationTest {
 
@@ -34,10 +35,10 @@ class SecondaryServiceValidationTest {
         when(users.findById(any(Connection.class), eq(1L))).thenReturn(Optional.of(requester));
         when(venues.findById(any(Connection.class), anyLong()))
                 .thenReturn(Optional.of(TestDataFactory.createDefaultVenue("Venue").withId(1)));
-        requests = new EventRequestService(mock(EventRequestRepository.class), users, venues);
-        reviews = new ReviewService(mock(ReviewRepository.class), mock(EventRepository.class),
+        requests = new EventRequestService(create(), mock(EventRequestRepository.class), users, venues);
+        reviews = new ReviewService(create(), mock(ReviewRepository.class), mock(EventRepository.class),
                 mock(BookingRepository.class));
-        reports = new ReportService(mock(ReportRepository.class), mock(EventRepository.class), users);
+        reports = new ReportService(create(), mock(ReportRepository.class), mock(EventRepository.class), users);
     }
 
     @Test void nullRequestShouldBeRejected() { assertThrows(ValidationException.class, () -> requests.createRequest(null)); }

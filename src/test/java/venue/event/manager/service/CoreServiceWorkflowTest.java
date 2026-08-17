@@ -21,6 +21,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static venue.event.manager.util.TestTransactionManagerFactory.create;
 
 class CoreServiceWorkflowTest {
     private BookingRepository bookings;
@@ -35,7 +36,7 @@ class CoreServiceWorkflowTest {
         tickets = mock(TicketRepository.class);
         events = mock(EventRepository.class);
         users = mock(UserRepository.class);
-        bookingService = new BookingService(bookings, tickets, events, users);
+        bookingService = new BookingService(create(), bookings, tickets, events, users);
     }
 
     @Test

@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
+import static venue.event.manager.util.TestTransactionManagerFactory.create;
 
 class VenueServiceValidationTest {
 
@@ -19,7 +20,7 @@ class VenueServiceValidationTest {
 
     @BeforeEach
     void setUp() {
-        service = new VenueService(mock(VenueRepository.class));
+        service = new VenueService(create(), mock(VenueRepository.class));
     }
 
     @Test void nullVenueShouldBeRejected() {
