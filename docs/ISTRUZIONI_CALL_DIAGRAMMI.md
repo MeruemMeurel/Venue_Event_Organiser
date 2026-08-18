@@ -424,28 +424,28 @@ La fase diagrammi è pronta per alimentare la relazione quando sono disponibili:
 ## 12. Verbale minimo da compilare a fine call
 
 ```text
-Data:
+Data:   18/08
 Partecipanti:
 
 Decisioni:
-- Lingua degli artefatti:
-- Termine scelto per Organiser:
-- Rappresentazione di Organiser:
-- Trattamento del login:
-- Trattamento dei mockup:
-- Numerazione use case approvata: sì/no
-- Macchine a stati approvate: sì/no
+- Lingua degli artefatti: Italiano/Inglese per nomi tecnici e di Attori
+- Termine scelto per Organiser: Organiser
+- Rappresentazione di Organiser: Specifica dello User (da fixare pero il codice)
+- Trattamento del login: per ora si ignora dopo si può magari considerare metterllo fra le specifiche future
+- Trattamento dei mockup: uguale
+- Numerazione use case approvata: sì
+- Macchine a stati approvate: si
 
 Assegnazioni:
-- Blocco A, responsabile/revisore/scadenza:
-- Blocco B, responsabile/revisore/scadenza:
-- Blocco C, responsabile/revisore/scadenza:
+- Blocco A, responsabile/revisore/scadenza: manuel
+- Blocco B, responsabile/revisore/scadenza: marco
+- Blocco C, responsabile/revisore/scadenza: carma
 
 Strumenti:
-- UML:
-- ER:
-- Template:
-- Formato esportazione:
+- UML: PlantUML
+- ER: diagrams.net  
+- Template: per ora come si vole dopo con LaTeX direttamente
+- Formato esportazione: sorgente + svg. md per testo
 
 Punti ancora aperti:
 -
