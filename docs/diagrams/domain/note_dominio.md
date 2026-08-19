@@ -34,3 +34,18 @@ Questo contesto transazionale rappresenta il nucleo operativo del sistema e ne g
 Tutti i modelli di dominio sono stati progettati per essere **immutabili**:
 1.  **Assenza di Setter:** I campi sono dichiarati `final` e possono essere valorizzati solo in fase di costruzione.
 2.  **Metodi Wither:** Qualsiasi variazione di stato (es. il ban di un utente o il cambio di stato di un evento) restituisce una nuova copia dell'oggetto modificato tramite metodi dedicati (es. `withStatus`), lasciando l'istanza originale inalterata. Ciò previene effetti collaterali nello stato della memoria e semplifica la programmazione concorrente e i test unitari.
+
+## 5. Matrice di Tracciabilità delle Regole di Business (Domain Layer)
+
+La tabella seguente mostra come le principali regole di business (Business Rules - BR) siano presidiate dalle entità del dominio e verificate all'interno della suite di test unitari.
+
+| Codice Regola | Descrizione Sintetica | Entità Coinvolta | Test Unitario di Riferimento (Domain) |
+|---|---|---|---|
+| **BR-01** | Nuovo utente registrato sempre in stato ACTIVE | `User` | `UserTest.testDefaultActiveStatus` |
+| **BR-04** | Password memorizzate solo tramite hash PBKDF2 | `User` | `PasswordHasherTest.testHashConsistency` |
+| **BR-07** | Utente BANNED non può effettuare prenotazioni | `User` / `Booking` | `BookingServiceValidationTest.testBannedUserCannotBook` |
+| **BR-08** | Validazione formale dell'indirizzo (CAP, città) | `Address` | `AddressTest.testInvalidZipCodeRaisesException` |
+| **BR-12** | Nuovo evento forzato in stato DRAFT | `Event` | `EventTest.testInitialStateIsDraft` |
+| **BR-16** | Requisiti minimi di pubblicazione dell'evento | `Event` | `EventServiceValidationTest.testPublishingConditions` |
+| **BR-18** | Cancellazione evento annulla booking a cascata | `Event` / `Booking` | `EventServiceWorkflowTest.testCascadeCancellation` |
+| **BR-28** | Unicità della recensione per utente-evento | `Review` | `PostgresReviewConstraintIntegrationTest` |
