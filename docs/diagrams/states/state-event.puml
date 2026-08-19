@@ -1,0 +1,33 @@
+@startuml
+skinparam style strictuml
+skinparam shadowing false
+skinparam DefaultFontName "Helvetica"
+skinparam DefaultFontSize 12
+
+skinparam state {
+    BackgroundColor #F5F7FA
+    BorderColor #A0AEC0
+    FontColor #2D3748
+    FontSize 13
+    FontStyle bold
+
+    ArrowColor #4A5568
+    ArrowThickness 1.6
+    ArrowFontColor #4A5568
+    ArrowFontSize 11
+}
+
+skinparam ranksep 100
+skinparam nodesep 120
+
+[*] --> DRAFT : creazione
+
+DRAFT --> CONFIRMED : "confirmEvent() [dati validi]"
+CONFIRMED --> PUBLISHED : "publishEvent() [dati completi] / setPublishedAt(now)"
+
+DRAFT -right-> CANCELLED : "cancelEvent()"
+CONFIRMED -right-> CANCELLED : "cancelEvent() / cancelBookingsAndGuests()"
+PUBLISHED -right-> CANCELLED : "cancelEvent() / cancelBookingsAndGuests()"
+
+CANCELLED --> [*]
+@endum
