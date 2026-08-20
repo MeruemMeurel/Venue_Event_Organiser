@@ -230,7 +230,7 @@ class ServiceQueryDelegationTest {
 
         EventGuestRepository guests = mock(EventGuestRepository.class);
         EventRepository events = mock(EventRepository.class);
-        EventGuestService guestService = new EventGuestService(create(), guests, events);
+        EventGuestService guestService = new EventGuestService(create(), guests, events, mock(UserRepository.class));
         EventGuest guest = TestDataFactory.createDefaultGuest("Mario", "Rossi", 2).withId(5);
         when(guests.findById(any(), eq(5L))).thenReturn(Optional.of(guest));
         when(events.findById(any(), eq(2L))).thenReturn(Optional.of(futureEvent()));

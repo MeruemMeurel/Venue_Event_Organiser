@@ -100,13 +100,16 @@ class RequestAndGuestWorkflowTest {
     void privateEventInvitationShouldForceInvitedStatus() {
         EventGuestRepository guests = mock(EventGuestRepository.class);
         EventRepository events = mock(EventRepository.class);
-        EventGuestService service = new EventGuestService(create(), guests, events);
+        UserRepository guestUsers = mock(UserRepository.class);
+        EventGuestService service = new EventGuestService(create(), guests, events, guestUsers);
         Event event = privateEvent();
         when(events.findByIdForUpdate(any(Connection.class), eq(3L))).thenReturn(Optional.of(event));
+        when(guestUsers.findById(any(Connection.class), eq(8L)))
+                .thenReturn(Optional.of(TestDataFactory.createAdminUser("admin").withId(8)));
         when(guests.insert(any(Connection.class), any())).thenReturn(12L);
         EventGuest input = TestDataFactory.createDefaultGuest("Mario", "Rossi", 3)
                 .withStatus(EventGuestStatus.CONFIRMED);
-        assertEquals(12L, service.inviteGuest(input));
+        assertEquals(12L, service.inviteGuest(8, input));
         ArgumentCaptor<EventGuest> captor = ArgumentCaptor.forClass(EventGuest.class);
         verify(guests).insert(any(Connection.class), captor.capture());
         assertEquals(EventGuestStatus.INVITED, captor.getValue().getStatus());
@@ -116,13 +119,16 @@ class RequestAndGuestWorkflowTest {
     void publicOrMissingEventShouldNotInsertGuest() {
         EventGuestRepository guests = mock(EventGuestRepository.class);
         EventRepository events = mock(EventRepository.class);
-        EventGuestService service = new EventGuestService(create(), guests, events);
+        UserRepository guestUsers = mock(UserRepository.class);
+        EventGuestService service = new EventGuestService(create(), guests, events, guestUsers);
         EventGuest guest = TestDataFactory.createDefaultGuest("Mario", "Rossi", 3);
         when(events.findByIdForUpdate(any(Connection.class), anyLong())).thenReturn(Optional.empty());
-        assertThrows(NotFoundException.class, () -> service.inviteGuest(guest));
+        assertThrows(NotFoundException.class, () -> service.inviteGuest(8, guest));
         when(events.findByIdForUpdate(any(Connection.class), anyLong()))
                 .thenReturn(Optional.of(privateEvent().withVisibility(EventVisibility.PUBLIC)));
-        assertThrows(ValidationException.class, () -> service.inviteGuest(guest));
+        when(guestUsers.findById(any(Connection.class), eq(8L)))
+                .thenReturn(Optional.of(TestDataFactory.createAdminUser("admin").withId(8)));
+        assertThrows(ValidationException.class, () -> service.inviteGuest(8, guest));
         verify(guests, never()).insert(any(), any());
     }
 
@@ -130,28 +136,53 @@ class RequestAndGuestWorkflowTest {
     void guestManagementShouldPreserveEventAndStatusAndUseLockedTransitions() {
         EventGuestRepository guests = mock(EventGuestRepository.class);
         EventRepository events = mock(EventRepository.class);
-        EventGuestService service = new EventGuestService(create(), guests, events);
+        UserRepository guestUsers = mock(UserRepository.class);
+        EventGuestService service = new EventGuestService(create(), guests, events, guestUsers);
         EventGuest stored = TestDataFactory.createDefaultGuest("Mario", "Rossi", 3).withId(7);
         when(guests.findByIdForUpdate(any(Connection.class), eq(7L))).thenReturn(Optional.of(stored));
+        when(events.findByIdForUpdate(any(Connection.class), eq(3L))).thenReturn(Optional.of(privateEvent()));
+        when(guestUsers.findById(any(Connection.class), eq(8L)))
+                .thenReturn(Optional.of(TestDataFactory.createAdminUser("admin").withId(8)));
 
-        service.updateGuest(stored.withEventId(99).withStatus(EventGuestStatus.CONFIRMED).withNote("Updated"));
+        service.updateGuest(8, stored.withEventId(99).withStatus(EventGuestStatus.CONFIRMED).withNote("Updated"));
         ArgumentCaptor<EventGuest> captor = ArgumentCaptor.forClass(EventGuest.class);
         verify(guests).update(any(Connection.class), captor.capture());
         assertEquals(3L, captor.getValue().getEventId());
         assertEquals(EventGuestStatus.INVITED, captor.getValue().getStatus());
 
-        service.confirmInvitation(7);
+        service.confirmInvitation(8, 7);
         verify(guests).updateEventGuestStatus(any(Connection.class), eq(7L), eq(EventGuestStatus.CONFIRMED));
 
         reset(guests);
         when(guests.findByIdForUpdate(any(Connection.class), eq(7L)))
                 .thenReturn(Optional.of(stored.withStatus(EventGuestStatus.CONFIRMED)));
-        service.cancelInvitation(7);
+        service.cancelInvitation(8, 7);
         verify(guests).updateEventGuestStatus(any(Connection.class), eq(7L), eq(EventGuestStatus.CANCELLED));
 
-        when(guests.findById(any(Connection.class), eq(7L))).thenReturn(Optional.of(stored));
-        service.removeGuest(7);
+        service.removeGuest(8, 7);
         verify(guests).deleteById(any(Connection.class), eq(7L));
+    }
+
+    @Test
+    void onlyAdminOrAssignedOrganiserShouldManageGuests() {
+        EventGuestRepository guests = mock(EventGuestRepository.class);
+        EventRepository events = mock(EventRepository.class);
+        UserRepository guestUsers = mock(UserRepository.class);
+        EventGuestService service = new EventGuestService(create(), guests, events, guestUsers);
+        Event assignedEvent = privateEvent().withOrganiserId(4L);
+        EventGuest guest = TestDataFactory.createDefaultGuest("Mario", "Rossi", 3).withId(7);
+        when(events.findByIdForUpdate(any(Connection.class), eq(3L))).thenReturn(Optional.of(assignedEvent));
+        when(guestUsers.findById(any(Connection.class), eq(4L)))
+                .thenReturn(Optional.of(TestDataFactory.createDefaultUser("organiser").withId(4)));
+        when(guests.insert(any(Connection.class), any())).thenReturn(12L);
+
+        assertEquals(12L, service.inviteGuest(4, guest));
+
+        when(guests.findByIdForUpdate(any(Connection.class), eq(7L))).thenReturn(Optional.of(guest));
+        when(guestUsers.findById(any(Connection.class), eq(5L)))
+                .thenReturn(Optional.of(TestDataFactory.createDefaultUser("other").withId(5)));
+        assertThrows(ForbiddenException.class, () -> service.removeGuest(5, 7));
+        verify(guests, never()).deleteById(any(), anyLong());
     }
 
     private void assertUpdatedRequest(EventRequestStatus status, BigDecimal quote) {
