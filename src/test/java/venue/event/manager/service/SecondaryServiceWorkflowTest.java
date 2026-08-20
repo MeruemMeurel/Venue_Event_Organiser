@@ -40,7 +40,7 @@ class SecondaryServiceWorkflowTest {
         when(reviews.insert(any(Connection.class), any())).thenReturn(10L);
 
         LocalDateTime before = LocalDateTime.now();
-        assertEquals(10L, service.addReview(TestDataFactory.createDefaultReview(1, 2).withCreatedAt(null)));
+        assertEquals(10L, service.addReview(1, TestDataFactory.createDefaultReview(1, 2).withCreatedAt(null)));
         ArgumentCaptor<Review> captor = ArgumentCaptor.forClass(Review.class);
         verify(reviews).insert(any(Connection.class), captor.capture());
         assertFalse(captor.getValue().getCreatedAt().isBefore(before));
@@ -57,7 +57,7 @@ class SecondaryServiceWorkflowTest {
                 .thenReturn(List.of(TestDataFactory.createDefaultBooking(1, 2)
                         .withStatus(BookingStatus.CANCELLED)));
         assertThrows(ForbiddenException.class,
-                () -> service.addReview(TestDataFactory.createDefaultReview(1, 2)));
+                () -> service.addReview(1, TestDataFactory.createDefaultReview(1, 2)));
         verify(reviews, never()).insert(any(), any());
 
         when(bookings.findAllByUserIdAndEventId(any(Connection.class), anyLong(), anyLong()))
@@ -66,7 +66,7 @@ class SecondaryServiceWorkflowTest {
         when(reviews.findByUserIdAndEventId(any(Connection.class), anyLong(), anyLong()))
                 .thenReturn(Optional.of(TestDataFactory.createDefaultReview(1, 2).withId(3)));
         assertThrows(ConflictException.class,
-                () -> service.addReview(TestDataFactory.createDefaultReview(1, 2)));
+                () -> service.addReview(1, TestDataFactory.createDefaultReview(1, 2)));
         verify(reviews, never()).insert(any(), any());
     }
 
@@ -77,10 +77,29 @@ class SecondaryServiceWorkflowTest {
                 mock(BookingRepository.class));
         Review stored = TestDataFactory.createDefaultReview(1, 2).withId(3);
         when(reviews.findById(any(Connection.class), eq(3L))).thenReturn(Optional.of(stored));
-        assertThrows(ValidationException.class, () -> service.updateReview(stored.withUserId(9)));
+        assertThrows(ValidationException.class, () -> service.updateReview(1, stored.withUserId(9)));
         verify(reviews, never()).update(any(), any());
-        service.updateReview(stored.withComment("Updated"));
+        service.updateReview(1, stored.withComment("Updated"));
         verify(reviews).update(any(Connection.class), eq(stored.withComment("Updated")));
+    }
+
+    @Test
+    void onlyAuthorShouldCreateUpdateOrDeleteReview() {
+        ReviewRepository reviews = mock(ReviewRepository.class);
+        ReviewService service = new ReviewService(create(), reviews, mock(EventRepository.class),
+                mock(BookingRepository.class));
+        Review stored = TestDataFactory.createDefaultReview(1, 2).withId(3);
+
+        assertThrows(ForbiddenException.class, () -> service.addReview(9, stored.withId(0)));
+
+        when(reviews.findById(any(Connection.class), eq(3L))).thenReturn(Optional.of(stored));
+        assertThrows(ForbiddenException.class, () -> service.updateReview(9, stored.withComment("Forbidden")));
+        assertThrows(ForbiddenException.class, () -> service.deleteReview(9, 3));
+        verify(reviews, never()).update(any(), any());
+        verify(reviews, never()).deleteById(any(), anyLong());
+
+        service.deleteReview(1, 3);
+        verify(reviews).deleteById(any(Connection.class), eq(3L));
     }
 
     @Test

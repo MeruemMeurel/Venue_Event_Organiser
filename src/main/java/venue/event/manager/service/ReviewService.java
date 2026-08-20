@@ -141,6 +141,7 @@ public class ReviewService {
 
     /**
      * Inserts a new review in database.
+     * @param actorId user publishing the review
      * @param review the review to insert
      * @return generated id of the new review
      * @throws ValidationException if review data are not valid
@@ -148,8 +149,9 @@ public class ReviewService {
      * @throws ForbiddenException if user did not attend the event
      * @throws ConflictException if user has already reviewed the event
      */
-    public long addReview(Review review){
+    public long addReview(long actorId, Review review){
         validateReviewNotNull(review);
+        requireReviewOwner(actorId,review.getUserId());
 
         return transactionManager.inTransaction(conn -> {
             validateForInsert(conn,review);
@@ -160,15 +162,17 @@ public class ReviewService {
 
     /**
      * Updates an existing review in database.
+     * @param actorId author performing the update
      * @param review the review object with updated data
      * @throws ValidationException if review data or id are not valid
      */
-    public void updateReview(Review review){
+    public void updateReview(long actorId, Review review){
         validateForUpdate(review);
 
         transactionManager.inTransaction(conn -> {
             Review storedReview = reviewRepository.findById(conn,review.getId())
                     .orElseThrow(() -> new NotFoundException("Review with id " + review.getId() + " not found"));
+            requireReviewOwner(actorId,storedReview.getUserId());
 
             if(storedReview.getUserId() != review.getUserId()
                     || storedReview.getEventId() != review.getEventId()
@@ -183,16 +187,28 @@ public class ReviewService {
 
     /**
      * Deletes a review from database.
+     * @param actorId author performing the deletion
      * @param reviewId the id of the review to delete
      * @throws NotFoundException if no review is found with such id
      */
-    public void deleteReview(long reviewId){
+    public void deleteReview(long actorId, long reviewId){
         transactionManager.inTransaction(conn -> {
-            reviewRepository.findById(conn,reviewId)
+            Review storedReview = reviewRepository.findById(conn,reviewId)
                     .orElseThrow(() -> new NotFoundException("Review with id " + reviewId + " not found"));
+            requireReviewOwner(actorId,storedReview.getUserId());
             reviewRepository.deleteById(conn,reviewId);
             return null;
         });
+    }
+
+    /**
+     * Verifies that the acting user is the review author.
+     * @param actorId user performing the operation
+     * @param ownerId persisted or requested review author
+     * @throws ForbiddenException if the actor is not the review author
+     */
+    private void requireReviewOwner(long actorId, long ownerId){
+        if(actorId != ownerId) throw new ForbiddenException("Only the review author can manage this review");
     }
 
     /**
