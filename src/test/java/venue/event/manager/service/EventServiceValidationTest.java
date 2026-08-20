@@ -4,6 +4,7 @@ import venue.event.manager.domain.model.event.Event;
 import venue.event.manager.domain.model.event.EventStatus;
 import venue.event.manager.domain.model.user.User;
 import venue.event.manager.domain.model.venue.Venue;
+import venue.event.manager.exception.ForbiddenException;
 import venue.event.manager.exception.ValidationException;
 import venue.event.manager.repository.*;
 import venue.event.manager.util.TestDataFactory;
@@ -37,7 +38,7 @@ class EventServiceValidationTest {
         when(venues.findById(any(Connection.class), anyLong()))
                 .thenReturn(Optional.of(TestDataFactory.createDefaultVenue("Venue").withId(1)));
         when(users.findById(any(Connection.class), anyLong()))
-                .thenReturn(Optional.of(TestDataFactory.createDefaultUser("creator").withId(1)));
+                .thenReturn(Optional.of(TestDataFactory.createAdminUser("creator").withId(1)));
         when(events.insert(any(Connection.class), any(Event.class))).thenReturn(42L);
         service = new EventService(create(), events, mock(EventRequestRepository.class), mock(TicketRepository.class),
                 mock(BookingRepository.class), mock(EventGuestRepository.class), venues, users);
@@ -86,6 +87,13 @@ class EventServiceValidationTest {
     @Test void missingCreatorShouldBeRejected() {
         when(users.findById(any(Connection.class), anyLong())).thenReturn(Optional.empty());
         assertThrows(ValidationException.class, () -> service.createEvent(validEvent()));
+    }
+
+    @Test void nonAdminCreatorShouldBeRejected() {
+        when(users.findById(any(Connection.class), eq(1L)))
+                .thenReturn(Optional.of(TestDataFactory.createDefaultUser("creator").withId(1)));
+        assertThrows(ForbiddenException.class, () -> service.createEvent(validEvent()));
+        verify(events, never()).insert(any(), any());
     }
 
     @Test void adminOrganiserShouldBeRejected() {
