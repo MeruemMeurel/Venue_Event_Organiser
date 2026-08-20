@@ -284,10 +284,9 @@ public class BookingService {
      * @param bookingId the id of the booking to update
      * @param bookingStatus the new status to set
      */
-    private void updateStatus(long bookingId, BookingStatus bookingStatus){
+    private void updateStatus(long actorId, long bookingId, BookingStatus bookingStatus){
         transactionManager.inTransaction(conn->{
-            Booking booking = bookingRepository.findByIdForUpdate(conn,bookingId)
-                    .orElseThrow(() -> new NotFoundException("No booking with id " + bookingId + " exists"));
+            Booking booking = requireBookingManager(conn,bookingId,actorId);
 
             validateBookingStatusTransition(booking.getStatus(),bookingStatus);
             bookingRepository.updateStatus(conn,bookingId,bookingStatus);
@@ -297,29 +296,53 @@ public class BookingService {
 
     /**
      * Confirms a booking by changing its status to CONFIRMED.
+     * @param actorId booking owner or administrator performing the operation
      * @param bookingId the id of the booking to confirm
      */
-    public void confirmBooking(long bookingId){
-        updateStatus(bookingId,BookingStatus.CONFIRMED);
+    public void confirmBooking(long actorId, long bookingId){
+        updateStatus(actorId,bookingId,BookingStatus.CONFIRMED);
     }
 
     /**
      * Cancels a booking by changing its status to CANCELLED.
+     * @param actorId booking owner or administrator performing the operation
      * @param bookingId the id of the booking to cancel
      */
-    public void cancelBooking(long bookingId){
-        updateStatus(bookingId,BookingStatus.CANCELLED);
+    public void cancelBooking(long actorId, long bookingId){
+        updateStatus(actorId,bookingId,BookingStatus.CANCELLED);
     }
 
     /**
      * Deletes a booking from database.
+     * @param actorId booking owner or administrator performing the operation
      * @param bookingId the id of the booking to delete
      */
-    public void deleteBooking(long bookingId){
+    public void deleteBooking(long actorId, long bookingId){
         transactionManager.inTransaction(conn->{
+            requireBookingManager(conn,bookingId,actorId);
             bookingRepository.delete(conn,bookingId);
             return null;
         });
+    }
+
+    /**
+     * Loads and locks a booking, then verifies that the actor owns it or is an administrator.
+     * @param conn active transaction connection
+     * @param bookingId booking to authorize
+     * @param actorId user performing the operation
+     * @return locked booking
+     * @throws NotFoundException if the booking or actor does not exist
+     * @throws ForbiddenException if the actor cannot manage the booking
+     */
+    private Booking requireBookingManager(Connection conn, long bookingId, long actorId){
+        Booking booking = bookingRepository.findByIdForUpdate(conn,bookingId)
+                .orElseThrow(() -> new NotFoundException("No booking with id " + bookingId + " exists"));
+        var actor = userRepository.findById(conn,actorId)
+                .orElseThrow(() -> new NotFoundException("No user found with id " + actorId));
+        if(!actor.isAdmin() && booking.getUserId() != actorId) {
+            throw new ForbiddenException("Only the booking owner or an admin can manage this booking");
+        }
+        return booking;
     }
 
     /**
