@@ -4,6 +4,7 @@ import venue.event.manager.config.TransactionManager;
 import venue.event.manager.domain.model.event.Event;
 import venue.event.manager.domain.model.event.EventStatus;
 import venue.event.manager.domain.model.event.EventVisibility;
+import venue.event.manager.domain.model.user.User;
 import venue.event.manager.repository.*;
 import venue.event.manager.exception.ConflictException;
 import venue.event.manager.exception.ForbiddenException;
@@ -14,6 +15,7 @@ import java.math.BigDecimal;
 import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 /** Coordinates event creation, updates and lifecycle transitions. */
 public class EventService {
@@ -222,17 +224,20 @@ public class EventService {
 
     /**
      * Updates an existing event in database.
+     * @param actorId id of the administrator or assigned organiser performing the update
      * @param event the event object with updated data
      * @throws ValidationException if event data are not valid
+     * @throws ForbiddenException if the actor is neither an administrator nor the assigned organiser
      */
-    public void updateEvent(Event event){
+    public void updateEvent(long actorId, Event event){
         transactionManager.inTransaction(conn->{
             if(event == null) throw new ValidationException("Event cannot be null");
 
-            Event storedEvent = eventRepository.findByIdForUpdate(conn,event.getId())
-                    .orElseThrow(() -> new NotFoundException("No Event found with id " + event.getId()));
+            Event storedEvent = requireEventManager(conn,event.getId(),actorId);
 
             Event eventToUpdate = event
+                    .withCreatorId(storedEvent.getCreatorId())
+                    .withOrganiserId(storedEvent.getOrganiserId())
                     .withStatus(storedEvent.getStatus())
                     .withPublishedAt(storedEvent.getPublishedAt());
 
@@ -244,10 +249,13 @@ public class EventService {
 
     /**
      * Deletes an event from database.
+     * @param actorId id of the administrator or assigned organiser performing the deletion
      * @param eventId the id of the event to delete
+     * @throws ForbiddenException if the actor is neither an administrator nor the assigned organiser
      */
-    public void deleteEvent(long eventId){
+    public void deleteEvent(long actorId, long eventId){
         transactionManager.inTransaction(conn->{
+            requireEventManager(conn,eventId,actorId);
             eventRepository.deleteById(conn,eventId);
             return null;
         });
@@ -255,11 +263,14 @@ public class EventService {
 
     /**
      * Changes visibility of an event.
+     * @param actorId id of the administrator or assigned organiser performing the update
      * @param eventId the id of the event to update
      * @param eventVisibility the new visibility to set
+     * @throws ForbiddenException if the actor is neither an administrator nor the assigned organiser
      */
-    public void changeVisibility(long eventId, EventVisibility eventVisibility){
+    public void changeVisibility(long actorId, long eventId, EventVisibility eventVisibility){
         transactionManager.inTransaction(conn->{
+            requireEventManager(conn,eventId,actorId);
             eventRepository.updateVisibility(conn,eventId,eventVisibility);
             return null;
         });
@@ -267,15 +278,16 @@ public class EventService {
 
     /**
      * Publishes an event.
+     * @param actorId id of the administrator or assigned organiser performing the operation
      * @param eventId the id of the event to publish
      * @throws NotFoundException if no event is found with such id
      * @throws ConflictException if the event is not confirmed
      * @throws ValidationException if event data do not allow publication
+     * @throws ForbiddenException if the actor is neither an administrator nor the assigned organiser
      */
-    public void publishEvent(long eventId){
+    public void publishEvent(long actorId, long eventId){
         transactionManager.inTransaction(conn->{
-            Event event = eventRepository.findByIdForUpdate(conn,eventId)
-                    .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId));
+            Event event = requireEventManager(conn,eventId,actorId);
 
             validateEventStatusTransition(event.getStatus(),EventStatus.PUBLISHED);
             validateForPublication(conn,event);
@@ -286,13 +298,14 @@ public class EventService {
 
     /**
      * Confirms an event.
+     * @param actorId id of the administrator or assigned organiser performing the operation
      * @param eventId the id of the event to confirm
      * @throws NotFoundException if no event is found with such id
+     * @throws ForbiddenException if the actor is neither an administrator nor the assigned organiser
      */
-    public void confirmEvent(long eventId){
+    public void confirmEvent(long actorId, long eventId){
         transactionManager.inTransaction(conn->{
-            Event event = eventRepository.findByIdForUpdate(conn,eventId)
-                    .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId));
+            Event event = requireEventManager(conn,eventId,actorId);
 
             validateEventStatusTransition(event.getStatus(),EventStatus.CONFIRMED);
             eventRepository.updateStatus(conn,event.getId(),EventStatus.CONFIRMED);
@@ -302,13 +315,14 @@ public class EventService {
 
     /**
      * Cancels an event.
+     * @param actorId id of the administrator or assigned organiser performing the operation
      * @param eventId the id of the event to cancel
      * @throws NotFoundException if no event is found with such id
+     * @throws ForbiddenException if the actor is neither an administrator nor the assigned organiser
      */
-    public void cancelEvent(long eventId){
+    public void cancelEvent(long actorId, long eventId){
         transactionManager.inTransaction(conn->{
-            Event event = eventRepository.findByIdForUpdate(conn,eventId)
-                    .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId));
+            Event event = requireEventManager(conn,eventId,actorId);
 
             validateEventStatusTransition(event.getStatus(),EventStatus.CANCELLED);
             bookingRepository.cancelActiveByEventId(conn,eventId);
@@ -321,6 +335,7 @@ public class EventService {
 
     /**
      * Reschedules an event.
+     * @param actorId id of the administrator or assigned organiser performing the update
      * @param eventId the id of the event to reschedule
      * @param newBegin the new beginning date and time
      * @param newEnd the new ending date and time
@@ -328,10 +343,9 @@ public class EventService {
      * @throws ForbiddenException if event has already finished
      * @throws ValidationException if new dates are not valid
      */
-    public void rescheduleEvent(long eventId, LocalDateTime newBegin, LocalDateTime newEnd){
+    public void rescheduleEvent(long actorId, long eventId, LocalDateTime newBegin, LocalDateTime newEnd){
         transactionManager.inTransaction(conn->{
-            Event storedEvent = eventRepository.findByIdForUpdate(conn,eventId)
-                    .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId));
+            Event storedEvent = requireEventManager(conn,eventId,actorId);
             if (storedEvent.getEndDatetime().isBefore(LocalDateTime.now())) throw new ForbiddenException("Can't reschedule finished event");
             Event updatedEvent = storedEvent.withBeginDateTime(newBegin).withEndDateTime(newEnd);
             validate(conn,updatedEvent);
@@ -342,15 +356,15 @@ public class EventService {
 
     /**
      * Changes capacity of an event.
+     * @param actorId id of the administrator or assigned organiser performing the update
      * @param eventId the id of the event to update
      * @param capacity the new capacity to set
      * @throws NotFoundException if no event is found with such id
      * @throws ValidationException if capacity is not valid
      */
-    public void changeCapacity(long eventId, int capacity){
+    public void changeCapacity(long actorId, long eventId, int capacity){
         transactionManager.inTransaction(conn->{
-            Event event = eventRepository.findByIdForUpdate(conn,eventId)
-                    .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId));
+            Event event = requireEventManager(conn,eventId,actorId);
 
             if(capacity < ticketRepository.countTicketsForEvent(conn,eventId))
                 throw new  ForbiddenException("Capacity is less than number of tickets");
@@ -365,13 +379,16 @@ public class EventService {
 
     /**
      * Assigns an organiser to an event.
+     * @param actorId id of the administrator assigning the organiser
      * @param eventId the id of the event to update
      * @param organiserId the id of the organiser to assign
      * @throws NotFoundException if event or organiser are not found
      * @throws ValidationException if organiser is not valid
+     * @throws ForbiddenException if the actor is not an administrator
      */
-    public void assignOrganiser(long eventId, long organiserId){
+    public void assignOrganiser(long actorId, long eventId, long organiserId){
         transactionManager.inTransaction(conn->{
+            requireAdmin(conn,actorId);
             validateOrganiserId(conn,organiserId);
 
             Event updatedEvent = eventRepository.findByIdForUpdate(conn,eventId)
@@ -385,11 +402,14 @@ public class EventService {
 
     /**
      * Removes organiser from an event.
+     * @param actorId id of the administrator removing the organiser
      * @param eventId the id of the event to update
      * @throws NotFoundException if no event is found with such id
+     * @throws ForbiddenException if the actor is not an administrator
      */
-    public void removeOrganiser(long eventId){
+    public void removeOrganiser(long actorId, long eventId){
         transactionManager.inTransaction(conn->{
+            requireAdmin(conn,actorId);
             Event updatedEvent = eventRepository.findByIdForUpdate(conn,eventId)
                     .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId))
                     .withOrganiserId(null);
@@ -401,16 +421,15 @@ public class EventService {
 
     /**
      * Updates poster filepath of an event.
+     * @param actorId id of the administrator or assigned organiser performing the update
      * @param eventId the id of the event to update
      * @param filepath the new poster filepath
      * @throws NotFoundException if no event is found with such id
      * @throws ValidationException if updated event is not valid
      */
-    public void updatePoster(long eventId, String filepath){
+    public void updatePoster(long actorId, long eventId, String filepath){
         transactionManager.inTransaction(conn->{
-            Event updatedEvent = eventRepository.findByIdForUpdate(conn,eventId)
-                    .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId))
-                    .withPosterFilepath(filepath);
+            Event updatedEvent = requireEventManager(conn,eventId,actorId).withPosterFilepath(filepath);
             validate(conn,updatedEvent);
             eventRepository.update(conn,updatedEvent);
             return null;
@@ -419,16 +438,15 @@ public class EventService {
 
     /**
      * Sets ticket price of an event.
+     * @param actorId id of the administrator or assigned organiser performing the update
      * @param eventId the id of the event to update
      * @param ticketPrice the new ticket price
      * @throws NotFoundException if no event is found with such id
      * @throws ValidationException if ticket price is not valid
      */
-    public void setTicketPrice(long eventId, BigDecimal ticketPrice){
+    public void setTicketPrice(long actorId, long eventId, BigDecimal ticketPrice){
         transactionManager.inTransaction(conn->{
-            Event updatedEvent = eventRepository.findByIdForUpdate(conn,eventId)
-                    .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId))
-                    .withTicketPrice(ticketPrice);
+            Event updatedEvent = requireEventManager(conn,eventId,actorId).withTicketPrice(ticketPrice);
             validate(conn,updatedEvent);
             eventRepository.update(conn,updatedEvent);
             return null;
@@ -543,8 +561,9 @@ public class EventService {
      */
     private void validateCreatorId(Connection conn, long creatorId){
         if(creatorId <= 0) throw new ValidationException("Creator id is not valid");
-        userRepository.findById(conn,creatorId)
+        User creator = userRepository.findById(conn,creatorId)
                 .orElseThrow(() -> new ValidationException("No user found with id "+creatorId));
+        if(!creator.isAdmin()) throw new ForbiddenException("Only admins can create events");
     }
 
     /**
@@ -562,6 +581,40 @@ public class EventService {
                     return user;
                 })
                 .orElseThrow(() -> new ValidationException("No organiser found with id "+organiserId));
+    }
+
+    /**
+     * Loads and locks an event, then verifies that the actor can manage it.
+     * @param conn active transaction connection
+     * @param eventId event to load and authorize
+     * @param actorId user attempting the operation
+     * @return locked event when the actor is an administrator or its assigned organiser
+     * @throws NotFoundException if the event or actor does not exist
+     * @throws ForbiddenException if the actor cannot manage the event
+     */
+    private Event requireEventManager(Connection conn, long eventId, long actorId){
+        Event event = eventRepository.findByIdForUpdate(conn,eventId)
+                .orElseThrow(() -> new NotFoundException("No Event found with id " + eventId));
+        User actor = userRepository.findById(conn,actorId)
+                .orElseThrow(() -> new NotFoundException("No user found with id " + actorId));
+
+        if(!actor.isAdmin() && !Objects.equals(event.getOrganiserId(),actorId)) {
+            throw new ForbiddenException("Only admins or the assigned organiser can manage this event");
+        }
+        return event;
+    }
+
+    /**
+     * Verifies that the actor exists and has administrator privileges.
+     * @param conn active transaction connection
+     * @param actorId user attempting the operation
+     * @throws NotFoundException if the actor does not exist
+     * @throws ForbiddenException if the actor is not an administrator
+     */
+    private void requireAdmin(Connection conn, long actorId){
+        User actor = userRepository.findById(conn,actorId)
+                .orElseThrow(() -> new NotFoundException("No user found with id " + actorId));
+        if(!actor.isAdmin()) throw new ForbiddenException("Only admins can assign or remove event organisers");
     }
 
 
