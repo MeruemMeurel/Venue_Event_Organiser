@@ -6,13 +6,18 @@ import venue.event.manager.domain.model.event.EventGuest;
 import venue.event.manager.domain.model.event.EventGuestStatus;
 import venue.event.manager.domain.model.event.EventStatus;
 import venue.event.manager.domain.model.event.EventVisibility;
+import venue.event.manager.domain.model.user.User;
 import venue.event.manager.exception.ConflictException;
+import venue.event.manager.exception.ForbiddenException;
 import venue.event.manager.exception.NotFoundException;
 import venue.event.manager.exception.ValidationException;
 import venue.event.manager.repository.EventGuestRepository;
 import venue.event.manager.repository.EventRepository;
+import venue.event.manager.repository.UserRepository;
 
+import java.sql.Connection;
 import java.util.List;
+import java.util.Objects;
 
 /** Coordinates invitations and lifecycle transitions for private-event guests. */
 public class EventGuestService {
@@ -20,14 +25,17 @@ public class EventGuestService {
     private final TransactionManager transactionManager;
     private final EventGuestRepository eventGuestRepository;
     private final EventRepository eventRepository;
+    private final UserRepository userRepository;
 
     /**
      * Initializes EventGuestService with repositories needed to handle guests.
      * @param eventGuestRepository repository used to access event guest data
      * @param eventRepository repository used to access event data for validation
+     * @param userRepository repository used to authorize administrators and organisers
      */
-    public EventGuestService(EventGuestRepository eventGuestRepository, EventRepository eventRepository) {
-        this(TransactionManager.getInstance(), eventGuestRepository, eventRepository);
+    public EventGuestService(EventGuestRepository eventGuestRepository, EventRepository eventRepository,
+                             UserRepository userRepository) {
+        this(TransactionManager.getInstance(), eventGuestRepository, eventRepository, userRepository);
     }
 
     /**
@@ -35,12 +43,14 @@ public class EventGuestService {
      * @param transactionManager transaction manager used to execute database work
      * @param eventGuestRepository repository used to access guest data
      * @param eventRepository repository used to access event data
+     * @param userRepository repository used to authorize administrators and organisers
      */
     public EventGuestService(TransactionManager transactionManager, EventGuestRepository eventGuestRepository,
-                             EventRepository eventRepository) {
+                             EventRepository eventRepository, UserRepository userRepository) {
         this.transactionManager = transactionManager;
         this.eventGuestRepository = eventGuestRepository;
         this.eventRepository = eventRepository;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -83,15 +93,17 @@ public class EventGuestService {
 
     /**
      * Invites a new guest to an event. Defaults their status to INVITED.
+     * @param actorId administrator or assigned organiser performing the operation
      * @param guest the guest to invite
      * @return the generated ID of the new guest
      */
-    public long inviteGuest(EventGuest guest) {
+    public long inviteGuest(long actorId, EventGuest guest) {
         validateGuest(guest);
 
         return transactionManager.inTransaction(conn -> {
             Event event = eventRepository.findByIdForUpdate(conn,guest.getEventId())
                     .orElseThrow(() -> new NotFoundException("No event found with id " + guest.getEventId()));
+            requireEventManager(conn,event,actorId);
             validateEventAllowsInvitations(event);
 
             EventGuest newGuest = guest.withStatus(EventGuestStatus.INVITED);
@@ -101,14 +113,18 @@ public class EventGuestService {
 
     /**
      * Updates a guest's information (name, birthday, note).
+     * @param actorId administrator or assigned organiser performing the operation
      * @param guest the guest object with updated data
      */
-    public void updateGuest(EventGuest guest) {
+    public void updateGuest(long actorId, EventGuest guest) {
         validateGuest(guest);
 
         transactionManager.inTransaction(conn -> {
             EventGuest storedGuest = eventGuestRepository.findByIdForUpdate(conn, guest.getId())
                     .orElseThrow(() -> new NotFoundException("No guest found with id " + guest.getId()));
+            Event event = eventRepository.findByIdForUpdate(conn,storedGuest.getEventId())
+                    .orElseThrow(() -> new NotFoundException("No event found with id " + storedGuest.getEventId()));
+            requireEventManager(conn,event,actorId);
 
             EventGuest guestToUpdate = guest
                     .withEventId(storedGuest.getEventId())
@@ -121,27 +137,32 @@ public class EventGuestService {
 
     /**
      * Confirms an invitation on behalf of a guest.
+     * @param actorId administrator or assigned organiser performing the operation
      * @param guestId the id of the guest
      */
-    public void confirmInvitation(long guestId) {
-        updateGuestStatus(guestId, EventGuestStatus.CONFIRMED);
+    public void confirmInvitation(long actorId, long guestId) {
+        updateGuestStatus(actorId, guestId, EventGuestStatus.CONFIRMED);
     }
 
     /**
      * Cancels an invitation on behalf of a guest.
+     * @param actorId administrator or assigned organiser performing the operation
      * @param guestId the id of the guest
      */
-    public void cancelInvitation(long guestId) {
-        updateGuestStatus(guestId, EventGuestStatus.CANCELLED);
+    public void cancelInvitation(long actorId, long guestId) {
+        updateGuestStatus(actorId, guestId, EventGuestStatus.CANCELLED);
     }
 
     /**
      * Helper method to update a guest's status safely.
      */
-    private void updateGuestStatus(long guestId, EventGuestStatus status) {
+    private void updateGuestStatus(long actorId, long guestId, EventGuestStatus status) {
         transactionManager.inTransaction(conn -> {
             EventGuest guest = eventGuestRepository.findByIdForUpdate(conn, guestId)
                     .orElseThrow(() -> new NotFoundException("No guest found with id " + guestId));
+            Event event = eventRepository.findByIdForUpdate(conn,guest.getEventId())
+                    .orElseThrow(() -> new NotFoundException("No event found with id " + guest.getEventId()));
+            requireEventManager(conn,event,actorId);
 
             validateGuestStatusTransition(guest.getStatus(),status);
             eventGuestRepository.updateEventGuestStatus(conn, guestId, status);
@@ -151,12 +172,16 @@ public class EventGuestService {
 
     /**
      * Removes a guest entirely from an event's guest list.
+     * @param actorId administrator or assigned organiser performing the operation
      * @param guestId the id of the guest to remove
      */
-    public void removeGuest(long guestId) {
+    public void removeGuest(long actorId, long guestId) {
         transactionManager.inTransaction(conn -> {
-            eventGuestRepository.findById(conn, guestId)
+            EventGuest guest = eventGuestRepository.findByIdForUpdate(conn, guestId)
                     .orElseThrow(() -> new NotFoundException("No guest found with id " + guestId));
+            Event event = eventRepository.findByIdForUpdate(conn,guest.getEventId())
+                    .orElseThrow(() -> new NotFoundException("No event found with id " + guest.getEventId()));
+            requireEventManager(conn,event,actorId);
 
             eventGuestRepository.deleteById(conn, guestId);
             return null;
@@ -220,6 +245,22 @@ public class EventGuestService {
         }
         if(event.getStatus() == EventStatus.CANCELLED) {
             throw new ConflictException("Guests cannot be invited to a cancelled event");
+        }
+    }
+
+    /**
+     * Requires the actor to be an administrator or the organiser assigned to the event.
+     * @param conn active transaction connection
+     * @param event event whose guest list is being managed
+     * @param actorId user performing the operation
+     * @throws NotFoundException if the actor does not exist
+     * @throws ForbiddenException if the actor cannot manage the event
+     */
+    private void requireEventManager(Connection conn, Event event, long actorId) {
+        User actor = userRepository.findById(conn,actorId)
+                .orElseThrow(() -> new NotFoundException("No user found with id " + actorId));
+        if(!actor.isAdmin() && !Objects.equals(event.getOrganiserId(),actorId)) {
+            throw new ForbiddenException("Only admins or the assigned organiser can manage event guests");
         }
     }
 }

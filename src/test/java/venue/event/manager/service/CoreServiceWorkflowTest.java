@@ -105,21 +105,39 @@ class CoreServiceWorkflowTest {
     void confirmingAndCancellingShouldUseLockedStateAndExpectedStatus() {
         Booking pending = TestDataFactory.createDefaultBooking(7, 5).withId(9);
         when(bookings.findByIdForUpdate(any(Connection.class), eq(9L))).thenReturn(Optional.of(pending));
-        bookingService.confirmBooking(9);
+        when(users.findById(any(Connection.class), eq(7L)))
+                .thenReturn(Optional.of(TestDataFactory.createDefaultUser("owner").withId(7)));
+        bookingService.confirmBooking(7, 9);
         verify(bookings).updateStatus(any(Connection.class), eq(9L), eq(BookingStatus.CONFIRMED));
 
         reset(bookings);
         when(bookings.findByIdForUpdate(any(Connection.class), eq(9L)))
                 .thenReturn(Optional.of(pending.withStatus(BookingStatus.CONFIRMED)));
-        bookingService.cancelBooking(9);
+        bookingService.cancelBooking(7, 9);
         verify(bookings).updateStatus(any(Connection.class), eq(9L), eq(BookingStatus.CANCELLED));
     }
 
     @Test
     void missingBookingShouldNotBeUpdated() {
         when(bookings.findByIdForUpdate(any(Connection.class), anyLong())).thenReturn(Optional.empty());
-        assertThrows(NotFoundException.class, () -> bookingService.confirmBooking(99));
+        assertThrows(NotFoundException.class, () -> bookingService.confirmBooking(7, 99));
         verify(bookings, never()).updateStatus(any(), anyLong(), any());
+    }
+
+    @Test
+    void onlyOwnerOrAdminShouldManageBooking() {
+        Booking pending = TestDataFactory.createDefaultBooking(7, 5).withId(9);
+        when(bookings.findByIdForUpdate(any(Connection.class), eq(9L))).thenReturn(Optional.of(pending));
+        when(users.findById(any(Connection.class), eq(8L)))
+                .thenReturn(Optional.of(TestDataFactory.createDefaultUser("other").withId(8)));
+
+        assertThrows(ForbiddenException.class, () -> bookingService.cancelBooking(8, 9));
+        verify(bookings, never()).updateStatus(any(), anyLong(), any());
+
+        when(users.findById(any(Connection.class), eq(10L)))
+                .thenReturn(Optional.of(TestDataFactory.createAdminUser("admin").withId(10)));
+        bookingService.cancelBooking(10, 9);
+        verify(bookings).updateStatus(any(Connection.class), eq(9L), eq(BookingStatus.CANCELLED));
     }
 
     private Event bookableEvent(long id, BigDecimal price) {

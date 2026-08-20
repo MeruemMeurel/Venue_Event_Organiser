@@ -56,12 +56,12 @@ class SecondaryServiceValidationTest {
         assertThrows(ValidationException.class, () -> requests.createRequest(request.withClosedAt(request.getCreatedAt().minusDays(1))));
     }
 
-    @Test void nullReviewUpdateShouldBeRejected() { assertThrows(ValidationException.class, () -> reviews.updateReview(null)); }
-    @Test void invalidReviewIdShouldBeRejected() { assertThrows(ValidationException.class, () -> reviews.updateReview(validReview().withId(0))); }
-    @Test void lowRatingShouldBeRejected() { assertThrows(ValidationException.class, () -> reviews.updateReview(validReview().withRating(0))); }
-    @Test void highRatingShouldBeRejected() { assertThrows(ValidationException.class, () -> reviews.updateReview(validReview().withRating(6))); }
-    @Test void longReviewCommentShouldBeRejected() { assertThrows(ValidationException.class, () -> reviews.updateReview(validReview().withComment("x".repeat(1001)))); }
-    @Test void missingReviewCreationDateShouldBeRejected() { assertThrows(ValidationException.class, () -> reviews.updateReview(validReview().withCreatedAt(null))); }
+    @Test void nullReviewUpdateShouldBeRejected() { assertThrows(ValidationException.class, () -> reviews.updateReview(1, null)); }
+    @Test void invalidReviewIdShouldBeRejected() { assertThrows(ValidationException.class, () -> reviews.updateReview(1, validReview().withId(0))); }
+    @Test void lowRatingShouldBeRejected() { assertThrows(ValidationException.class, () -> reviews.updateReview(1, validReview().withRating(0))); }
+    @Test void highRatingShouldBeRejected() { assertThrows(ValidationException.class, () -> reviews.updateReview(1, validReview().withRating(6))); }
+    @Test void longReviewCommentShouldBeRejected() { assertThrows(ValidationException.class, () -> reviews.updateReview(1, validReview().withComment("x".repeat(1001)))); }
+    @Test void missingReviewCreationDateShouldBeRejected() { assertThrows(ValidationException.class, () -> reviews.updateReview(1, validReview().withCreatedAt(null))); }
 
     @Test void nullReportUpdateShouldBeRejected() { assertThrows(ValidationException.class, () -> reports.updateReport(null)); }
     @Test void invalidReportIdShouldBeRejected() { assertThrows(ValidationException.class, () -> reports.updateReport(validReport().withId(0))); }
