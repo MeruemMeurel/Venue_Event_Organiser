@@ -1,0 +1,19 @@
+@startuml
+
+skinparam style strictuml
+skinparam shadowing false
+skinparam DefaultFontName "Helvetica"
+skinparam DefaultFontSize 12
+skinparam ArrowThickness 1.2
+skinparam ArrowFontSize 11
+skinparam ArrowColor #444444
+
+left to right direction
+
+actor Visitor
+
+usecase "UC-01\nRegistrare un account" as UC01
+
+Visitor -- UC01
+
+@enduml
