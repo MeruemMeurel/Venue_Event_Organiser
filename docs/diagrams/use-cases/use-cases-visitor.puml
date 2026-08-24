@@ -12,9 +12,7 @@ left to right direction
 
 actor Visitor
 
-rectangle "Venue Event Manager" {
-    usecase "UC-01\nRegistrare un account" as UC01
-}
+usecase "UC-01\nRegistrare un account" as UC01
 
 Visitor -- UC01
 

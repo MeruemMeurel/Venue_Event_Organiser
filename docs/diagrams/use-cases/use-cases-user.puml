@@ -14,25 +14,21 @@ left to right direction
 
 actor User
 
-rectangle "venue event manager" {
+usecase "UC-02\nGestire il proprio account" as UC02
+usecase "UC-04\nConsultare venue, risorse ed eventi" as UC04
+usecase "UC-07\nPresentare una richiesta di evento" as UC07
+usecase "UC-11\nPrenotare biglietti" as UC11
+usecase "UC-12\nGestire una prenotazione" as UC12
+usecase "UC-13\nPubblicare una recensione" as UC13
+usecase "UC-14\nGestire le proprie recensioni" as UC14
 
-    usecase "UC-02\nGestire il proprio account" as UC02
-    usecase "UC-04\nConsultare venue, risorse ed eventi" as UC04
-    usecase "UC-07\nPresentare una richiesta di evento" as UC07
-    usecase "UC-11\nPrenotare biglietti" as UC11
-    usecase "UC-12\nGestire una prenotazione" as UC12
-    usecase "UC-13\nPubblicare una recensione" as UC13
-    usecase "UC-14\nGestire le proprie recensioni" as UC14
-
-}
-
-User -- UC02
-User -- UC04
-User -- UC07
+' I casi sono distribuiti sui due lati dell'attore per contenere la figura.
+UC02 -- User
+UC04 -- User
+UC07 -- User
 User -- UC11
 User -- UC12
 User -- UC13
 User -- UC14
-
 
 @enduml

@@ -1,0 +1,45 @@
+@startuml
+
+skinparam style strictuml
+skinparam shadowing false
+skinparam DefaultFontName "Helvetica"
+skinparam DefaultFontSize 12
+skinparam ArrowThickness 1.2
+skinparam ArrowFontSize 11
+skinparam ArrowColor #444444
+skinparam nodesep 25
+skinparam ranksep 25
+
+left to right direction
+
+actor User
+actor Organiser
+actor Administrator as Admin
+
+User <|-- Organiser
+
+usecase "UC-09\nGestire un evento" as UC09
+usecase "UC-10\nGestire la lista degli invitati" as UC10
+
+usecase "UC-03\nModerare un account" as UC03
+usecase "UC-05\nGestire una venue" as UC05
+usecase "UC-06\nGestire le risorse di una venue" as UC06
+usecase "UC-08\nGestire una richiesta di evento" as UC08
+usecase "UC-12\nGestire una prenotazione" as UC12
+usecase "UC-15\nCreare e consultare report" as UC15
+
+' Funzionalita condivise dai due attori.
+Organiser -- UC09
+Organiser -- UC10
+UC09 -- Admin
+UC10 -- Admin
+
+' Funzionalita riservate all'Administrator.
+Admin -- UC03
+Admin -- UC05
+Admin -- UC06
+Admin -- UC08
+Admin -- UC12
+Admin -- UC15
+
+@enduml
