@@ -36,10 +36,7 @@ Nel catalogo viene usata la seguente classificazione:
 | Stato | Significato |
 |---|---|
 | **Implementato** | Il comportamento principale e le regole essenziali sono presenti nei service e verificabili tramite test. |
-| **Parzialmente implementato** | Il comportamento applicativo esiste, ma manca un elemento esterno o un controllo completo dell'identità dell'attore. |
 | **Futuro** | Il comportamento è soltanto ipotizzato e non deve essere presentato come funzionalità disponibile. |
-
-I casi marcati come parzialmente implementati vengono comunque documentati, indicando esplicitamente la limitazione esistente.
 
 ## 4. Attori
 
@@ -80,11 +77,19 @@ Utente registrato caratterizzato da `is_admin = true`. Può:
 - assegnare o rimuovere l'organiser di un evento;
 - prendere in carico, accettare o rifiutare richieste di evento;
 - moderare gli account ordinari;
+- confermare, cancellare o eliminare qualsiasi prenotazione;
 - creare e consultare report amministrativi.
 
-### A5 - Invited guest
+### S1 - Invited guest
 
-Persona inserita nella lista degli invitati di un evento privato. Non coincide necessariamente con uno `User` registrato e può confermare o annullare la propria partecipazione.
+Persona inserita nella lista di un evento privato. Non coincide
+necessariamente con uno User registrato e, nella versione corrente,
+non interagisce direttamente con l'applicativo.
+
+La conferma o cancellazione della sua partecipazione viene registrata
+da un Administrator oppure dall'Organiser assegnato. Un'interazione
+autonoma dell'invitato richiederebbe un futuro meccanismo basato su
+token d'invito.
 
 ## 5. Catalogo dei casi d'uso
 
@@ -120,12 +125,15 @@ Gli identificatori seguenti devono rimanere invariati nei diagrammi, nei templat
 | UC-09.6 | Assegnare o rimuovere un organiser | Administrator | User goal | Media | Implementato |
 | UC-10 | Gestire la lista degli invitati | Administrator / Organiser | User goal | Media | Implementato |
 | UC-11 | Prenotare biglietti | User | User goal | Alta | Implementato |
-| UC-12 | Gestire una prenotazione | User / Administrator | User goal | Alta | Implementato |
+| UC-12 | Gestire una prenotazione | User / Administrator | Summary   | Alta | Implementato |
+| UC-12.1 | Confermare una prenotazione | User / Administrator | User goal | Alta | Implementato |
+| UC-12.2 | Cancellare una prenotazione | User / Administrator | User goal | Alta | Implementato |
+| UC-12.3 | Eliminare una prenotazione | User / Administrator | User goal | Media | Implementato |
 | UC-13 | Pubblicare una recensione | User | User goal | Media | Implementato |
 | UC-14 | Gestire le proprie recensioni | User | User goal | Media | Implementato |
 | UC-15 | Creare e consultare report | Administrator | User goal | Media | Implementato |
 
-## 5. Casi esclusi dal catalogo corrente
+## 6. Casi esclusi dal catalogo corrente
 
 ### Autenticarsi
 
