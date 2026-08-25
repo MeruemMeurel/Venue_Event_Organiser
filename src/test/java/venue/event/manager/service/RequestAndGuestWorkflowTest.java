@@ -41,12 +41,37 @@ class RequestAndGuestWorkflowTest {
         when(venues.findById(any(Connection.class), eq(2L)))
                 .thenReturn(Optional.of(TestDataFactory.createDefaultVenue("Venue").withId(2)));
         when(requests.insert(any(Connection.class), any())).thenReturn(17L);
-        EventRequest request = futureRequest().withCreatedAt(null);
+        EventRequest request = futureRequest()
+                .withHandlerId(8L)
+                .withStatus(EventRequestStatus.ACCEPTED)
+                .withQuote(BigDecimal.TEN)
+                .withClosedAt(LocalDateTime.now())
+                .withCreatedAt(null);
         LocalDateTime before = LocalDateTime.now();
-        assertEquals(17L, requestService.createRequest(request));
+        assertEquals(17L, requestService.createRequest(1, request));
         ArgumentCaptor<EventRequest> captor = ArgumentCaptor.forClass(EventRequest.class);
         verify(requests).insert(any(Connection.class), captor.capture());
         assertFalse(captor.getValue().getCreatedAt().isBefore(before));
+        assertEquals(EventRequestStatus.PENDING, captor.getValue().getStatus());
+        assertNull(captor.getValue().getHandlerId());
+        assertNull(captor.getValue().getQuote());
+        assertNull(captor.getValue().getClosedAt());
+    }
+
+    @Test
+    void requesterCannotCreateOrCancelAnotherUsersRequest() {
+        when(users.findById(any(Connection.class), eq(9L)))
+                .thenReturn(Optional.of(TestDataFactory.createDefaultUser("other").withId(9)));
+        assertThrows(ForbiddenException.class, () -> requestService.createRequest(9, futureRequest()));
+
+        when(requests.findByIdForUpdate(any(Connection.class), eq(4L)))
+                .thenReturn(Optional.of(futureRequest().withId(4)));
+        assertThrows(ForbiddenException.class, () -> requestService.cancelRequest(9, 4));
+        assertThrows(ForbiddenException.class,
+                () -> requestService.updateRequest(9, futureRequest().withId(4).withName("Changed")));
+        assertThrows(ForbiddenException.class, () -> requestService.deleteRequest(9, 4));
+        verify(requests, never()).update(any(), any());
+        verify(requests, never()).deleteById(any(), anyLong());
     }
 
     @Test
@@ -55,7 +80,7 @@ class RequestAndGuestWorkflowTest {
         User admin = TestDataFactory.createAdminUser("admin").withId(8);
         when(users.findById(any(Connection.class), eq(8L))).thenReturn(Optional.of(admin));
         when(requests.findByIdForUpdate(any(Connection.class), eq(4L))).thenReturn(Optional.of(pending));
-        requestService.assignHandler(4, 8);
+        requestService.assignHandler(8, 4, 8);
         ArgumentCaptor<EventRequest> captor = ArgumentCaptor.forClass(EventRequest.class);
         verify(requests).update(any(Connection.class), captor.capture());
         assertEquals(8L, captor.getValue().getHandlerId());
@@ -66,25 +91,29 @@ class RequestAndGuestWorkflowTest {
     void nonAdminHandlerShouldNotUpdateRequest() {
         when(users.findById(any(Connection.class), anyLong()))
                 .thenReturn(Optional.of(TestDataFactory.createDefaultUser("user").withId(8)));
-        assertThrows(ValidationException.class, () -> requestService.assignHandler(4, 8));
+        assertThrows(ForbiddenException.class, () -> requestService.assignHandler(8, 4, 8));
         verify(requests, never()).update(any(), any());
     }
 
     @Test
     void acceptRejectAndCancelShouldClosePendingRequest() {
         EventRequest pending = futureRequest().withId(4).withHandlerId(8L);
+        when(users.findById(any(Connection.class), eq(8L)))
+                .thenReturn(Optional.of(TestDataFactory.createAdminUser("admin").withId(8)));
+        when(users.findById(any(Connection.class), eq(1L)))
+                .thenReturn(Optional.of(TestDataFactory.createDefaultUser("requester").withId(1)));
         when(requests.findByIdForUpdate(any(Connection.class), eq(4L))).thenReturn(Optional.of(pending));
-        requestService.acceptRequest(4, new BigDecimal("99.90"));
+        requestService.acceptRequest(8, 4, new BigDecimal("99.90"));
         assertUpdatedRequest(EventRequestStatus.ACCEPTED, new BigDecimal("99.90"));
 
         reset(requests);
         when(requests.findByIdForUpdate(any(Connection.class), eq(4L))).thenReturn(Optional.of(pending));
-        requestService.rejectRequest(4);
+        requestService.rejectRequest(8, 4);
         assertUpdatedRequest(EventRequestStatus.REJECTED, pending.getQuote());
 
         reset(requests);
         when(requests.findByIdForUpdate(any(Connection.class), eq(4L))).thenReturn(Optional.of(pending));
-        requestService.cancelRequest(4);
+        requestService.cancelRequest(1, 4);
         assertUpdatedRequest(EventRequestStatus.CANCELLED, pending.getQuote());
     }
 
@@ -92,7 +121,20 @@ class RequestAndGuestWorkflowTest {
     void acceptedRequestCannotBeClosedAgain() {
         when(requests.findByIdForUpdate(any(Connection.class), anyLong()))
                 .thenReturn(Optional.of(futureRequest().withId(4).withStatus(EventRequestStatus.ACCEPTED)));
-        assertThrows(ConflictException.class, () -> requestService.rejectRequest(4));
+        assertThrows(ConflictException.class, () -> requestService.rejectRequest(8, 4));
+        verify(requests, never()).update(any(), any());
+    }
+
+    @Test
+    void onlyAssignedHandlerCanAcceptOrRejectRequest() {
+        EventRequest pending = futureRequest().withId(4).withHandlerId(8L);
+        when(requests.findByIdForUpdate(any(Connection.class), eq(4L))).thenReturn(Optional.of(pending));
+        when(users.findById(any(Connection.class), eq(7L)))
+                .thenReturn(Optional.of(TestDataFactory.createAdminUser("other_admin").withId(7)));
+
+        assertThrows(ForbiddenException.class,
+                () -> requestService.acceptRequest(7, 4, BigDecimal.TEN));
+        assertThrows(ForbiddenException.class, () -> requestService.rejectRequest(7, 4));
         verify(requests, never()).update(any(), any());
     }
 

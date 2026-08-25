@@ -176,20 +176,22 @@ class ServiceQueryDelegationTest {
         assertEquals(4.5, reviewService.getAverageRatingByEvent(2));
 
         ReportRepository reports = mock(ReportRepository.class);
-        ReportService reportService = new ReportService(create(), reports, mock(EventRepository.class),
-                mock(UserRepository.class));
+        UserRepository reportUsers = mock(UserRepository.class);
+        when(reportUsers.findById(any(), eq(8L)))
+                .thenReturn(Optional.of(TestDataFactory.createAdminUser("admin").withId(8)));
+        ReportService reportService = new ReportService(create(), reports, mock(EventRepository.class), reportUsers);
         Report report = TestDataFactory.createDefaultReport(1, 8, 2L).withId(4);
         when(reports.findAll(any())).thenReturn(List.of(report));
         when(reports.findById(any(), eq(4L))).thenReturn(Optional.of(report));
         when(reports.findByUserIdAndEventId(any(), eq(1L), eq(2L))).thenReturn(Optional.of(report));
-        assertEquals(List.of(report), reportService.getAllReports());
-        assertEquals(report, reportService.getReport(4));
-        reportService.getReportsByUser(1);
-        reportService.getReportsByAdmin(8);
-        reportService.getReportsForEvent(2);
-        reportService.getReportsBySeverity(ReportSeverity.MIDDLE);
-        assertEquals(report, reportService.getReportByUserAndEvent(1, 2));
-        reportService.getReportsByAdminAndEvent(8, 2);
+        assertEquals(List.of(report), reportService.getAllReports(8));
+        assertEquals(report, reportService.getReport(8, 4));
+        reportService.getReportsByUser(8, 1);
+        reportService.getReportsByAdmin(8, 8);
+        reportService.getReportsForEvent(8, 2);
+        reportService.getReportsBySeverity(8, ReportSeverity.MIDDLE);
+        assertEquals(report, reportService.getReportByUserAndEvent(8, 1, 2));
+        reportService.getReportsByAdminAndEvent(8, 8, 2);
     }
 
     @Test

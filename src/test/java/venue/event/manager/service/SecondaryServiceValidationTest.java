@@ -6,6 +6,7 @@ import venue.event.manager.domain.model.request.EventRequest;
 import venue.event.manager.domain.model.user.User;
 import venue.event.manager.domain.model.venue.Venue;
 import venue.event.manager.exception.ValidationException;
+import venue.event.manager.exception.ForbiddenException;
 import venue.event.manager.repository.*;
 import venue.event.manager.util.TestDataFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,19 +42,19 @@ class SecondaryServiceValidationTest {
         reports = new ReportService(create(), mock(ReportRepository.class), mock(EventRepository.class), users);
     }
 
-    @Test void nullRequestShouldBeRejected() { assertThrows(ValidationException.class, () -> requests.createRequest(null)); }
-    @Test void invalidRequesterShouldBeRejected() { assertThrows(ValidationException.class, () -> requests.createRequest(validRequest().withRequesterId(0))); }
-    @Test void invalidVenueShouldBeRejected() { assertThrows(ValidationException.class, () -> requests.createRequest(validRequest().withVenueId(0))); }
-    @Test void blankRequestNameShouldBeRejected() { assertThrows(ValidationException.class, () -> requests.createRequest(validRequest().withName(" "))); }
-    @Test void longRequestDescriptionShouldBeRejected() { assertThrows(ValidationException.class, () -> requests.createRequest(validRequest().withDescription("x".repeat(1001)))); }
+    @Test void nullRequestShouldBeRejected() { assertThrows(ValidationException.class, () -> requests.createRequest(1, null)); }
+    @Test void requesterMismatchShouldBeForbidden() { assertThrows(ForbiddenException.class, () -> requests.createRequest(1, validRequest().withRequesterId(0))); }
+    @Test void invalidVenueShouldBeRejected() { assertThrows(ValidationException.class, () -> requests.createRequest(1, validRequest().withVenueId(0))); }
+    @Test void blankRequestNameShouldBeRejected() { assertThrows(ValidationException.class, () -> requests.createRequest(1, validRequest().withName(" "))); }
+    @Test void longRequestDescriptionShouldBeRejected() { assertThrows(ValidationException.class, () -> requests.createRequest(1, validRequest().withDescription("x".repeat(1001)))); }
     @Test void invertedRequestDatesShouldBeRejected() {
         EventRequest request = validRequest();
-        assertThrows(ValidationException.class, () -> requests.createRequest(request.withEndDateTime(request.getBeginDatetime())));
+        assertThrows(ValidationException.class, () -> requests.createRequest(1, request.withEndDateTime(request.getBeginDatetime())));
     }
-    @Test void negativeQuoteShouldBeRejected() { assertThrows(ValidationException.class, () -> requests.createRequest(validRequest().withQuote(new BigDecimal("-1")))); }
-    @Test void closureBeforeCreationShouldBeRejected() {
+    @Test void suppliedLifecycleFieldsShouldBeIgnored() { requests.createRequest(1, validRequest().withQuote(new BigDecimal("-1"))); }
+    @Test void suppliedClosureShouldBeIgnored() {
         EventRequest request = validRequest();
-        assertThrows(ValidationException.class, () -> requests.createRequest(request.withClosedAt(request.getCreatedAt().minusDays(1))));
+        requests.createRequest(1, request.withClosedAt(request.getCreatedAt().minusDays(1)));
     }
 
     @Test void nullReviewUpdateShouldBeRejected() { assertThrows(ValidationException.class, () -> reviews.updateReview(1, null)); }
@@ -63,10 +64,10 @@ class SecondaryServiceValidationTest {
     @Test void longReviewCommentShouldBeRejected() { assertThrows(ValidationException.class, () -> reviews.updateReview(1, validReview().withComment("x".repeat(1001)))); }
     @Test void missingReviewCreationDateShouldBeRejected() { assertThrows(ValidationException.class, () -> reviews.updateReview(1, validReview().withCreatedAt(null))); }
 
-    @Test void nullReportUpdateShouldBeRejected() { assertThrows(ValidationException.class, () -> reports.updateReport(null)); }
-    @Test void invalidReportIdShouldBeRejected() { assertThrows(ValidationException.class, () -> reports.updateReport(validReport().withId(0))); }
-    @Test void longReportCommentShouldBeRejected() { assertThrows(ValidationException.class, () -> reports.updateReport(validReport().withComment("x".repeat(1001)))); }
-    @Test void missingReportCreationDateShouldBeRejected() { assertThrows(ValidationException.class, () -> reports.updateReport(validReport().withCreatedAt(null))); }
+    @Test void nullReportUpdateShouldBeRejected() { assertThrows(ValidationException.class, () -> reports.updateReport(2, null)); }
+    @Test void invalidReportIdShouldBeRejected() { assertThrows(ValidationException.class, () -> reports.updateReport(2, validReport().withId(0))); }
+    @Test void longReportCommentShouldBeRejected() { assertThrows(ValidationException.class, () -> reports.updateReport(2, validReport().withComment("x".repeat(1001)))); }
+    @Test void missingReportCreationDateShouldBeRejected() { assertThrows(ValidationException.class, () -> reports.updateReport(2, validReport().withCreatedAt(null))); }
 
     private EventRequest validRequest() {
         LocalDateTime begin = LocalDateTime.now().plusDays(5);
