@@ -1,6 +1,7 @@
 package venue.event.manager.service;
 
 import venue.event.manager.config.TransactionManager;
+import venue.event.manager.domain.model.user.AccountStatus;
 import venue.event.manager.domain.model.user.User;
 import venue.event.manager.exception.ForbiddenException;
 import venue.event.manager.exception.NotFoundException;
@@ -47,6 +48,44 @@ public class AuthService {
         this.transactionManager = transactionManager;
         this.userRepository = userRepository;
         this.passwordHasher = passwordHasher;
+    }
+
+    /**
+     * Authenticates an active user by username and password.
+     *
+     * <p>This operation verifies credentials at the application-service level. It does not create a session or
+     * issue an authentication token.</p>
+     *
+     * @param username username supplied by the caller
+     * @param password plain-text password supplied by the caller
+     * @return authenticated user
+     * @throws ValidationException if username or password is missing
+     * @throws ForbiddenException if the account does not exist, credentials are invalid or the account is banned
+     */
+    public User authenticate(String username, String password) {
+        if(username == null || username.isBlank()) {
+            throw new ValidationException("Username cannot be empty");
+        }
+        if(password == null || password.isEmpty()) {
+            throw new ValidationException("Password cannot be empty");
+        }
+
+        return transactionManager.inReadOnly(conn -> {
+            User user = userRepository.findByUsername(conn,username)
+                    .orElseThrow(() -> new ForbiddenException("Invalid username or password"));
+
+            String storedPassword = userRepository.getPasswordById(conn,user.getId())
+                    .orElseThrow(() -> new ForbiddenException("Invalid username or password"));
+            if(!passwordHasher.verify(password,storedPassword)) {
+                throw new ForbiddenException("Invalid username or password");
+            }
+
+            if(user.getAccountStatus() == AccountStatus.BANNED) {
+                throw new ForbiddenException("Banned accounts cannot log in");
+            }
+
+            return user;
+        });
     }
 
     /**

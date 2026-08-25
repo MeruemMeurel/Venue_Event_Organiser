@@ -123,7 +123,7 @@ Output atteso: quattro attori definitivi con una descrizione di una o due righe 
 
 ### Fase 3 - Catalogo dei casi d'uso (20 minuti)
 
-Esaminare da `UC-01` a `UC-15` senza scrivere ancora tutti i flussi.
+Esaminare da `UC-01` a `UC-16` senza scrivere ancora tutti i flussi.
 
 Per ogni voce verificare:
 
@@ -136,9 +136,10 @@ Per ogni voce verificare:
 
 Decisione importante sul login:
 
-- il codice verifica password per operazioni sensibili;
-- non implementa una sessione o un endpoint pubblico di login;
-- un eventuale use case `Autenticarsi` deve essere marcato come requisito concettuale/futuro oppure escluso dai casi implementati.
+- il codice espone un'autenticazione applicativa mediante username e password;
+- l'autenticazione rifiuta gli account bannati;
+- non sono implementati sessioni, token o un endpoint pubblico di login;
+- `UC-16 - Autenticarsi` descrive esclusivamente la verifica applicativa delle credenziali.
 
 Non rinumerare più volte durante la discussione. Annotare prima tutte le modifiche, poi applicare una sola numerazione definitiva.
 
@@ -416,7 +417,7 @@ La fase diagrammi è pronta per alimentare la relazione quando sono disponibili:
 - non discutere colori e allineamenti prima di aver approvato i contenuti;
 - non generare automaticamente UML dal codice e considerarlo finito;
 - non trasformare ogni classe o metodo in un requisito;
-- non promettere login, pagamento o interfaccia completa come implementati;
+- non promettere sessioni, token, pagamento o interfaccia completa come implementati;
 - non rinviare tutte le decisioni difficili alla scrittura della relazione;
 - non assegnare un diagramma senza indicare anche chi lo revisiona;
 - non iniziare tre versioni incompatibili dello stesso glossario.
@@ -431,7 +432,7 @@ Decisioni:
 - Lingua degli artefatti: Italiano/Inglese per nomi tecnici e di Attori
 - Termine scelto per Organiser: Organiser
 - Rappresentazione di Organiser: Specifica dello User (da fixare pero il codice)
-- Trattamento del login: per ora si ignora dopo si può magari considerare metterllo fra le specifiche future
+- Trattamento del login: inizialmente rinviato; successivamente implementato come autenticazione applicativa UC-16, senza sessioni o token
 - Trattamento dei mockup: uguale
 - Numerazione use case approvata: sì
 - Macchine a stati approvate: si

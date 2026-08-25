@@ -13,7 +13,9 @@ left to right direction
 actor Visitor
 
 usecase "UC-01\nRegistrare un account" as UC01
+usecase "UC-16\nAutenticarsi" as UC16
 
 Visitor -- UC01
+Visitor -- UC16
 
 @enduml

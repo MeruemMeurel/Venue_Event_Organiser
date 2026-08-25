@@ -60,7 +60,8 @@ Il progetto è intenzionalmente focalizzato su modello del dominio, service laye
 ### A1 - Visitor
 
 - registra un nuovo account ordinario;
-- fornisce dati anagrafici e password validi.
+- fornisce dati anagrafici e password validi;
+- si autentica mediante username e password se possiede un account attivo.
 
 ### A2 - User
 
@@ -125,10 +126,11 @@ La numerazione seguente è proposta come identificatore stabile per diagrammi, t
 | UC-13 | Pubblicare una recensione | User | User goal | Media |
 | UC-14 | Gestire recensioni | User | User goal | Media |
 | UC-15 | Creare e consultare report | Administrator | User goal | Media |
+| UC-16 | Autenticarsi | Visitor | User goal | Alta |
 
 ### Casi d'uso da non sovrastimare
 
-- Il sistema verifica credenziali per operazioni sensibili, ma non espone ancora un vero flusso pubblico di login/sessione. Un eventuale caso d'uso `Autenticarsi` deve essere descritto come requisito o sviluppo futuro, non come funzionalità completa già disponibile.
+- Il sistema autentica un account attivo mediante username e password, ma non crea una sessione e non emette token.
 - `PENDING_PAYMENT` descrive il ciclo della prenotazione, ma non esiste un gateway di pagamento. La conferma è una transizione applicativa manuale.
 - Non essendoci interfaccia, mockup e page-navigation diagram non sono necessari per descrivere l'implementazione corrente. Si possono aggiungere solo come proposta progettuale futura.
 
@@ -218,7 +220,7 @@ Un admin non può bannare sé stesso o un altro admin. Le transizioni duplicate 
 - **BR-02:** username, nome, cognome, email e data di nascita devono essere validi; l'email deve essere univoca.
 - **BR-03:** una password deve contenere tra 8 e 30 caratteri.
 - **BR-04:** le password vengono persistite esclusivamente come hash PBKDF2 con salt casuale.
-- **BR-05:** modifica profilo, eliminazione account, cambio password e moderazione richiedono verifica delle credenziali appropriate.
+- **BR-05:** autenticazione, modifica profilo, eliminazione account, cambio password e moderazione richiedono la verifica delle credenziali appropriate; gli account `BANNED` non possono autenticarsi.
 - **BR-06:** un admin non può bannare sé stesso o un altro admin.
 - **BR-07:** un utente `BANNED` non può prenotare eventi.
 
@@ -405,7 +407,7 @@ Gli output dell'IA non sono stati accettati automaticamente: sono stati confront
 
 1. Confermare il nome concettuale `Organiser` e la sua rappresentazione come specializzazione di `User` nei casi d'uso.
 2. Confermare la numerazione proposta degli use case.
-3. Decidere se rappresentare un caso d'uso di login come requisito futuro oppure limitarsi alle verifiche credenziali realmente implementate.
+3. Descrivere l'autenticazione applicativa distinguendola esplicitamente dalla futura gestione di sessioni o token.
 4. Confermare che i report siano descritti secondo l'implementazione corrente: admin verso utente ordinario.
 5. Decidere se produrre mockup pur in assenza di interfaccia; non sono necessari per rappresentare il prodotto corrente.
 6. Scegliere una lingua unica per titoli, attori e diagrammi; i nomi tecnici del codice restano in inglese.
