@@ -5,6 +5,7 @@ import venue.event.manager.domain.model.request.EventRequest;
 import venue.event.manager.domain.model.request.EventRequestStatus;
 import venue.event.manager.domain.model.user.User;
 import venue.event.manager.exception.ConflictException;
+import venue.event.manager.exception.ForbiddenException;
 import venue.event.manager.exception.NotFoundException;
 import venue.event.manager.exception.ValidationException;
 import venue.event.manager.repository.EventRequestRepository;
@@ -176,16 +177,21 @@ public class EventRequestService {
 
     /**
      * Inserts a new event request in database.
+     * @param actorId authenticated user creating the request
      * @param request the event request to insert
      * @return generated id of the new request
      * @throws ValidationException if request data are not valid
      */
-    public long createRequest(EventRequest request){
+    public long createRequest(long actorId, EventRequest request){
         validateRequestNotNull(request);
-        EventRequest requestToInsert = request.getCreatedAt() == null
-                ? request.withCreatedAt(LocalDateTime.now())
-                : request;
+        EventRequest requestToInsert = request
+                .withHandlerId(null)
+                .withStatus(EventRequestStatus.PENDING)
+                .withQuote(null)
+                .withClosedAt(null)
+                .withCreatedAt(LocalDateTime.now());
         return transactionManager.inTransaction(conn->{
+            requireRequester(conn, actorId, request.getRequesterId());
             validate(conn,requestToInsert);
             return eventRequestRepository.insert(conn,requestToInsert);
         });
@@ -193,26 +199,45 @@ public class EventRequestService {
 
     /**
      * Updates an existing event request in database.
+     * @param actorId authenticated requester performing the update
      * @param request the event request object with updated data
      * @throws ValidationException if request data or id are not valid
      */
-    public void updateRequest(EventRequest request){
+    public void updateRequest(long actorId, EventRequest request){
+        validateRequestNotNull(request);
+        validateId(request.getId(), "Request id");
         transactionManager.inTransaction(conn->{
-            validateForUpdate(conn,request);
-            eventRequestRepository.update(conn,request);
+            EventRequest stored = eventRequestRepository.findByIdForUpdate(conn, request.getId())
+                    .orElseThrow(() -> new NotFoundException("No event request found with id " + request.getId()));
+            validateRequestIsPending(stored);
+            requireRequester(conn, actorId, stored.getRequesterId());
+            EventRequest safeUpdate = request
+                    .withRequesterId(stored.getRequesterId())
+                    .withHandlerId(stored.getHandlerId())
+                    .withStatus(stored.getStatus())
+                    .withCreatedAt(stored.getCreatedAt())
+                    .withClosedAt(stored.getClosedAt())
+                    .withQuote(stored.getQuote());
+            validateForUpdate(conn, safeUpdate);
+            eventRequestRepository.update(conn,safeUpdate);
             return null;
         });
     }
 
     /**
      * Deletes an event request from database.
+     * @param actorId authenticated requester performing the deletion
      * @param requestId the id of the event request to delete
      * @throws ValidationException if request id is not valid
      */
-    public void deleteRequest(long requestId){
+    public void deleteRequest(long actorId, long requestId){
         validateId(requestId,"Request id");
 
         transactionManager.inTransaction(conn->{
+            EventRequest request = eventRequestRepository.findByIdForUpdate(conn, requestId)
+                    .orElseThrow(() -> new NotFoundException("No event request found with id " + requestId));
+            validateRequestIsPending(request);
+            requireRequester(conn, actorId, request.getRequesterId());
             eventRequestRepository.deleteById(conn,requestId);
             return null;
         });
@@ -220,17 +245,19 @@ public class EventRequestService {
 
     /**
      * Assigns an admin handler to a pending request.
+     * @param actorId authenticated administrator assigning the handler
      * @param requestId the id of the request
      * @param handlerId the id of the admin handler
      * @throws NotFoundException if no request is found with such id
      * @throws ValidationException if handler is not valid
      * @throws ConflictException if request is not pending
      */
-    public void assignHandler(long requestId, long handlerId){
+    public void assignHandler(long actorId, long requestId, long handlerId){
         validateId(requestId,"Request id");
         validateId(handlerId,"Handler id");
 
         transactionManager.inTransaction(conn->{
+            requireAdmin(conn, actorId);
             validateHandlerId(conn,handlerId);
 
             EventRequest request = eventRequestRepository.findByIdForUpdate(conn,requestId)
@@ -244,13 +271,14 @@ public class EventRequestService {
 
     /**
      * Accepts a pending request and stores the proposed quote.
+     * @param actorId authenticated handler accepting the request
      * @param requestId the id of the request
      * @param quote the accepted quote
      * @throws NotFoundException if no request is found with such id
      * @throws ValidationException if quote is not valid or no handler is assigned
      * @throws ConflictException if request is not pending
      */
-    public void acceptRequest(long requestId, BigDecimal quote){
+    public void acceptRequest(long actorId, long requestId, BigDecimal quote){
         validateId(requestId,"Request id");
         validateAcceptedQuote(quote);
 
@@ -259,6 +287,7 @@ public class EventRequestService {
                     .orElseThrow(() -> new NotFoundException("No event request found with id "+requestId));
             validateRequestIsPending(request);
             validateRequestHasHandler(request);
+            requireAssignedHandler(conn, actorId, request);
 
             EventRequest acceptedRequest = request
                     .withStatus(EventRequestStatus.ACCEPTED)
@@ -272,17 +301,20 @@ public class EventRequestService {
 
     /**
      * Rejects a pending request.
+     * @param actorId authenticated handler rejecting the request
      * @param requestId the id of the request
      * @throws NotFoundException if no request is found with such id
      * @throws ConflictException if request is not pending
      */
-    public void rejectRequest(long requestId){
+    public void rejectRequest(long actorId, long requestId){
         validateId(requestId,"Request id");
 
         transactionManager.inTransaction(conn->{
             EventRequest request = eventRequestRepository.findByIdForUpdate(conn,requestId)
                     .orElseThrow(() -> new NotFoundException("No event request found with id "+requestId));
             validateRequestIsPending(request);
+            validateRequestHasHandler(request);
+            requireAssignedHandler(conn, actorId, request);
 
             EventRequest rejectedRequest = request
                     .withStatus(EventRequestStatus.REJECTED)
@@ -295,17 +327,19 @@ public class EventRequestService {
 
     /**
      * Cancels a pending request by requester action.
+     * @param actorId authenticated requester cancelling the request
      * @param requestId the id of the request
      * @throws NotFoundException if no request is found with such id
      * @throws ConflictException if request is not pending
      */
-    public void cancelRequest(long requestId){
+    public void cancelRequest(long actorId, long requestId){
         validateId(requestId,"Request id");
 
         transactionManager.inTransaction(conn->{
             EventRequest request = eventRequestRepository.findByIdForUpdate(conn,requestId)
                     .orElseThrow(() -> new NotFoundException("No event request found with id "+requestId));
             validateRequestIsPending(request);
+            requireRequester(conn, actorId, request.getRequesterId());
 
             EventRequest cancelledRequest = request
                     .withStatus(EventRequestStatus.CANCELLED)
@@ -508,6 +542,32 @@ public class EventRequestService {
     private void validateRequestHasHandler(EventRequest request){
         if(request.getHandlerId() == null) {
             throw new ValidationException("Event request must have an assigned handler before acceptance");
+        }
+    }
+
+    private User requireUser(Connection conn, long actorId) {
+        validateId(actorId, "Actor id");
+        return userRepository.findById(conn, actorId)
+                .orElseThrow(() -> new NotFoundException("No user found with id " + actorId));
+    }
+
+    private void requireAdmin(Connection conn, long actorId) {
+        if (!requireUser(conn, actorId).isAdmin()) {
+            throw new ForbiddenException("Only admins can manage event requests");
+        }
+    }
+
+    private void requireRequester(Connection conn, long actorId, long requesterId) {
+        User actor = requireUser(conn, actorId);
+        if (actor.isAdmin() || actorId != requesterId) {
+            throw new ForbiddenException("Only the requester can perform this operation");
+        }
+    }
+
+    private void requireAssignedHandler(Connection conn, long actorId, EventRequest request) {
+        requireAdmin(conn, actorId);
+        if (request.getHandlerId() == null || request.getHandlerId() != actorId) {
+            throw new ForbiddenException("Only the assigned handler can close this request");
         }
     }
 }

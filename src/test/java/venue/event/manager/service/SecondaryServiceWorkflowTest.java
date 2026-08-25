@@ -115,7 +115,7 @@ class SecondaryServiceWorkflowTest {
         when(events.findById(any(Connection.class), eq(3L))).thenReturn(Optional.of(endedEvent().withId(3)));
         when(reports.insert(any(Connection.class), any())).thenReturn(14L);
         LocalDateTime before = LocalDateTime.now();
-        assertEquals(14L, service.addReport(TestDataFactory.createDefaultReport(2, 8, 3L).withCreatedAt(null)));
+        assertEquals(14L, service.addReport(8, TestDataFactory.createDefaultReport(2, 8, 3L).withCreatedAt(null)));
         ArgumentCaptor<Report> captor = ArgumentCaptor.forClass(Report.class);
         verify(reports).insert(any(Connection.class), captor.capture());
         assertFalse(captor.getValue().getCreatedAt().isBefore(before));
@@ -129,7 +129,7 @@ class SecondaryServiceWorkflowTest {
         when(users.findById(any(Connection.class), eq(8L)))
                 .thenReturn(Optional.of(TestDataFactory.createDefaultUser("not_admin").withId(8)));
         assertThrows(ForbiddenException.class,
-                () -> service.addReport(TestDataFactory.createDefaultReport(2, 8, null)));
+                () -> service.addReport(8, TestDataFactory.createDefaultReport(2, 8, null)));
         verify(reports, never()).insert(any(), any());
 
         when(users.findById(any(Connection.class), eq(8L)))
@@ -137,7 +137,27 @@ class SecondaryServiceWorkflowTest {
         when(users.findById(any(Connection.class), eq(2L)))
                 .thenReturn(Optional.of(TestDataFactory.createAdminUser("target_admin").withId(2)));
         assertThrows(ValidationException.class,
-                () -> service.addReport(TestDataFactory.createDefaultReport(2, 8, null)));
+                () -> service.addReport(8, TestDataFactory.createDefaultReport(2, 8, null)));
+        verify(reports, never()).insert(any(), any());
+    }
+
+    @Test
+    void reportOperationsShouldRequireAuthenticatedAdminIdentity() {
+        ReportRepository reports = mock(ReportRepository.class);
+        UserRepository users = mock(UserRepository.class);
+        ReportService service = new ReportService(create(), reports, mock(EventRepository.class), users);
+        when(users.findById(any(Connection.class), eq(7L)))
+                .thenReturn(Optional.of(TestDataFactory.createDefaultUser("ordinary").withId(7)));
+        when(users.findById(any(Connection.class), eq(9L)))
+                .thenReturn(Optional.of(TestDataFactory.createAdminUser("other_admin").withId(9)));
+
+        assertThrows(ForbiddenException.class, () -> service.getAllReports(7));
+        Report stored = TestDataFactory.createDefaultReport(2, 8, null).withId(3);
+        assertThrows(ForbiddenException.class, () -> service.updateReport(7, stored));
+        assertThrows(ForbiddenException.class, () -> service.deleteReport(7, 3));
+        assertThrows(ForbiddenException.class,
+                () -> service.addReport(9, TestDataFactory.createDefaultReport(2, 8, null)));
+        verify(reports, never()).findAll(any());
         verify(reports, never()).insert(any(), any());
     }
 

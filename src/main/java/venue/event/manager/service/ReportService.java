@@ -52,104 +52,116 @@ public class ReportService {
 
     /**
      * Gets all reports stored in database.
+     * @param actorId authenticated administrator requesting the reports
      * @return List of all reports
      */
-    public List<Report> getAllReports(){
-        return transactionManager.inReadOnly(conn ->
-                reportRepository.findAll(conn));
+    public List<Report> getAllReports(long actorId){
+        return transactionManager.inReadOnly(conn -> {
+            requireAdmin(conn, actorId);
+            return reportRepository.findAll(conn);
+        });
     }
 
     /**
      * Gets a report from its id.
+     * @param actorId authenticated administrator requesting the report
      * @param reportId the id of the report to find
      * @return Report object if found
      * @throws NotFoundException if no report is found with such id
      */
-    public Report getReport(long reportId){
-        return transactionManager.inReadOnly(conn ->
-                reportRepository.findById(conn,reportId)
-                        .orElseThrow(() -> new NotFoundException("Report with id " + reportId + " not found")));
+    public Report getReport(long actorId, long reportId){
+        return transactionManager.inReadOnly(conn -> {
+            requireAdmin(conn, actorId);
+            return reportRepository.findById(conn,reportId)
+                    .orElseThrow(() -> new NotFoundException("Report with id " + reportId + " not found"));
+        });
     }
 
     /**
      * Gets all reports related to a specific user.
+     * @param actorId authenticated administrator requesting the reports
      * @param userId the id of the reported user
      * @return List of reports related to the user
      */
-    public List<Report> getReportsByUser(long userId){
-        return transactionManager.inReadOnly(conn ->
-                reportRepository.findAllByUserId(conn,userId));
+    public List<Report> getReportsByUser(long actorId, long userId){
+        return transactionManager.inReadOnly(conn -> { requireAdmin(conn, actorId); return reportRepository.findAllByUserId(conn,userId); });
     }
 
     /**
      * Gets all reports created by a specific admin.
+     * @param actorId authenticated administrator requesting the reports
      * @param adminId the id of the admin
      * @return List of reports created by the admin
      */
-    public List<Report> getReportsByAdmin(long adminId){
-        return transactionManager.inReadOnly(conn ->
-                reportRepository.findAllByAdminId(conn,adminId));
+    public List<Report> getReportsByAdmin(long actorId, long adminId){
+        return transactionManager.inReadOnly(conn -> { requireAdmin(conn, actorId); return reportRepository.findAllByAdminId(conn,adminId); });
     }
 
     /**
      * Gets all reports related to a specific event.
+     * @param actorId authenticated administrator requesting the reports
      * @param eventId the id of the event
      * @return List of reports related to the event
      */
-    public List<Report> getReportsForEvent(long eventId){
-        return transactionManager.inReadOnly(conn ->
-                reportRepository.findAllByEventId(conn,eventId));
+    public List<Report> getReportsForEvent(long actorId, long eventId){
+        return transactionManager.inReadOnly(conn -> { requireAdmin(conn, actorId); return reportRepository.findAllByEventId(conn,eventId); });
     }
 
     /**
      * Gets all reports with a specific severity.
+     * @param actorId authenticated administrator requesting the reports
      * @param severity the severity used to filter reports
      * @return List of reports with the given severity
      */
-    public List<Report> getReportsBySeverity(ReportSeverity severity){
+    public List<Report> getReportsBySeverity(long actorId, ReportSeverity severity){
         validateSeverity(severity);
 
-        return transactionManager.inReadOnly(conn ->
-                reportRepository.findAllBySeverity(conn,severity));
+        return transactionManager.inReadOnly(conn -> { requireAdmin(conn, actorId); return reportRepository.findAllBySeverity(conn,severity); });
     }
 
     /**
      * Gets a report related to a user and an event.
+     * @param actorId authenticated administrator requesting the report
      * @param userId the id of the user
      * @param eventId the id of the event
      * @return Report object if found
      * @throws NotFoundException if no report is found for such user and event
      */
-    public Report getReportByUserAndEvent(long userId, long eventId){
-        return transactionManager.inReadOnly(conn ->
-                reportRepository.findByUserIdAndEventId(conn,userId,eventId)
-                        .orElseThrow(() -> new NotFoundException("Report for user " + userId +
-                                " and event " + eventId + " not found")));
+    public Report getReportByUserAndEvent(long actorId, long userId, long eventId){
+        return transactionManager.inReadOnly(conn -> {
+            requireAdmin(conn, actorId);
+            return reportRepository.findByUserIdAndEventId(conn,userId,eventId)
+                    .orElseThrow(() -> new NotFoundException("Report for user " + userId +
+                            " and event " + eventId + " not found"));
+        });
     }
 
     /**
      * Gets all reports created by an admin for a specific event.
+     * @param actorId authenticated administrator requesting the reports
      * @param adminId the id of the admin
      * @param eventId the id of the event
      * @return List of reports matching admin and event
      */
-    public List<Report> getReportsByAdminAndEvent(long adminId, long eventId){
-        return transactionManager.inReadOnly(conn ->
-                reportRepository.findAllByAdminIdAndEventId(conn,adminId,eventId));
+    public List<Report> getReportsByAdminAndEvent(long actorId, long adminId, long eventId){
+        return transactionManager.inReadOnly(conn -> { requireAdmin(conn, actorId); return reportRepository.findAllByAdminIdAndEventId(conn,adminId,eventId); });
     }
 
     /**
      * Inserts a new report in database.
+     * @param actorId authenticated administrator creating the report
      * @param report the report to insert
      * @return generated id of the new report
      * @throws ValidationException if report data are not valid
      * @throws NotFoundException if user, admin or event are not found
      * @throws ForbiddenException if admin privileges are missing
      */
-    public long addReport(Report report){
+    public long addReport(long actorId, Report report){
         validateReportNotNull(report);
 
         return transactionManager.inTransaction(conn -> {
+            requireAdmin(conn, actorId);
+            requireReportAuthor(actorId, report.getAdminId());
             validateForInsert(conn,report);
             Report finalReport = report.withCreatedAt(LocalDateTime.now());
             return reportRepository.insert(conn,finalReport);
@@ -158,13 +170,15 @@ public class ReportService {
 
     /**
      * Updates an existing report in database.
+     * @param actorId authenticated administrator updating the report
      * @param report the report object with updated data
      * @throws ValidationException if report data or id are not valid
      */
-    public void updateReport(Report report){
+    public void updateReport(long actorId, Report report){
         validateForUpdate(report);
 
         transactionManager.inTransaction(conn -> {
+            requireAdmin(conn, actorId);
             Report storedReport = reportRepository.findById(conn,report.getId())
                     .orElseThrow(() -> new NotFoundException("Report with id " + report.getId() + " not found"));
 
@@ -182,11 +196,13 @@ public class ReportService {
 
     /**
      * Deletes a report from database.
+     * @param actorId authenticated administrator deleting the report
      * @param reportId the id of the report to delete
      * @throws NotFoundException if no report is found with such id
      */
-    public void deleteReport(long reportId){
+    public void deleteReport(long actorId, long reportId){
         transactionManager.inTransaction(conn -> {
+            requireAdmin(conn, actorId);
             reportRepository.findById(conn,reportId)
                     .orElseThrow(() -> new NotFoundException("Report with id " + reportId + " not found"));
             reportRepository.deleteById(conn,reportId);
@@ -311,5 +327,17 @@ public class ReportService {
         validateId(eventId,"Event id");
         return eventRepository.findById(conn,eventId)
                 .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
+    }
+
+    private User requireAdmin(Connection conn, long actorId) {
+        validateId(actorId, "Actor id");
+        User actor = userRepository.findById(conn, actorId)
+                .orElseThrow(() -> new NotFoundException("Admin with id " + actorId + " not found"));
+        if (!actor.isAdmin()) throw new ForbiddenException("Only admins can access reports");
+        return actor;
+    }
+
+    private void requireReportAuthor(long actorId, long adminId) {
+        if (actorId != adminId) throw new ForbiddenException("Report author must match authenticated admin");
     }
 }
