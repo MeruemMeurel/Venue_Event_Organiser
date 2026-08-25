@@ -20,14 +20,14 @@ Venue Event Manager permette di gestire utenti, venue, risorse, richieste di eve
 
 Restano fuori dal perimetro della versione corrente:
 
-- una procedura completa di login con sessione o token;
+- la gestione di sessioni o token successiva all'autenticazione;
 - una interfaccia grafica o web;
 - un sistema reale di pagamento;
 - l'invio effettivo di email e notifiche;
 - l'integrazione con servizi esterni;
 - il deployment in produzione.
 
-Lo stato `PENDING_PAYMENT` rappresenta una fase del ciclo di vita della prenotazione, ma non implica l'esistenza di un gateway di pagamento. Analogamente, il sistema verifica le password nelle operazioni sensibili, ma non espone un caso d'uso completo di autenticazione basato su sessione.
+Lo stato `PENDING_PAYMENT` rappresenta una fase del ciclo di vita della prenotazione, ma non implica l'esistenza di un gateway di pagamento. L'autenticazione verifica username, password e stato dell'account a livello applicativo, ma non crea una sessione né emette un token.
 
 ## 3. Stato di implementazione
 
@@ -42,7 +42,7 @@ Nel catalogo viene usata la seguente classificazione:
 
 ### A1 - Visitor
 
-Persona che non possiede ancora un account persistito. Può registrare un nuovo account ordinario fornendo dati anagrafici e credenziali valide.
+Persona che non è ancora autenticata. Può registrare un nuovo account ordinario fornendo dati anagrafici e credenziali valide oppure autenticarsi con un account esistente e attivo.
 
 ### A2 - User
 
@@ -132,12 +132,9 @@ Gli identificatori seguenti devono rimanere invariati nei diagrammi, nei templat
 | UC-13 | Pubblicare una recensione | User | User goal | Media | Implementato |
 | UC-14 | Gestire le proprie recensioni | User | User goal | Media | Implementato |
 | UC-15 | Creare e consultare report | Administrator | User goal | Media | Implementato |
+| UC-16 | Autenticarsi | Visitor | User goal | Alta | Implementato |
 
 ## 6. Casi esclusi dal catalogo corrente
-
-### Autenticarsi
-
-La verifica delle credenziali esiste come supporto alle operazioni sensibili, ma non è implementato un flusso autonomo di login con creazione e gestione di una sessione. Il relativo caso d'uso può essere citato tra gli sviluppi futuri, ma non compare tra le funzionalità correnti.
 
 ### Effettuare un pagamento
 
