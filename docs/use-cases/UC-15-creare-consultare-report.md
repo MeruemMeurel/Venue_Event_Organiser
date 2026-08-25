@@ -28,7 +28,7 @@ Un report non valido non viene persistito; una consultazione non produce scrittu
 
 1. L'Administrator seleziona lo User da segnalare.
 2. Indica severità, eventuale commento ed eventuale evento correlato.
-3. Il sistema verifica che l'autore indicato sia Administrator.
+3. Il sistema verifica che il chiamante sia Administrator e coincida con l'autore indicato.
 4. Il sistema verifica che il bersaglio sia uno User ordinario.
 5. Se presente, il sistema verifica l'esistenza dell'evento.
 6. Il sistema valida severità e commento.
@@ -40,7 +40,7 @@ Un report non valido non viene persistito; una consultazione non produce scrittu
 ### 1a. Consultazione dei report
 
 1. L'Administrator sceglie un criterio: identificativo, User, Administrator autore, evento, severità o loro combinazione supportata.
-2. Il sistema esegue una transazione read-only.
+2. Il sistema verifica che il chiamante sia Administrator ed esegue una transazione read-only.
 3. Il sistema restituisce i risultati corrispondenti.
 
 ### 3a. Autore inesistente o non Administrator
@@ -72,10 +72,9 @@ Un report non valido non viene persistito; una consultazione non produce scrittu
 
 - `SecondaryServiceWorkflowTest.adminShouldCreateReportWithServerCreationTime`.
 - `SecondaryServiceWorkflowTest.reportShouldRequireAdminAndNonAdminTarget`.
+- `SecondaryServiceWorkflowTest.reportOperationsShouldRequireAuthenticatedAdminIdentity`.
 - I test di validazione dei report in `SecondaryServiceValidationTest`.
 - `ServiceQueryDelegationTest` verifica la delega delle interrogazioni supportate.
 
-## Osservazioni
-
-Il servizio verifica che `adminId` appartenga a un Administrator, ma non riceve separatamente l'identità autenticata del chiamante. Un livello applicativo futuro dovrà legare il chiamante a tale identificativo e proteggere anche aggiornamento, eliminazione e consultazione.
+Creazione, consultazione, aggiornamento ed eliminazione ricevono separatamente l'identità del chiamante e sono riservate agli Administrator. In creazione, il chiamante deve inoltre coincidere con l'autore registrato nel report.
 

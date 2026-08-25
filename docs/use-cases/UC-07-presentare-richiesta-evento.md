@@ -28,7 +28,7 @@ Una richiesta non valida non viene persistita.
 ## Flusso principale
 
 1. Lo User seleziona una venue e inserisce nome, descrizione e date dell'evento proposto.
-2. Il sistema verifica che il richiedente esista e non sia Administrator.
+2. Il sistema verifica che il chiamante coincida con il richiedente, che questo esista e non sia Administrator.
 3. Il sistema verifica l'esistenza della venue.
 4. Il sistema valida nome, descrizione e intervallo temporale.
 5. Il sistema verifica lo stato iniziale `PENDING` e, se assente, assegna l'istante corrente come data di creazione.
@@ -69,10 +69,9 @@ Una richiesta non valida non viene persistita.
 ## Test correlati
 
 - `RequestAndGuestWorkflowTest.createRequestShouldSupplyCreationTimeWhenMissing`.
+- `RequestAndGuestWorkflowTest.requesterCannotCreateOrCancelAnotherUsersRequest`.
 - `SecondaryServiceValidationTest.invalidRequesterShouldBeRejected` e `invalidVenueShouldBeRejected`.
 - `SecondaryServiceValidationTest.blankRequestNameShouldBeRejected` e `longRequestDescriptionShouldBeRejected`.
 - `SecondaryServiceValidationTest.invertedRequestDatesShouldBeRejected`.
 
-## Osservazioni
-
-Il servizio riceve l'identificativo del richiedente dentro la richiesta, ma non una distinta identità autenticata del chiamante. Verifica quindi che il richiedente sia valido, non che il chiamante coincida con esso. Inoltre, l'implementazione corrente richiede soltanto che lo stato non sia nullo: il vincolo che una nuova richiesta nasca sempre `PENDING` è descritto dal caso d'uso ma dovrebbe essere rafforzato nel service ignorando eventuali stati forniti dall'esterno.
+Il sistema ignora eventuali handler, stato, preventivo e data di chiusura ricevuti in input, impedendo che la creazione aggiri il ciclo di vita della richiesta.

@@ -29,7 +29,7 @@ In caso di errore la richiesta conserva stato, handler, preventivo e data di chi
 
 1. L'Administrator seleziona una richiesta pendente.
 2. Il sistema blocca la richiesta per evitare aggiornamenti concorrenti.
-3. L'Administrator assegna un handler Administrator, se non già presente.
+3. Il sistema verifica l'identità amministrativa del chiamante; l'Administrator assegna un handler Administrator, se non già presente.
 4. L'Administrator sceglie di accettare la richiesta e indica il preventivo.
 5. Il sistema verifica stato, handler e preventivo.
 6. Il sistema imposta lo stato `ACCEPTED` e la data di chiusura corrente.
@@ -44,13 +44,13 @@ In caso di errore la richiesta conserva stato, handler, preventivo e data di chi
 
 ### 4a. Rifiuto della richiesta
 
-1. L'Administrator sceglie di rifiutare la richiesta pendente.
+1. L'handler assegnato sceglie di rifiutare la richiesta pendente.
 2. Il sistema imposta `REJECTED` e la data di chiusura corrente.
 3. Il flusso riprende dal passo 7.
 
 ### 4b. Cancellazione da parte del richiedente
 
-1. Il richiedente cancella la propria richiesta ancora pendente.
+1. Il sistema verifica che il chiamante coincida con il richiedente, che cancella la propria richiesta ancora pendente.
 2. Il sistema imposta `CANCELLED` e la data di chiusura corrente.
 3. Il flusso riprende dal passo 7.
 
@@ -76,8 +76,8 @@ In caso di errore la richiesta conserva stato, handler, preventivo e data di chi
 - `RequestAndGuestWorkflowTest.nonAdminHandlerShouldNotUpdateRequest`.
 - `RequestAndGuestWorkflowTest.acceptRejectAndCancelShouldClosePendingRequest`.
 - `RequestAndGuestWorkflowTest.acceptedRequestCannotBeClosedAgain`.
+- `RequestAndGuestWorkflowTest.onlyAssignedHandlerCanAcceptOrRejectRequest`.
+- `RequestAndGuestWorkflowTest.requesterCannotCreateOrCancelAnotherUsersRequest`.
 
-## Osservazioni
-
-Le operazioni verificano il ruolo dell'handler assegnato, ma non ricevono l'identità autenticata del chiamante. Non possono quindi dimostrare che chi assegna, accetta o rifiuta sia davvero Administrator, né che chi cancella sia il richiedente.
+Accettazione e rifiuto sono riservati all'handler assegnato, non a un Administrator qualsiasi. La cancellazione e le modifiche descrittive restano invece riservate al richiedente finché la richiesta è `PENDING`.
 
