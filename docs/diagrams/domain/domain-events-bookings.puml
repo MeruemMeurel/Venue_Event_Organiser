@@ -1,0 +1,115 @@
+@startuml
+skinparam style strictuml
+skinparam classAttributeIconSize 0
+
+skinparam DefaultFontName "Helvetica"
+skinparam DefaultFontSize 12
+skinparam class {
+    BackgroundColor White
+    BorderColor #333333
+    ArrowColor #555555
+}
+skinparam nodesep 100
+skinparam ranksep 100
+
+skinparam ArrowThickness 1.2
+skinparam ArrowFontStyle bold
+skinparam ArrowFontSize 11
+skinparam ArrowColor #444444
+
+package "domain.event" {
+    class EventRequest <<Entity - Immutable>> {
+        - id: Long
+        - requesterId: Long
+        - handlerId: Long
+        - venueId: Long
+        - name: String
+        - startDateTime: LocalDateTime
+        - endDateTime: LocalDateTime
+        - status: EventRequestStatus
+        - closedAt: LocalDateTime
+    }
+
+    class Event <<Entity - Immutable>> {
+        - id: Long
+        - creatorId: Long
+        - organiserId: Long
+        - venueId: Long
+        - name: String
+        - startDateTime: LocalDateTime
+        - endDateTime: LocalDateTime
+        - capacity: int
+        - price: BigDecimal
+        - status: EventStatus
+        - publishedAt: LocalDateTime
+    }
+
+    class EventGuest <<Entity - Immutable>> {
+        - id: Long
+        - eventId: Long
+        - guestName: String
+        - status: EventGuestStatus
+    }
+
+    enum EventStatus {
+        DRAFT
+        CONFIRMED
+        PUBLISHED
+        CANCELLED
+    }
+
+    enum EventRequestStatus {
+        PENDING
+        ACCEPTED
+        REJECTED
+        CANCELLED
+    }
+
+    enum EventGuestStatus {
+        INVITED
+        CONFIRMED
+        CANCELLED
+    }
+}
+
+package "domain.booking" {
+    class Booking <<Entity - Immutable>> {
+        - id: Long
+        - userId: Long
+        - eventId: Long
+        - totalPrice: BigDecimal
+        - status: BookingStatus
+    }
+
+    class Ticket <<Entity - Immutable>> {
+        - id: Long
+        - bookingId: Long
+        - ticketHolderName: String
+        - eventStartDateTime: LocalDateTime
+    }
+
+    enum BookingStatus {
+        PENDING_PAYMENT
+        CONFIRMED
+        CANCELLED
+    }
+}
+
+package "domain.feedback" {
+    class Review <<Entity - Immutable>> {
+        - id: Long
+        - userId: Long
+        - eventId: Long
+        - rating: int
+        - comment: String
+    }
+}
+
+
+EventRequest "1  " --> "1  " EventRequestStatus : " la richiesta\n dell'evento è"
+Event "1 " --> "1   " EventStatus : " l'evento è"
+EventGuest "1  " --> "1  " EventGuestStatus : " l'ospite dell'evento è"
+Booking "1 " --> "1    " BookingStatus : "la prenotazione è"
+Booking "1   " *-- "1..* " Ticket : " contiene"
+Event "1   " o-- "0..* " EventGuest : " gestisce"
+@endum

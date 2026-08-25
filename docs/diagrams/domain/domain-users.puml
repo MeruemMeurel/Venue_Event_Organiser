@@ -1,0 +1,64 @@
+@startuml
+skinparam style strictuml
+skinparam classAttributeIconSize 0
+
+skinparam DefaultFontName "Helvetica"
+skinparam DefaultFontSize 12
+skinparam class {
+    BackgroundColor White
+    BorderColor #333333
+    ArrowColor #555555
+}
+skinparam nodesep 100
+skinparam ranksep 100
+
+skinparam ArrowThickness 1.2
+skinparam ArrowFontStyle bold
+skinparam ArrowFontSize 11
+skinparam ArrowColor #444444
+
+package "domain.user" {
+    class User <<Entity - Immutable>> {
+        - id: Long
+        - username: String
+        - firstName: String
+        - lastName: String
+        - email: String
+        - dateOfBirth: LocalDate
+        - passwordHash: String
+        - isAdmin: boolean
+        - status: AccountStatus
+        --
+        + withStatus(status: AccountStatus): User
+        + withProfile(firstName: String, lastName: String, email: String): User
+    }
+
+    enum AccountStatus {
+        ACTIVE
+        BANNED
+    }
+}
+
+package "domain.moderation" {
+    class Report <<Entity - Immutable>> {
+        - id: Long
+        - senderAdminId: Long
+        - targetUserId: Long
+        - eventId: Long
+        - severity: Severity
+        - description: String
+        --
+        + Report(id: Long, senderAdminId: Long, ...)
+    }
+
+    enum Severity {
+        LOW
+        MIDDLE
+        HIGH
+    }
+}
+
+User "1 " --> "1 " AccountStatus : " l'account è"
+Report "1 " --> "1 " Severity : " classificata con"
+Report "    0..*" -right-> "1   " User : "riguarda"
+@endum
