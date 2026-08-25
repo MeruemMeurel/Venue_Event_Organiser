@@ -80,6 +80,8 @@ Utente registrato caratterizzato da `is_admin = true`. Può:
 - confermare, cancellare o eliminare qualsiasi prenotazione;
 - creare e consultare report amministrativi.
 
+La creazione dell'Administrator iniziale è un'operazione di configurazione del sistema eseguita tramite migration di seed, non un caso d'uso pubblico. La registrazione UC-01 forza sempre il nuovo account a User ordinario `ACTIVE`, anche se i dati ricevuti richiedono privilegi amministrativi o uno stato differente. La versione corrente non espone una funzione per promuovere uno User o creare ulteriori Administrator.
+
 ### S1 - Invited guest
 
 Persona inserita nella lista di un evento privato. Non coincide
