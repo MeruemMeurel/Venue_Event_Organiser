@@ -1,0 +1,102 @@
+@startuml
+skinparam style strictuml
+skinparam shadowing false
+skinparam DefaultFontName "Helvetica"
+skinparam DefaultFontSize 12
+skinparam ArrowColor #4A5568
+skinparam ArrowThickness 1.4
+skinparam packageStyle rectangle
+
+skinparam package {
+    BackgroundColor #F8FAFC
+    BorderColor #64748B
+    FontColor #1E293B
+}
+
+skinparam component {
+    BackgroundColor #F1F5F9
+    BorderColor #64748B
+    FontColor #1E293B
+}
+
+top to bottom direction
+
+actor "Caller / Test" as Caller
+
+package "venue.event.manager" as Root {
+    package "service" as Service #E0F2FE {
+        component "Application services" as Services
+        component "AuthService" as Auth
+        component "PasswordHasher" as Hasher
+    }
+
+    package "domain.model" as Domain #DCFCE7 {
+        package "user" as DomainUser
+        package "venue" as DomainVenue
+        package "resource" as DomainResource
+        package "request" as DomainRequest
+        package "event" as DomainEvent
+        package "booking" as DomainBooking
+        package "feedback" as DomainFeedback
+    }
+
+    package "repository" as Repository #FEF3C7 {
+        component "Repository interfaces" as RepositoryContracts
+    }
+
+    package "repository.jdbc" as Jdbc #FFEDD5 {
+        component "Pg...Repository" as PgRepositories
+        component "JDBC mapping utilities" as JdbcUtilities
+    }
+
+    package "config" as Config #EDE9FE {
+        component "TransactionManager" as TransactionManager
+        component "DataSourceSingleton" as DataSource
+        component "DbConfig" as DbConfig
+    }
+
+    package "exception" as Exception #FCE7F3 {
+        component "Application exceptions" as ApplicationExceptions
+    }
+}
+
+database "PostgreSQL" as PostgreSQL
+component "HikariCP" as Hikari
+component "Flyway migrations" as Flyway
+
+Caller --> Services : invokes use cases
+
+Services --> Domain : creates and validates models
+Services --> RepositoryContracts : depends on contracts
+Services --> TransactionManager : defines transaction boundaries
+Services --> ApplicationExceptions : reports application failures
+Services --> Auth : delegates credential checks
+Auth --> Hasher : hashes and verifies passwords
+Auth --> RepositoryContracts
+
+RepositoryContracts --> Domain : exposes domain models
+
+PgRepositories ..|> RepositoryContracts : implements
+PgRepositories --> Domain : maps rows to models
+PgRepositories --> JdbcUtilities : reuses JDBC helpers
+PgRepositories --> PostgreSQL : executes SQL through Connection
+
+TransactionManager --> DataSource : obtains connections
+DataSource --> DbConfig : reads database settings
+DataSource --> Hikari : configures connection pool
+Hikari --> PostgreSQL : manages pooled connections
+Flyway --> PostgreSQL : versions the schema
+
+note right of Caller
+  The current project has no definitive
+  UI or API. Services are exercised mainly
+  through the automated test suite.
+end note
+
+note right of RepositoryContracts
+  Services depend on interfaces rather than
+  concrete PostgreSQL repositories, enabling
+  dependency injection and isolated tests.
+end note
+
+@enduml

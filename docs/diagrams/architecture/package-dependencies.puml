@@ -1,0 +1,54 @@
+@startuml
+skinparam style strictuml
+skinparam shadowing false
+skinparam DefaultFontName "Helvetica"
+skinparam DefaultFontSize 12
+skinparam ArrowColor #4A5568
+skinparam ArrowThickness 1.4
+skinparam packageStyle rectangle
+
+skinparam package {
+    BackgroundColor #F8FAFC
+    BorderColor #64748B
+    FontColor #1E293B
+}
+
+top to bottom direction
+
+package "venue.event.manager" {
+    package "service" as Service #E0F2FE
+    package "repository" as Repository #FEF3C7
+    package "repository.jdbc" as Jdbc #FFEDD5
+    package "domain.model" as Domain #DCFCE7 {
+        package "user"
+        package "venue"
+        package "resource"
+        package "request"
+        package "event"
+        package "booking"
+        package "feedback"
+    }
+    package "config" as Config #EDE9FE
+    package "exception" as Exception #FCE7F3
+}
+
+Service -down-> Domain : usa modelli e regole
+Service -left-> Repository : dipende dalle interfacce
+Service -right-> Config : delimita le transazioni
+Service --> Exception : comunica errori applicativi
+
+Repository --> Domain : espone modelli del dominio
+Jdbc ..> Repository : implementa
+Jdbc --> Domain : esegue il mapping
+
+note bottom of Repository
+  I service ricevono le interfacce repository
+  tramite dependency injection.
+end note
+
+note bottom of Jdbc
+  Le implementazioni Pg...Repository
+  costituiscono il livello di persistenza JDBC.
+end note
+
+@enduml
