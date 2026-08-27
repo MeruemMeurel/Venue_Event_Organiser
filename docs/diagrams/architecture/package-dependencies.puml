@@ -39,16 +39,5 @@ Service --> Exception : comunica errori applicativi
 
 Repository --> Domain : espone modelli del dominio
 Jdbc ..> Repository : implementa
-Jdbc --> Domain : esegue il mapping
-
-note bottom of Repository
-  I service ricevono le interfacce repository
-  tramite dependency injection.
-end note
-
-note bottom of Jdbc
-  Le implementazioni Pg...Repository
-  costituiscono il livello di persistenza JDBC.
-end note
 
 @enduml

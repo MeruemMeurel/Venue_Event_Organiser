@@ -87,16 +87,4 @@ DataSource --> Hikari : configures connection pool
 Hikari --> PostgreSQL : manages pooled connections
 Flyway --> PostgreSQL : versions the schema
 
-note right of Caller
-  The current project has no definitive
-  UI or API. Services are exercised mainly
-  through the automated test suite.
-end note
-
-note right of RepositoryContracts
-  Services depend on interfaces rather than
-  concrete PostgreSQL repositories, enabling
-  dependency injection and isolated tests.
-end note
-
 @enduml
