@@ -1,0 +1,87 @@
+@startuml
+skinparam style strictuml
+skinparam shadowing false
+skinparam DefaultFontName "Helvetica"
+skinparam DefaultFontSize 12
+skinparam ArrowColor #334155
+skinparam ArrowThickness 1.8
+skinparam ArrowFontColor #334155
+skinparam ArrowFontSize 11
+skinparam linetype ortho
+
+skinparam rectangle {
+    BorderColor #334155
+    BorderThickness 1.5
+    FontColor #0F172A
+    FontStyle bold
+    RoundCorner 14
+}
+
+skinparam component {
+    BackgroundColor #FFFFFF
+    BorderColor #475569
+    FontColor #0F172A
+}
+
+skinparam database {
+    BackgroundColor #0F766E
+    BorderColor #134E4A
+    FontColor #FFFFFF
+}
+
+top to bottom direction
+
+actor "Caller / Test" as Caller
+
+rectangle "APPLICATION LAYER" as Application #BAE6FD {
+    component "Application services" as Services
+    component "AuthService" as Auth
+    component "PasswordHasher" as Hasher
+
+    Services -[hidden]right- Auth
+    Auth -[hidden]right- Hasher
+}
+
+rectangle "DOMAIN LAYER" as DomainLayer #BBF7D0 {
+    component "User · Venue · Resource" as DomainA
+    component "Request · Event · Booking" as DomainB
+    component "Feedback" as DomainC
+
+    DomainA -[hidden]right- DomainB
+    DomainB -[hidden]right- DomainC
+}
+
+rectangle "PERSISTENCE CONTRACTS" as ContractsLayer #FDE68A {
+    component "Repository interfaces" as Repositories
+}
+
+rectangle "INFRASTRUCTURE LAYER" as Infrastructure #FED7AA {
+    component "Pg...Repository\nJDBC adapters" as Jdbc
+    component "TransactionManager" as Transactions
+    component "DataSourceSingleton\nHikariCP" as Pool
+    component "Flyway migrations" as Flyway
+
+    Jdbc -[hidden]right- Transactions
+    Transactions -[hidden]right- Pool
+    Pool -[hidden]right- Flyway
+}
+
+database "PostgreSQL" as PostgreSQL
+
+Caller -down-> Services
+
+Services -down-> DomainB
+Services -down-> Repositories
+Services --> Transactions
+Auth --> Hasher
+Auth --> Repositories
+
+Repositories --> DomainB
+Jdbc ..up.|> Repositories
+
+Transactions --> Pool
+Jdbc -down-> PostgreSQL
+Pool -down-> PostgreSQL
+Flyway -down-> PostgreSQL
+
+@enduml

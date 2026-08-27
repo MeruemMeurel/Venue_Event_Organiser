@@ -6,6 +6,7 @@ I diagrammi forniscono due livelli di lettura:
 
 - `package-dependencies` è la vista UML compatta delle dipendenze tra i package Java ed è adatta come figura principale della relazione;
 - `package-architecture` aggiunge i componenti infrastrutturali e mostra come HikariCP, Flyway e PostgreSQL partecipano al funzionamento dell'applicazione.
+- `layered-architecture` è una vista introduttiva più visuale, organizzata per livelli applicativo, dominio, contratti di persistenza e infrastruttura.
 
 I diagrammi non elencano ogni classe: mostrano le responsabilità architetturali necessarie a comprendere come un caso d'uso attraversa dominio, persistenza e gestione transazionale.
 
