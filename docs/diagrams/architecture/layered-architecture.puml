@@ -43,12 +43,7 @@ rectangle "APPLICATION LAYER" as Application #BAE6FD {
 }
 
 rectangle "DOMAIN LAYER" as DomainLayer #BBF7D0 {
-    component "User · Venue · Resource" as DomainA
-    component "Request · Event · Booking" as DomainB
-    component "Feedback" as DomainC
-
-    DomainA -[hidden]right- DomainB
-    DomainB -[hidden]right- DomainC
+    component "Domain models\nUser · Venue · Resource\nRequest · Event · Booking · Feedback" as DomainModels
 }
 
 rectangle "PERSISTENCE CONTRACTS" as ContractsLayer #FDE68A {
@@ -70,13 +65,15 @@ database "PostgreSQL" as PostgreSQL
 
 Caller -down-> Services
 
-Services -down-> DomainB
+Services --> Auth
+Services -down-> DomainModels
 Services -down-> Repositories
 Services --> Transactions
 Auth --> Hasher
 Auth --> Repositories
+Auth --> Transactions
 
-Repositories --> DomainB
+Repositories --> DomainModels
 Jdbc ..up.|> Repositories
 
 Transactions --> Pool

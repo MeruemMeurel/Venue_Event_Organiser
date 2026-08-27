@@ -6,6 +6,7 @@ skinparam DefaultFontSize 12
 skinparam ArrowColor #4A5568
 skinparam ArrowThickness 1.4
 skinparam packageStyle rectangle
+skinparam linetype ortho
 
 skinparam package {
     BackgroundColor #F8FAFC
@@ -64,27 +65,27 @@ database "PostgreSQL" as PostgreSQL
 component "HikariCP" as Hikari
 component "Flyway migrations" as Flyway
 
-Caller --> Services : invokes use cases
+Caller --> Services
 
-Services --> Domain : creates and validates models
-Services --> RepositoryContracts : depends on contracts
-Services --> TransactionManager : defines transaction boundaries
-Services --> ApplicationExceptions : reports application failures
-Services --> Auth : delegates credential checks
-Auth --> Hasher : hashes and verifies passwords
+Services --> Domain
+Services --> RepositoryContracts
+Services --> TransactionManager
+Services --> ApplicationExceptions
+Services --> Auth
+Auth --> Hasher
 Auth --> RepositoryContracts
+Auth --> TransactionManager
 
-RepositoryContracts --> Domain : exposes domain models
+RepositoryContracts --> Domain
 
-PgRepositories ..|> RepositoryContracts : implements
-PgRepositories --> Domain : maps rows to models
-PgRepositories --> JdbcUtilities : reuses JDBC helpers
-PgRepositories --> PostgreSQL : executes SQL through Connection
+PgRepositories ..|> RepositoryContracts
+PgRepositories --> JdbcUtilities
+PgRepositories --> PostgreSQL
 
-TransactionManager --> DataSource : obtains connections
-DataSource --> DbConfig : reads database settings
-DataSource --> Hikari : configures connection pool
-Hikari --> PostgreSQL : manages pooled connections
-Flyway --> PostgreSQL : versions the schema
+TransactionManager --> DataSource
+DataSource --> DbConfig
+DataSource --> Hikari
+Hikari --> PostgreSQL
+Flyway --> PostgreSQL
 
 @enduml
