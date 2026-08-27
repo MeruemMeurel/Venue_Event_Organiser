@@ -22,7 +22,7 @@ skinparam component {
 
 top to bottom direction
 
-actor "Caller / Test" as Caller
+actor "Client applicativo" as Caller
 
 package "venue.event.manager" as Root {
     package "service" as Service #E0F2FE {

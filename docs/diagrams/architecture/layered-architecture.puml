@@ -31,7 +31,7 @@ skinparam database {
 
 top to bottom direction
 
-actor "Caller / Test" as Caller
+actor "Client applicativo" as Caller
 
 rectangle "APPLICATION LAYER" as Application #BAE6FD {
     component "Application services" as Services

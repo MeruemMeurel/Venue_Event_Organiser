@@ -22,7 +22,7 @@ Le figure sono viste selettive: non elencano ogni `import`, metodo o classe. L'a
 
 ### 3.1 Chiamante e orchestrazione
 
-**Caller / Test → Application services.** Il chiamante richiede un caso applicativo a `UserService`, `BookingService`, `EventService` o agli altri service. Il chiamante è generico perché non esiste una UI, CLI o API definitiva. I test sono attualmente il principale punto di esercizio delle funzionalità. Questo non significa che soltanto i test possano usare i service.
+**Client applicativo → Application services.** Il client richiede un caso applicativo a `UserService`, `BookingService`, `EventService` o agli altri service. Il termine è volutamente generico perché non esiste una UI, CLI o API definitiva: rappresenta il punto d'ingresso esterno senza imporne la tecnologia. Attualmente sono soprattutto i test a esercitare direttamente i service, ma non vengono presentati come componenti dell'architettura produttiva.
 
 **Application services → DOMAIN LAYER.** I service lavorano con tutti i sottodomini pertinenti: utenti, venue, risorse, richieste, eventi, prenotazioni e feedback. Creano o leggono oggetti immutabili, controllano regole applicative e producono copie aggiornate attraverso i metodi `with...`. La freccia è diretta all'intero livello proprio per non suggerire che utenti o feedback siano esclusi.
 
