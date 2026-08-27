@@ -18,50 +18,50 @@ skinparam ArrowFontSize 11
 skinparam ArrowColor #444444
 
 
-package "domain.venue" {
+package "domain.model.venue" {
     class Venue <<Entity - Immutable>> {
         - id: Long
         - name: String
         - address: Address
-        - additionalInfo: String
+        - description: String
         --
         + Venue(id: Long, name: String, address: Address, ...)
     }
 
     class Address <<ValueObject - Immutable>> {
         - street: String
+        - streetNumber: String
         - city: String
-        - zipCode: String
+        - postalCode: String
         - country: String
+        - additionalInfo: String
         --
         + Address(street: String, city: String, ...)
     }
 }
 
-package "domain.resource" {
+package "domain.model.resource" {
     abstract class Resource <<Abstract - Immutable>> {
         - id: Long
+        - venueId: Long [0..1]
         - name: String
         - description: String
         --
         # Resource(id: Long, name: String, ...)
     }
 
-    class Space {
-        - capacity: int
-    }
+    class Space
 
     class Equipment {
-        - baseQuantity: int
+        - totalQuantity: int
     }
 
-    class Service {
-        - cost: BigDecimal
-    }
+    class Service
 }
 
 Venue "1 " *-- "1 " Address : " posizionata a"
-Venue "1    " o-right- " 0..*" Resource : "dispone di"
+Venue "1" o-right- "0..*" Space : "dispone di"
+Venue "0..1" o-right- "0..*" Equipment : "dispone di"
 Resource <|-- Space
 Resource <|-- Equipment
 Resource <|-- Service
