@@ -1,54 +1,53 @@
-# Note Interpretative - Macchine a Stati (State Diagrams)
+# Note interpretative - Macchine a stati
 
-Questo documento analizza le regole di transizione di stato, i vincoli di sicurezza (guardie) e gli effetti collaterali che governano il ciclo di vita delle entità principali del sistema.
+Le etichette seguono la forma `operazione [guardia] / effetto`. I dettagli e i flussi di errore sono nei template dei casi d'uso. Uno stato terminale non implica l'eliminazione del record: il simbolo finale associato a `delete...()` indica invece la fine dell'esistenza dell'entità.
 
-## 1. Stato dell'Evento (`EventStatus`)
+## Evento
 
-Il ciclo di vita dell'evento è progettato per garantire che nessun evento incompleto o non approvato venga esposto al pubblico per le prenotazioni.
+- La creazione forza `DRAFT` e rimuove un'eventuale data di pubblicazione ricevuta in input.
+- Sono ammesse `DRAFT → CONFIRMED`, `CONFIRMED → PUBLISHED` e la cancellazione da `DRAFT`, `CONFIRMED` o `PUBLISHED`.
+- La gestione richiede un Administrator oppure l'Organiser assegnato, anche quando la guardia non è ripetuta nell'etichetta.
+- La pubblicazione richiede inizio futuro, venue esistente e capienza positiva; assegna `publishedAt`.
+- La cancellazione annulla booking e invitati attivi nella stessa transazione e imposta `CANCELLED`. Non effettua rimborsi.
+- `CANCELLED` non permette riattivazione. L'eliminazione fisica, disponibile nel service, è omessa da questa vista delle transizioni di stato.
 
-*   **Stato Iniziale (`DRAFT`):** Ogni evento appena creato viene forzato nello stato iniziale `DRAFT`, indipendentemente dai parametri ricevuti in input dal servizio.
-*   **Transizioni Ammesse:**
-    *   `DRAFT` → `CONFIRMED`: L'evento viene validato e confermato internamente.
-    *   `DRAFT` → `CANCELLED`: Cancellazione preventiva dell'evento.
-    *   `CONFIRMED` → `PUBLISHED`: Transizione che rende l'evento visibile agli utenti e prenotabile. All'atto del passaggio viene valorizzato il timestamp `published_at`.
-    *   `CONFIRMED` / `PUBLISHED` → `CANCELLED`: L'evento viene cancellato.
-*   **Effetti Collaterali della Cancellazione (`CANCELLED`):** Trattandosi di uno stato terminale irreversibile, la cancellazione di un evento pubblicato attiva una transazione atomica che provvede a annullare d'ufficio tutte le prenotazioni attive (`BookingStatus.CANCELLED`) e gli inviti degli ospiti (`EventGuestStatus.CANCELLED`).
+## Prenotazione
 
-## 2. Stato della Prenotazione (`BookingStatus`)
+- La creazione verifica utente, evento pubblico pubblicato e futuro, biglietti e capienza, bloccando l'evento prima del conteggio. Dopo i controlli persiste booking e ticket atomicamente.
+- La prenotazione nasce `PENDING_PAYMENT` e può passare a `CONFIRMED` oppure `CANCELLED`; anche una prenotazione confermata può essere cancellata.
+- Conferma, cancellazione ed eliminazione richiedono il proprietario della prenotazione o un Administrator.
+- La cancellazione dell'evento annulla le prenotazioni attive, incluse quelle `PENDING_PAYMENT`.
+- Il nome `PENDING_PAYMENT` rappresenta una fase applicativa: non esistono gateway di pagamento, scadenza automatica, verifica dell'incasso o rimborso.
 
-La prenotazione regola la riserva dei posti (biglietti) ed evita l'overbooking tramite lock transazionali.
+## Richiesta di evento
 
-*   **Stato Iniziale (`PENDING_PAYMENT`):** La prenotazione nasce in questo stato transitorio mentre il sistema verifica la disponibilità residua di posti presso la venue e applica un lock `FOR UPDATE` sul record dell'evento.
-*   **Transizioni Ammesse:**
-    *   `PENDING_PAYMENT` → `CONFIRMED`: L'owner dello stabilimento o della venue conferma manualmente la ricezione del pagamento, consolidando la riserva dei biglietti.
-    *   `PENDING_PAYMENT` → `CANCELLED`: Il pagamento fallisce, scade per timeout o viene annullato manualmente.
-    *   `CONFIRMED` → `CANCELLED`: Annullamento tardivo della prenotazione da parte dell'utente o a causa della cancellazione complessiva dell'evento.
+- La creazione richiede che il chiamante coincida con il richiedente ordinario e forza `PENDING`, senza handler, preventivo o data di chiusura.
+- Un Administrator può assegnare un handler amministrativo mentre la richiesta è pendente. L'assegnazione non cambia lo stato.
+- Solo l'handler assegnato può accettare o rifiutare; l'accettazione richiede un preventivo presente e non negativo.
+- Solo il richiedente può cancellare la propria richiesta pendente.
+- Le tre chiusure assegnano `closedAt`; `ACCEPTED`, `REJECTED` e `CANCELLED` non consentono ulteriori transizioni di stato.
+- Aggiornamento descrittivo ed eliminazione della richiesta pendente sono riservati al richiedente e omessi dalla vista degli stati.
 
-## 3. Stato della Richiesta di Evento (`EventRequestStatus`)
+## Invitato
 
-Governa il flusso burocratico di approvazione delle proposte di eventi inviate dagli utenti ordinari.
+- L'inserimento riguarda un evento `PRIVATE_GUEST_LIST` non cancellato e forza `INVITED`.
+- Sono ammesse `INVITED → CONFIRMED`, `INVITED → CANCELLED` e `CONFIRMED → CANCELLED`.
+- Le operazioni sono eseguite da un Administrator o dall'Organiser assegnato, non direttamente dall'invitato.
+- La cancellazione dell'evento annulla gli inviti attivi.
+- `CANCELLED` non consente riattivazione; la rimozione fisica è omessa dalla vista degli stati.
 
-*   **Stato Iniziale (`PENDING`):** La proposta è registrata e in attesa di presa in carico.
-*   **Transizioni Ammesse verso Stati Terminali:**
-    *   `PENDING` → `ACCEPTED`: Un amministratore prende in carico la richiesta (`handlerId` valorizzato), inserisce un preventivo valido non negativo e approva formalmente la richiesta. Viene registrata la data di chiusura `closed_at`.
-    *   `PENDING` → `REJECTED`: L'amministrazione rifiuta la proposta inserendo la data di chiusura.
-    *   `PENDING` → `CANCELLED`: L'utente che ha presentato la proposta decide di ritirarla prima che venga valutata.
+## Account
 
-## 4. Stato dell'Ospite Invitato (`EventGuestStatus`)
+- La registrazione crea uno User ordinario `ACTIVE`.
+- Ban e riattivazione richiedono credenziali valide di un Administrator; non sono consentiti su se stesso o su altri Administrator.
+- Il ban impedisce nuove prenotazioni, ma non cancella quelle già esistenti.
+- L'eliminazione richiede la password dello User ed è consentita sia da `ACTIVE` sia da `BANNED`.
 
-Gestisce l'accesso e la pianificazione degli inviti nominativi per eventi di tipo privato con lista ospiti.
+## Test di riferimento
 
-*   **Stato Iniziale (`INVITED`):** L'ospite viene registrato nella lista associata all'evento privato.
-*   **Transizioni Ammesse:**
-    *   `INVITED` → `CONFIRMED`: L'ospite accetta formalmente l'invito.
-    *   `INVITED` → `CANCELLED`: L'ospite rifiuta l'invito.
-    *   `CONFIRMED` → `CANCELLED`: L'ospite si cancella in un secondo momento o l'evento viene annullato dall'organizzatore.
-
-## 5. Stato dell'Account Utente (`AccountStatus`)
-
-Regola i permessi operativi di un utente all'interno della piattaforma.
-
-*   **Stato Iniziale (`ACTIVE`):** Ogni nuovo utente registrato è attivo e può utilizzare tutte le funzionalità associate al proprio ruolo.
-*   **Transizioni Ammesse:**
-    *   `ACTIVE` → `BANNED`: Un amministratore autenticato, a seguito di segnalazioni o violazioni delle linee guida, decide di sanzionare l'utente. Questa transizione cancella automaticamente a cascata tutte le prenotazioni future effettuate dall'utente in questione.
-    *   `BANNED` → `ACTIVE`: L'amministratore decide di riattivare l'account dopo una verifica delle credenziali.
+- `StatusTransitionTest`: transizioni ammesse e rifiutate di eventi, booking e invitati.
+- `EventServiceWorkflowTest.cancellationShouldCascadeBeforeUpdatingEventStatus`: cancellazione coordinata dell'evento.
+- `CoreServiceWorkflowTest.missingOrBannedUserShouldNotLockEvent`: nuove prenotazioni rifiutate per account bannati o inesistenti.
+- `UserServiceWorkflowTest.adminShouldBanAndUnbanOrdinaryUser`: ban e riattivazione.
+- `RequestAndGuestWorkflowTest.onlyAssignedHandlerCanAcceptOrRejectRequest`: autorizzazione dell'handler.
+- `RequestAndGuestWorkflowTest.onlyAdminOrAssignedOrganiserShouldManageGuests`: autorizzazione sugli invitati.

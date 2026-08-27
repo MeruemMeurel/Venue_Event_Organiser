@@ -20,12 +20,11 @@ skinparam state {
 skinparam ranksep 100
 skinparam nodesep 120
 
-[*] --> INVITED : "inviteGuest() [evento PRIVATE_GUEST_LIST]"
+[*] --> INVITED : inviteGuest() [evento PRIVATE_GUEST_LIST e attore autorizzato]
 
-INVITED --> CONFIRMED : "confirmInvitation()"
+INVITED --> CONFIRMED : confirmInvitation() [Administrator o Organiser assegnato]
 
-INVITED -right-> CANCELLED : "cancelInvitation()"
-CONFIRMED -right-> CANCELLED : "cancelInvitation() | cancelEvent()"
+INVITED -right-> CANCELLED : cancelInvitation() [attore autorizzato]\noppure cancelEvent()
+CONFIRMED -right-> CANCELLED : cancelInvitation() [attore autorizzato]\noppure cancelEvent()
 
-CANCELLED --> [*]
 @endum
