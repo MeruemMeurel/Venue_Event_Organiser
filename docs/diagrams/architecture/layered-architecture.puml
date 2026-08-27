@@ -61,20 +61,21 @@ rectangle "INFRASTRUCTURE LAYER" as Infrastructure #FED7AA {
     Pool -[hidden]right- Flyway
 }
 
+DomainLayer -[hidden]down- Infrastructure
+
 database "PostgreSQL" as PostgreSQL
 
 Caller -down-> Services
 
 Services --> Auth
-Services -down-> DomainModels
-Services -down-> Repositories
-Services --> Transactions
+Services -right-> DomainModels
+Services -right-> Repositories
+Services -down-> Transactions
 Auth --> Hasher
-Auth --> Repositories
-Auth --> Transactions
+Auth -right-> Repositories
 
 Repositories --> DomainModels
-Jdbc ..up.|> Repositories
+Jdbc .up.|> Repositories
 
 Transactions --> Pool
 Jdbc -down-> PostgreSQL

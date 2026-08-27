@@ -28,7 +28,7 @@ Le figure sono viste selettive: non elencano ogni `import`, metodo o classe. L'a
 
 **Application services → Repository interfaces.** I service utilizzano contratti come `UserRepository`, `EventRepository` e `BookingRepository`. Le dipendenze vengono fornite tramite costruttore; il service non deve conoscere la classe concreta PostgreSQL e non contiene direttamente SQL.
 
-**Application services → TransactionManager.** Il service stabilisce quali operazioni devono appartenere alla stessa transazione. Fornisce una funzione a `inTransaction` o `inReadOnly`; il manager gestisce apertura della connessione, completamento, rollback in caso di errore e ripristino dello stato della connessione.
+**Application services → TransactionManager.** I service stabiliscono quali operazioni devono appartenere alla stessa transazione. Forniscono una funzione a `inTransaction` o `inReadOnly`; il manager gestisce apertura della connessione, completamento, rollback in caso di errore e ripristino dello stato della connessione. Nella vista introduttiva questa singola freccia riassume anche l'uso del manager da parte di `AuthService`, mostrato separatamente nel diagramma tecnico completo.
 
 **Application services → AuthService.** Alcuni service delegano le responsabilità relative alle credenziali: in particolare `UserService` usa `AuthService`. Non significa che ogni service invochi l'autenticazione in ogni operazione.
 
