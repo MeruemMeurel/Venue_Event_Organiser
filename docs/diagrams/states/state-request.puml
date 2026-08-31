@@ -20,13 +20,10 @@ skinparam state {
 skinparam ranksep 100
 skinparam nodesep 120
 
-[*] --> PENDING : "submitRequest() [dati base]"
+[*] --> PENDING : createRequest() [actor = requester] / force PENDING
 
-PENDING -left-> ACCEPTED : "acceptRequest() [handler && preventivo >= 0] / setClosedAt(now)"
-PENDING --> REJECTED : "rejectRequest() / setClosedAt(now)"
-PENDING -right-> CANCELLED : "cancelRequest() / setClosedAt(now)"
+PENDING -left-> ACCEPTED : acceptRequest() [actor = handler e quote >= 0]\n/ setClosedAt(now)
+PENDING --> REJECTED : rejectRequest() [actor = handler] / setClosedAt(now)
+PENDING -right-> CANCELLED : cancelRequest() [actor = requester] / setClosedAt(now)
 
-ACCEPTED --> [*]
-REJECTED --> [*]
-CANCELLED --> [*]
 @endum

@@ -20,12 +20,14 @@ skinparam state {
 skinparam ranksep 100
 skinparam nodesep 120
 
-[*] --> PENDING_PAYMENT : "createBooking() [posti disp.] / lockEvent()"
+[*] --> PENDING_PAYMENT : createBooking() [evento prenotabile e posti disponibili]
 
-PENDING_PAYMENT --> CONFIRMED : "confirmPayment()"
+PENDING_PAYMENT --> CONFIRMED : confirmBooking() [proprietario o Administrator]
 
-PENDING_PAYMENT -right-> CANCELLED : "cancelBooking() | timeout"
-CONFIRMED -right-> CANCELLED : "cancelBooking() | cancelEvent() / refund()"
+PENDING_PAYMENT -right-> CANCELLED : cancelBooking() [proprietario o Administrator]\noppure cancelEvent()
+CONFIRMED -right-> CANCELLED : cancelBooking() [proprietario o Administrator]\noppure cancelEvent()
 
-CANCELLED --> [*]
+PENDING_PAYMENT --> [*] : deleteBooking() [proprietario o Administrator]
+CONFIRMED --> [*] : deleteBooking() [proprietario o Administrator]
+CANCELLED --> [*] : deleteBooking() [proprietario o Administrator]
 @endum

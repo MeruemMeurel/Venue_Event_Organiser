@@ -17,20 +17,19 @@ skinparam ArrowFontStyle bold
 skinparam ArrowFontSize 11
 skinparam ArrowColor #444444
 
-package "domain.user" {
+package "domain.model.user" {
     class User <<Entity - Immutable>> {
         - id: Long
         - username: String
         - firstName: String
         - lastName: String
         - email: String
-        - dateOfBirth: LocalDate
-        - passwordHash: String
+        - birthday: LocalDate
+        - phone: String
         - isAdmin: boolean
         - status: AccountStatus
         --
-        + withStatus(status: AccountStatus): User
-        + withProfile(firstName: String, lastName: String, email: String): User
+        + withAccountStatus(status: AccountStatus): User
     }
 
     enum AccountStatus {
@@ -39,19 +38,18 @@ package "domain.user" {
     }
 }
 
-package "domain.moderation" {
+package "domain.model.feedback" {
     class Report <<Entity - Immutable>> {
         - id: Long
-        - senderAdminId: Long
-        - targetUserId: Long
-        - eventId: Long
-        - severity: Severity
-        - description: String
-        --
-        + Report(id: Long, senderAdminId: Long, ...)
+        - userId: Long
+        - adminId: Long
+        - eventId: Long [0..1]
+        - severity: ReportSeverity
+        - comment: String
+        - createdAt: LocalDateTime
     }
 
-    enum Severity {
+    enum ReportSeverity {
         LOW
         MIDDLE
         HIGH
@@ -59,6 +57,9 @@ package "domain.moderation" {
 }
 
 User "1 " --> "1 " AccountStatus : " l'account è"
-Report "1 " --> "1 " Severity : " classificata con"
-Report "    0..*" -right-> "1   " User : "riguarda"
+class Event <<Entity reference>>
+Report "0..*" --> "0..1" Event : "riguarda eventualmente"
+Report "1 " --> "1 " ReportSeverity : " classificato con"
+Report "0..*" -right-> "1" User : "riguarda"
+Report "0..*" -left-> "1" User : "creato da Administrator"
 @endum

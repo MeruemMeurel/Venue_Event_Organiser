@@ -17,45 +17,23 @@ skinparam ArrowFontStyle bold
 skinparam ArrowFontSize 11
 skinparam ArrowColor #444444
 
-package "domain.event" {
+class User <<Entity reference>>
+class Venue <<Entity reference>>
+
+package "domain.model.request" {
     class EventRequest <<Entity - Immutable>> {
         - id: Long
         - requesterId: Long
-        - handlerId: Long
+        - handlerId: Long [0..1]
         - venueId: Long
         - name: String
-        - startDateTime: LocalDateTime
+        - description: String
+        - beginDateTime: LocalDateTime
         - endDateTime: LocalDateTime
         - status: EventRequestStatus
+        - createdAt: LocalDateTime
         - closedAt: LocalDateTime
-    }
-
-    class Event <<Entity - Immutable>> {
-        - id: Long
-        - creatorId: Long
-        - organiserId: Long
-        - venueId: Long
-        - name: String
-        - startDateTime: LocalDateTime
-        - endDateTime: LocalDateTime
-        - capacity: int
-        - price: BigDecimal
-        - status: EventStatus
-        - publishedAt: LocalDateTime
-    }
-
-    class EventGuest <<Entity - Immutable>> {
-        - id: Long
-        - eventId: Long
-        - guestName: String
-        - status: EventGuestStatus
-    }
-
-    enum EventStatus {
-        DRAFT
-        CONFIRMED
-        PUBLISHED
-        CANCELLED
+        - quote: BigDecimal
     }
 
     enum EventRequestStatus {
@@ -65,18 +43,61 @@ package "domain.event" {
         CANCELLED
     }
 
+}
+
+package "domain.model.event" {
+    class Event <<Entity - Immutable>> {
+        - id: Long
+        - creatorId: Long
+        - organiserId: Long
+        - venueId: Long
+        - name: String
+        - description: String
+        - beginDateTime: LocalDateTime
+        - endDateTime: LocalDateTime
+        - posterFilepath: String
+        - capacity: int
+        - visibility: EventVisibility
+        - ticketPrice: BigDecimal
+        - status: EventStatus
+        - publishedAt: LocalDateTime
+    }
+
+    class EventGuest <<Entity - Immutable>> {
+        - id: Long
+        - eventId: Long
+        - firstname: String
+        - lastname: String
+        - birthday: LocalDate
+        - status: EventGuestStatus
+        - note: String
+    }
+
+    enum EventStatus {
+        DRAFT
+        CONFIRMED
+        PUBLISHED
+        CANCELLED
+    }
+
     enum EventGuestStatus {
         INVITED
         CONFIRMED
         CANCELLED
     }
+
+    enum EventVisibility {
+        PUBLIC
+        PRIVATE_GUEST_LIST
+    }
 }
 
-package "domain.booking" {
+package "domain.model.booking" {
     class Booking <<Entity - Immutable>> {
         - id: Long
         - userId: Long
         - eventId: Long
+        - createdAt: LocalDateTime
         - totalPrice: BigDecimal
         - status: BookingStatus
     }
@@ -84,8 +105,9 @@ package "domain.booking" {
     class Ticket <<Entity - Immutable>> {
         - id: Long
         - bookingId: Long
-        - ticketHolderName: String
-        - eventStartDateTime: LocalDateTime
+        - firstname: String
+        - lastname: String
+        - startsAt: LocalDateTime
     }
 
     enum BookingStatus {
@@ -95,13 +117,14 @@ package "domain.booking" {
     }
 }
 
-package "domain.feedback" {
+package "domain.model.feedback" {
     class Review <<Entity - Immutable>> {
         - id: Long
         - userId: Long
         - eventId: Long
         - rating: int
         - comment: String
+        - createdAt: LocalDateTime
     }
 }
 
@@ -109,7 +132,19 @@ package "domain.feedback" {
 EventRequest "1  " --> "1  " EventRequestStatus : " la richiesta\n dell'evento è"
 Event "1 " --> "1   " EventStatus : " l'evento è"
 EventGuest "1  " --> "1  " EventGuestStatus : " l'ospite dell'evento è"
+Event "1" --> "1" EventVisibility : "ha visibilità"
 Booking "1 " --> "1    " BookingStatus : "la prenotazione è"
 Booking "1   " *-- "1..* " Ticket : " contiene"
 Event "1   " o-- "0..* " EventGuest : " gestisce"
+
+EventRequest "0..*" --> "1" User : "richiesta da"
+EventRequest "0..*" --> "0..1" User : "gestita da"
+EventRequest "0..*" --> "1" Venue : "riguarda"
+Event "0..*" --> "1" Venue : "si svolge presso"
+Event "0..*" --> "1" User : "creato da Administrator"
+Event "0..*" --> "0..1" User : "assegnato a Organiser"
+Booking "0..*" --> "1" User : "effettuata da"
+Booking "0..*" --> "1" Event : "riguarda"
+Review "0..*" --> "1" User : "scritta da"
+Review "0..*" --> "1" Event : "riguarda"
 @endum

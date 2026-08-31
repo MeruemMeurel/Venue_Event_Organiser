@@ -20,10 +20,11 @@ skinparam state {
 skinparam ranksep 100
 skinparam nodesep 120
 
-[*] --> ACTIVE : "registerUser()"
+[*] --> ACTIVE : insert() / force ACTIVE
 
-ACTIVE --> BANNED : "banUser() [da Admin] / cancelFutureBookings()"
-BANNED --> ACTIVE : "unbanUser() [da Admin]"
+ACTIVE --> BANNED : ban() [Administrator autenticato]
+BANNED --> ACTIVE : unban() [Administrator autenticato]
 
-ACTIVE --> [*] : "deleteUser() [richiede password]"
+ACTIVE --> [*] : deleteUser() [password valida]
+BANNED --> [*] : deleteUser() [password valida]
 @endum

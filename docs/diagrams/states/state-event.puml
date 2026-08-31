@@ -20,14 +20,13 @@ skinparam state {
 skinparam ranksep 100
 skinparam nodesep 120
 
-[*] --> DRAFT : creazione
+[*] --> DRAFT : createEvent() / force DRAFT
 
-DRAFT --> CONFIRMED : "confirmEvent() [dati validi]"
-CONFIRMED --> PUBLISHED : "publishEvent() [dati completi] / setPublishedAt(now)"
+DRAFT --> CONFIRMED : confirmEvent() [Administrator o Organiser assegnato]
+CONFIRMED --> PUBLISHED : publishEvent() [evento futuro, venue esistente, capienza > 0]\n/ setPublishedAt(now)
 
-DRAFT -right-> CANCELLED : "cancelEvent()"
-CONFIRMED -right-> CANCELLED : "cancelEvent() / cancelBookingsAndGuests()"
-PUBLISHED -right-> CANCELLED : "cancelEvent() / cancelBookingsAndGuests()"
+DRAFT -right-> CANCELLED : cancelEvent() [Administrator o Organiser assegnato]
+CONFIRMED -right-> CANCELLED : cancelEvent() [Administrator o Organiser assegnato]\n/ cancelBookingsAndGuests()
+PUBLISHED -right-> CANCELLED : cancelEvent() [Administrator o Organiser assegnato]\n/ cancelBookingsAndGuests()
 
-CANCELLED --> [*]
 @endum
