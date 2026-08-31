@@ -1,0 +1,91 @@
+@startuml
+skinparam style strictuml
+skinparam shadowing false
+skinparam DefaultFontName "Helvetica"
+skinparam DefaultFontSize 12
+skinparam ArrowColor #4A5568
+skinparam ArrowThickness 1.4
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+skinparam package {
+    BackgroundColor #F8FAFC
+    BorderColor #64748B
+    FontColor #1E293B
+}
+
+skinparam component {
+    BackgroundColor #F1F5F9
+    BorderColor #64748B
+    FontColor #1E293B
+}
+
+top to bottom direction
+
+actor "Client applicativo" as Caller
+
+package "venue.event.manager" as Root {
+    package "service" as Service #E0F2FE {
+        component "Application services" as Services
+        component "AuthService" as Auth
+        component "PasswordHasher" as Hasher
+    }
+
+    package "domain.model" as Domain #DCFCE7 {
+        package "user" as DomainUser
+        package "venue" as DomainVenue
+        package "resource" as DomainResource
+        package "request" as DomainRequest
+        package "event" as DomainEvent
+        package "booking" as DomainBooking
+        package "feedback" as DomainFeedback
+    }
+
+    package "repository" as Repository #FEF3C7 {
+        component "Repository interfaces" as RepositoryContracts
+    }
+
+    package "repository.jdbc" as Jdbc #FFEDD5 {
+        component "Pg...Repository" as PgRepositories
+        component "JDBC mapping utilities" as JdbcUtilities
+    }
+
+    package "config" as Config #EDE9FE {
+        component "TransactionManager" as TransactionManager
+        component "DataSourceSingleton" as DataSource
+        component "DbConfig" as DbConfig
+    }
+
+    package "exception" as Exception #FCE7F3 {
+        component "Application exceptions" as ApplicationExceptions
+    }
+}
+
+database "PostgreSQL" as PostgreSQL
+component "HikariCP" as Hikari
+component "Flyway migrations" as Flyway
+
+Caller --> Services
+
+Services --> Domain
+Services --> RepositoryContracts
+Services --> TransactionManager
+Services --> ApplicationExceptions
+Services --> Auth
+Auth --> Hasher
+Auth --> RepositoryContracts
+Auth --> TransactionManager
+
+RepositoryContracts --> Domain
+
+PgRepositories ..|> RepositoryContracts
+PgRepositories --> JdbcUtilities
+PgRepositories --> PostgreSQL
+
+TransactionManager --> DataSource
+DataSource --> DbConfig
+DataSource --> Hikari
+Hikari --> PostgreSQL
+Flyway --> PostgreSQL
+
+@enduml
