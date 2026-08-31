@@ -237,11 +237,11 @@ Se il master risulta illeggibile alla dimensione della relazione, conservarlo co
 9. Controllare che non siano state introdotte le relazioni vietate della sezione 5.
 10. Salvare il sorgente e una prima esportazione SVG in `docs/diagrams/database/`.
 
-## 8. Punto tecnico da decidere prima del modello relazionale
+## 8. Vincolo corretto prima del modello relazionale
 
-La migration `V5__create_mappings.sql` non dichiara una chiave primaria né un vincolo `UNIQUE(event_id, equipment_id)` per `EVENT_EQUIPMENT`, mentre le altre tabelle associative equivalenti impediscono le coppie duplicate.
+La migration `V5__create_mappings.sql` non dichiarava una chiave primaria né un vincolo `UNIQUE(event_id, equipment_id)` per `EVENT_EQUIPMENT`, mentre le altre tabelle associative equivalenti impedivano le coppie duplicate.
 
-Nel modello ER concettuale la relazione resta una normale M:N con attributo `quantity`, quindi il disegno non cambia. Prima di finalizzare il modello relazionale occorre però decidere se aggiungere una migration correttiva con chiave primaria composta. Non va modificata una migration storica già applicata.
+Il problema è stato corretto senza modificare la migration storica: `V17__enforce_unique_event_equipment.sql` aggiunge la chiave primaria composta `(event_id, equipment_id)`. Nel modello ER concettuale la relazione resta una normale M:N con attributo `quantity`; nel modello relazionale sarà rappresentata come tabella associativa con PK composta.
 
 ## 9. Checklist di revisione
 
