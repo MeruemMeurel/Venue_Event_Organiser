@@ -1,0 +1,237 @@
+@startchen
+' Modello E-R concettuale: le tabelle associative sono relazioni, non entita.
+' Le cardinalita descrivono le regole applicative; BOOKING-TICKET e 1:N.
+left to right direction
+skinparam DefaultFontName Helvetica
+skinparam DefaultFontSize 12
+skinparam Shadowing false
+skinparam BackgroundColor white
+
+entity USER {
+  id <<key>>
+  username
+  email
+  firstname
+  lastname
+  birthday
+  is_admin
+  account_status
+}
+
+entity VENUE {
+  id <<key>>
+  name
+  description
+  address {
+    street
+    street_number
+    city
+    postal_code
+    country
+    additional_info
+  }
+}
+
+entity SPACE {
+  id <<key>>
+  name
+  description
+}
+
+entity EQUIPMENT {
+  id <<key>>
+  name
+  description
+  total_quantity
+}
+
+entity SERVICE {
+  id <<key>>
+  name
+  description
+}
+
+entity EVENT_REQUEST {
+  id <<key>>
+  name
+  description
+  begin_datetime
+  end_datetime
+  status
+  created_at
+  closed_at
+  quote
+}
+
+entity EVENT {
+  id <<key>>
+  name
+  description
+  begin_datetime
+  end_datetime
+  capacity
+  status
+  visibility
+  ticket_price
+  published_at
+}
+
+entity EVENT_GUEST {
+  id <<key>>
+  firstname
+  lastname
+  birthday
+  status
+  note
+}
+
+entity BOOKING {
+  id <<key>>
+  created_at
+  status
+  total_price
+}
+
+entity TICKET {
+  id <<key>>
+  firstname
+  lastname
+  starts_at
+}
+
+entity REVIEW {
+  id <<key>>
+  rating
+  comment
+  created_at
+}
+
+entity REPORT {
+  id <<key>>
+  severity
+  comment
+  created_at
+}
+
+' Ruoli diversi della medesima entita USER.
+relationship "submits request" as SUBMITS_REQUEST {
+}
+USER -(0,N)- SUBMITS_REQUEST
+SUBMITS_REQUEST -(1,1)- EVENT_REQUEST
+
+relationship "handles request" as HANDLES_REQUEST {
+}
+USER -(0,N)- HANDLES_REQUEST
+HANDLES_REQUEST -(0,1)- EVENT_REQUEST
+
+relationship "requested for" as REQUESTED_FOR {
+}
+VENUE -(0,N)- REQUESTED_FOR
+REQUESTED_FOR -(1,1)- EVENT_REQUEST
+
+relationship "hosts event" as HOSTS_EVENT {
+}
+VENUE -(0,N)- HOSTS_EVENT
+HOSTS_EVENT -(1,1)- EVENT
+
+relationship "creates event" as CREATES_EVENT {
+}
+USER -(0,N)- CREATES_EVENT
+CREATES_EVENT -(1,1)- EVENT
+
+relationship "organises event" as ORGANISES_EVENT {
+}
+USER -(0,N)- ORGANISES_EVENT
+ORGANISES_EVENT -(0,1)- EVENT
+
+' Venue e risorse.
+relationship "contains space" as CONTAINS_SPACE {
+}
+VENUE -(0,N)- CONTAINS_SPACE
+CONTAINS_SPACE -(1,1)- SPACE
+
+relationship "owns equipment" as OWNS_EQUIPMENT {
+}
+VENUE -(0,N)- OWNS_EQUIPMENT
+OWNS_EQUIPMENT -(0,1)- EQUIPMENT
+
+relationship "uses space" as USES_SPACE {
+}
+EVENT -(0,N)- USES_SPACE
+USES_SPACE -(0,N)- SPACE
+
+relationship "requests space" as REQUESTS_SPACE {
+}
+EVENT_REQUEST -(0,N)- REQUESTS_SPACE
+REQUESTS_SPACE -(0,N)- SPACE
+
+relationship USES_EQUIPMENT {
+  quantity
+}
+EVENT -(0,N)- USES_EQUIPMENT
+USES_EQUIPMENT -(0,N)- EQUIPMENT
+
+relationship REQUESTS_EQUIPMENT {
+  quantity
+}
+EVENT_REQUEST -(0,N)- REQUESTS_EQUIPMENT
+REQUESTS_EQUIPMENT -(0,N)- EQUIPMENT
+
+relationship USES_SERVICE {
+  quantity
+}
+EVENT -(0,N)- USES_SERVICE
+USES_SERVICE -(0,N)- SERVICE
+
+relationship REQUESTS_SERVICE {
+  quantity
+}
+EVENT_REQUEST -(0,N)- REQUESTS_SERVICE
+REQUESTS_SERVICE -(0,N)- SERVICE
+
+' Prenotazioni, invitati e feedback.
+relationship "makes booking" as MAKES_BOOKING {
+}
+USER -(0,N)- MAKES_BOOKING
+MAKES_BOOKING -(1,1)- BOOKING
+
+relationship "receives booking" as RECEIVES_BOOKING {
+}
+EVENT -(0,N)- RECEIVES_BOOKING
+RECEIVES_BOOKING -(1,1)- BOOKING
+
+relationship "contains ticket" as CONTAINS_TICKET {
+}
+BOOKING -(1,N)- CONTAINS_TICKET
+CONTAINS_TICKET -(1,1)- TICKET
+
+relationship "invites guest" as INVITES_GUEST {
+}
+EVENT -(0,N)- INVITES_GUEST
+INVITES_GUEST -(1,1)- EVENT_GUEST
+
+relationship "writes review" as WRITES_REVIEW {
+}
+USER -(0,N)- WRITES_REVIEW
+WRITES_REVIEW -(1,1)- REVIEW
+
+relationship "receives review" as RECEIVES_REVIEW {
+}
+EVENT -(0,N)- RECEIVES_REVIEW
+RECEIVES_REVIEW -(1,1)- REVIEW
+
+relationship "targets user" as TARGETS_USER {
+}
+USER -(0,N)- TARGETS_USER
+TARGETS_USER -(1,1)- REPORT
+
+relationship "authors report" as AUTHORS_REPORT {
+}
+USER -(0,N)- AUTHORS_REPORT
+AUTHORS_REPORT -(1,1)- REPORT
+
+relationship "refers to event" as REFERS_TO_EVENT {
+}
+EVENT -(0,N)- REFERS_TO_EVENT
+REFERS_TO_EVENT -(0,1)- REPORT
+@endchen

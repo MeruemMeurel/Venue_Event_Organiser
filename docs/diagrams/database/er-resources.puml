@@ -1,0 +1,86 @@
+@startchen
+' Vista tematica del modello concettuale completo: venue, spazi e risorse.
+left to right direction
+skinparam DefaultFontName Helvetica
+skinparam DefaultFontSize 12
+skinparam Shadowing false
+skinparam BackgroundColor white
+
+entity VENUE {
+  id <<key>>
+  name
+  address {
+    street
+    street_number
+    city
+    postal_code
+    country
+    additional_info
+  }
+}
+entity EVENT_REQUEST {
+  id <<key>>
+  name
+}
+entity EVENT {
+  id <<key>>
+  name
+}
+entity SPACE {
+  id <<key>>
+  name
+}
+entity EQUIPMENT {
+  id <<key>>
+  name
+  total_quantity
+}
+entity SERVICE {
+  id <<key>>
+  name
+}
+
+relationship "contains space" as CONTAINS_SPACE {
+}
+VENUE -(0,N)- CONTAINS_SPACE
+CONTAINS_SPACE -(1,1)- SPACE
+
+relationship "owns equipment" as OWNS_EQUIPMENT {
+}
+VENUE -(0,N)- OWNS_EQUIPMENT
+OWNS_EQUIPMENT -(0,1)- EQUIPMENT
+
+relationship "uses space" as USES_SPACE {
+}
+EVENT -(0,N)- USES_SPACE
+USES_SPACE -(0,N)- SPACE
+
+relationship "requests space" as REQUESTS_SPACE {
+}
+EVENT_REQUEST -(0,N)- REQUESTS_SPACE
+REQUESTS_SPACE -(0,N)- SPACE
+
+relationship "uses equipment" as USES_EQUIPMENT {
+  quantity
+}
+EVENT -(0,N)- USES_EQUIPMENT
+USES_EQUIPMENT -(0,N)- EQUIPMENT
+
+relationship "requests equipment" as REQUESTS_EQUIPMENT {
+  quantity
+}
+EVENT_REQUEST -(0,N)- REQUESTS_EQUIPMENT
+REQUESTS_EQUIPMENT -(0,N)- EQUIPMENT
+
+relationship "uses service" as USES_SERVICE {
+  quantity
+}
+EVENT -(0,N)- USES_SERVICE
+USES_SERVICE -(0,N)- SERVICE
+
+relationship "requests service" as REQUESTS_SERVICE {
+  quantity
+}
+EVENT_REQUEST -(0,N)- REQUESTS_SERVICE
+REQUESTS_SERVICE -(0,N)- SERVICE
+@endchen

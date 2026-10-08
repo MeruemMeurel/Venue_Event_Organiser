@@ -1,0 +1,90 @@
+@startchen
+' Vista tematica del modello concettuale completo: prenotazioni e feedback.
+left to right direction
+skinparam DefaultFontName Helvetica
+skinparam DefaultFontSize 12
+skinparam Shadowing false
+skinparam BackgroundColor white
+
+entity USER {
+  id <<key>>
+  username
+  is_admin
+}
+entity EVENT {
+  id <<key>>
+  name
+}
+entity BOOKING {
+  id <<key>>
+  status
+  total_price
+}
+entity TICKET {
+  id <<key>>
+  firstname
+  lastname
+  starts_at
+}
+entity EVENT_GUEST {
+  id <<key>>
+  firstname
+  lastname
+  status
+}
+entity REVIEW {
+  id <<key>>
+  rating
+  comment
+}
+entity REPORT {
+  id <<key>>
+  severity
+  comment
+}
+
+relationship "makes booking" as MAKES_BOOKING {
+}
+USER -(0,N)- MAKES_BOOKING
+MAKES_BOOKING -(1,1)- BOOKING
+
+relationship "receives booking" as RECEIVES_BOOKING {
+}
+EVENT -(0,N)- RECEIVES_BOOKING
+RECEIVES_BOOKING -(1,1)- BOOKING
+
+relationship "contains ticket" as CONTAINS_TICKET {
+}
+BOOKING -(1,N)- CONTAINS_TICKET
+CONTAINS_TICKET -(1,1)- TICKET
+
+relationship "invites guest" as INVITES_GUEST {
+}
+EVENT -(0,N)- INVITES_GUEST
+INVITES_GUEST -(1,1)- EVENT_GUEST
+
+relationship "writes review" as WRITES_REVIEW {
+}
+USER -(0,N)- WRITES_REVIEW
+WRITES_REVIEW -(1,1)- REVIEW
+
+relationship "receives review" as RECEIVES_REVIEW {
+}
+EVENT -(0,N)- RECEIVES_REVIEW
+RECEIVES_REVIEW -(1,1)- REVIEW
+
+relationship "targets user" as TARGETS_USER {
+}
+USER -(0,N)- TARGETS_USER
+TARGETS_USER -(1,1)- REPORT
+
+relationship "authors report" as AUTHORS_REPORT {
+}
+USER -(0,N)- AUTHORS_REPORT
+AUTHORS_REPORT -(1,1)- REPORT
+
+relationship "refers to event" as REFERS_TO_EVENT {
+}
+EVENT -(0,N)- REFERS_TO_EVENT
+REFERS_TO_EVENT -(0,1)- REPORT
+@endchen

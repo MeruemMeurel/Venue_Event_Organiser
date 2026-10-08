@@ -2,14 +2,14 @@
 
 ## 1. Scopo e fonte
 
-Questo documento guida la costruzione del modello Entity-Relationship concettuale di Venue Event Manager. La fonte primaria è lo schema risultante dall'applicazione ordinata delle migration Flyway da `V1` a `V16`; codice Java e regole di business vengono usati per interpretare ruoli e cardinalità, non per inventare legami assenti dal database.
+Questo documento guida la costruzione del modello Entity-Relationship concettuale di Venue Event Manager. La fonte primaria è lo schema risultante dall'applicazione ordinata delle migration Flyway da `V1` a `V17`; codice Java e regole di business vengono usati per interpretare ruoli e cardinalità, non per inventare legami assenti dal database.
 
 Il diagramma deve restare distinto dal successivo modello relazionale:
 
 - il modello ER mostra entità, relazioni, attributi concettuali, ruoli e cardinalità;
 - il modello relazionale mostrerà tabelle, colonne, tipi SQL, PK, FK, `UNIQUE`, `CHECK` e azioni referenziali.
 
-## 2. Notazione da usare in diagrams.net
+## 2. Notazione e sorgente del diagramma
 
 Per coerenza con gli esempi di relazione esaminati, usare la notazione ER classica di Chen:
 
@@ -21,7 +21,7 @@ Per coerenza con gli esempi di relazione esaminati, usare la notazione ER classi
 - etichette `(min,max)` vicino alle estremità delle relazioni;
 - nessuna freccia UML e nessuna crow's foot nella stessa figura.
 
-In diagrams.net aprire **More Shapes** e abilitare **Entity Relation** e **General**. Usare connettori ortogonali senza punta. Font consigliato: Helvetica 12, coerente con gli altri elaborati.
+Il sorgente master versionato è `entity-relationship-model.puml`, scritto con la sintassi Chen di PlantUML (`@startchen`). L'esportazione SVG omonima contiene tutto il modello. Font: Helvetica 12, coerente con gli altri elaborati. I rombi delle quattro relazioni di risorsa mostrano anche l'attributo `quantity`.
 
 ## 3. Entità principali
 
@@ -185,9 +185,13 @@ La coppia USER–EVENT per `REVIEW` è unica: un utente può recensire un determ
 - Nessuna relazione diretta `BOOKING — VENUE`: la venue si raggiunge attraverso l'evento.
 - Nessuna entità per gli enum PostgreSQL: sono domini degli attributi e verranno descritti nel dizionario.
 
-## 6. Layout consigliato per diagrams.net
+## 6. Layout e leggibilità
 
-Usare pagina orizzontale, preferibilmente A3 o un canvas personalizzato ampio. Prima posizionare entità e relazioni, poi aggiungere gli attributi: partire dalle ellissi rende difficile controllare lo spazio.
+Il layout viene calcolato da PlantUML. Il diagramma master contiene tutte le 12 entità concettuali, gli attributi selezionati e le 23 relazioni: va consultato a grandezza piena. Per le pagine della relazione sono disponibili tre viste tematiche, con attributi abbreviati ma cardinalità identiche al master:
+
+- `er-requests-events.puml` / `.svg`: utenti, venue, richieste ed eventi;
+- `er-resources.puml` / `.svg`: spazi, attrezzature e servizi;
+- `er-booking-feedback.puml` / `.svg`: prenotazioni, invitati, recensioni e segnalazioni.
 
 Disposizione suggerita:
 
@@ -206,36 +210,20 @@ USER                 EVENT_REQUEST                 VENUE
  └──── REPORT ─────────────┘
 ```
 
-Indicazioni pratiche:
-
-1. mettere `EVENT` al centro del diagramma;
-2. collocare `USER` a sinistra, perché partecipa a molte relazioni con ruoli differenti;
-3. mettere `EVENT_REQUEST` sopra `EVENT`;
-4. mettere `VENUE`, `SPACE`, `EQUIPMENT` e `SERVICE` sulla destra;
-5. mettere `BOOKING`, `TICKET` ed `EVENT_GUEST` sotto `EVENT`;
-6. mettere `REVIEW` e `REPORT` nella zona inferiore sinistra;
-7. usare connettori ortogonali ed evitare che una relazione passi attraverso un'entità;
-8. scrivere sempre il ruolo sulle relazioni multiple tra USER e la stessa area;
-9. non usare colori diversi per ogni entità: due o tre tonalità leggere possono distinguere utenti, core eventi e risorse;
-10. esportare in SVG con sfondo bianco e opzione di ritaglio sul contenuto.
+Nelle relazioni multiple che partono da `USER`, i nomi dei rombi distinguono i ruoli: richiedente, gestore, creatore, organizzatore, autore della segnalazione e utente segnalato. Se il layout automatico incrocia molte linee o riduce troppo il testo, usare le viste tematiche senza cambiare le cardinalità del master.
 
 Se il master risulta illeggibile alla dimensione della relazione, conservarlo comunque e derivare due viste tematiche senza cambiare le cardinalità:
 
 - utenti, eventi, prenotazioni e feedback;
 - richieste, venue e risorse.
 
-## 7. Ordine di costruzione per la sessione di domani
+## 7. Manutenzione del diagramma
 
-1. Creare il file `entity-relationship-model.drawio`.
-2. Inserire `USER`, `EVENT_REQUEST`, `EVENT` e `VENUE`.
-3. Disegnare le sei relazioni che distinguono requester, handler, creator e organiser.
-4. Aggiungere `SPACE`, `EQUIPMENT` e `SERVICE` con le relazioni M:N.
-5. Aggiungere `BOOKING`, `TICKET` ed `EVENT_GUEST`.
-6. Chiudere con `REVIEW` e `REPORT`.
-7. Verificare tutte le cardinalità prima di aggiungere attributi.
-8. Aggiungere gli attributi identificatori e quelli concettualmente più importanti.
-9. Controllare che non siano state introdotte le relazioni vietate della sezione 5.
-10. Salvare il sorgente e una prima esportazione SVG in `docs/diagrams/database/`.
+1. Modificare il master `.puml` e aggiornare le eventuali viste tematiche interessate, non gli SVG generati.
+2. Verificare ogni modifica contro migration, vincoli applicativi e cardinalità della sezione 4.
+3. Rigenerare i quattro SVG con PlantUML, per esempio `java -jar plantuml.jar -tsvg docs/diagrams/database/*.puml` da Git Bash.
+4. Controllare leggibilità e assenza di collegamenti vietati dalla sezione 5.
+5. Aggiornare insieme sorgenti e SVG nella stessa PR.
 
 ## 8. Vincolo corretto prima del modello relazionale
 

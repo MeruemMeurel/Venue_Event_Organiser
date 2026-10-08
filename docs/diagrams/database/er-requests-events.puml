@@ -1,0 +1,59 @@
+@startchen
+' Vista tematica del modello concettuale completo: richieste, eventi e ruoli.
+left to right direction
+skinparam DefaultFontName Helvetica
+skinparam DefaultFontSize 12
+skinparam Shadowing false
+skinparam BackgroundColor white
+
+entity USER {
+  id <<key>>
+  username
+  is_admin
+}
+entity VENUE {
+  id <<key>>
+  name
+}
+entity EVENT_REQUEST {
+  id <<key>>
+  status
+  quote
+}
+entity EVENT {
+  id <<key>>
+  status
+  visibility
+  capacity
+}
+
+relationship "submits request" as SUBMITS_REQUEST {
+}
+USER -(0,N)- SUBMITS_REQUEST
+SUBMITS_REQUEST -(1,1)- EVENT_REQUEST
+
+relationship "handles request" as HANDLES_REQUEST {
+}
+USER -(0,N)- HANDLES_REQUEST
+HANDLES_REQUEST -(0,1)- EVENT_REQUEST
+
+relationship "requested for" as REQUESTED_FOR {
+}
+VENUE -(0,N)- REQUESTED_FOR
+REQUESTED_FOR -(1,1)- EVENT_REQUEST
+
+relationship "hosts event" as HOSTS_EVENT {
+}
+VENUE -(0,N)- HOSTS_EVENT
+HOSTS_EVENT -(1,1)- EVENT
+
+relationship "creates event" as CREATES_EVENT {
+}
+USER -(0,N)- CREATES_EVENT
+CREATES_EVENT -(1,1)- EVENT
+
+relationship "organises event" as ORGANISES_EVENT {
+}
+USER -(0,N)- ORGANISES_EVENT
+ORGANISES_EVENT -(0,1)- EVENT
+@endchen
