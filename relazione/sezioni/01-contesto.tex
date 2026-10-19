@@ -1,0 +1,28 @@
+% !TEX root = ../main.tex
+\chapter{Contesto, obiettivi e strumenti}
+\label{cap:contesto}
+
+\section{Contesto applicativo e obiettivi}
+Venue Event Manager è un progetto universitario dedicato alla gestione di strutture per eventi,
+delle loro risorse e delle attività di organizzazione e prenotazione.
+Il sistema distingue la presentazione di richieste di evento dalla gestione degli eventi programmati
+e comprende utenti, liste di invitati, prenotazioni, biglietti, recensioni e report amministrativi.
+L'obiettivo del lavoro è sviluppare e documentare un nucleo applicativo che renda esplicite
+le regole del dominio e ne gestisca la persistenza in una base di dati relazionale.
+
+\section{Perimetro della versione realizzata}
+La versione descritta comprende modelli di dominio, servizi applicativi e repository JDBC
+per PostgreSQL.
+Le funzionalità sono esercitabili attraverso i servizi e i test automatici.
+Non sono attualmente presenti un'interfaccia grafica, un'API web o una CLI definitiva.
+La verifica delle credenziali non crea una sessione applicativa e lo stato di attesa di pagamento
+di una prenotazione non corrisponde all'integrazione con un sistema di pagamento reale.
+Questi confini guidano l'analisi dei requisiti e la discussione dei risultati.
+
+\section{Tecnologie e strumenti}
+\bozza{Descrivere ruolo e motivazione di Java, Maven, PostgreSQL, JDBC, Flyway,
+HikariCP, JUnit, Mockito e JaCoCo; verificare versioni nel pom.xml.
+Documentare editor, strumenti per diagrammi e ambiente effettivamente usati dal gruppo.}
+
+\section{Organizzazione della relazione}
+\bozza{Completare una volta stabilizzato l'indice, richiamando lo scopo dei capitoli successivi.}

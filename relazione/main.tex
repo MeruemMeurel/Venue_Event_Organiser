@@ -1,0 +1,31 @@
+% !TEX program = pdflatex
+\documentclass[a4paper,11pt,oneside,openany]{report}
+\input{config/preambolo}
+\input{config/metadati}
+
+\begin{document}
+\hypersetup{pageanchor=false}
+\input{frontespizio}
+\pagenumbering{roman}
+\hypersetup{pageanchor=true}
+\tableofcontents
+\clearpage
+\pagenumbering{arabic}
+
+\input{sezioni/01-contesto}
+\input{sezioni/02-requisiti}
+\input{sezioni/03-dominio}
+\input{sezioni/04-architettura}
+\input{sezioni/05-database}
+\input{sezioni/06-implementazione}
+\input{sezioni/07-test}
+\input{sezioni/08-processo-ia}
+\input{sezioni/09-conclusioni}
+
+% Attivare dopo aver aggiunto e citato le prime fonti in bibliografia.bib.
+% \bibliographystyle{plain}
+% \bibliography{bibliografia}
+
+\appendix
+\input{appendici/tracciabilita}
+\end{document}

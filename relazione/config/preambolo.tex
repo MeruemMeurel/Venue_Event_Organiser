@@ -1,0 +1,32 @@
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[italian]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[margin=25mm]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage[section]{placeins}
+\usepackage[hidelinks]{hyperref}
+\graphicspath{{figure/}}
+\setlength{\emergencystretch}{2em}
+\setcounter{tocdepth}{1}
+\lstset{
+  language=Java,
+  basicstyle=\small\ttfamily,
+  breaklines=true,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  frame=tb,
+  captionpos=b,
+  tabsize=4
+}
+\newcommand{\bozza}[1]{\par\medskip\noindent
+  {\color{blue!60!black}\textbf{Da completare:} #1}\par\medskip}
