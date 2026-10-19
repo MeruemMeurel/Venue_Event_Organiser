@@ -3,26 +3,44 @@
 \label{cap:contesto}
 
 \section{Contesto applicativo e obiettivi}
-Venue Event Manager è un progetto universitario dedicato alla gestione di strutture per eventi,
-delle loro risorse e delle attività di organizzazione e prenotazione.
-Il sistema distingue la presentazione di richieste di evento dalla gestione degli eventi programmati
-e comprende utenti, liste di invitati, prenotazioni, biglietti, recensioni e report amministrativi.
-L'obiettivo del lavoro è sviluppare e documentare un nucleo applicativo che renda esplicite
-le regole del dominio e ne gestisca la persistenza in una base di dati relazionale.
+Venue Event Manager è un progetto universitario dedicato alla gestione di strutture per eventi, delle loro risorse quali servizi, 
+attrezzature e spazi, e delle attività di organizzazione e prenotazione.
+Il sistema prevede la presentazione di richieste di evento, da parte di utenti registrati, la gestione degli eventi programmati e 
+ne permette la prenotazione, la gestione di liste di invitati, la raccolta di recensioni e la produzione di report di moderazione.
+L'obiettivo del progetto è sviluppare e documentare un nucleo applicativo che renda esplicite le regole del dominio e ne gestisca la persistenza in una base di dati relazionale.
 
 \section{Perimetro della versione realizzata}
-La versione descritta comprende modelli di dominio, servizi applicativi e repository JDBC
-per PostgreSQL.
-Le funzionalità sono esercitabili attraverso i servizi e i test automatici.
-Non sono attualmente presenti un'interfaccia grafica, un'API web o una CLI definitiva.
-La verifica delle credenziali non crea una sessione applicativa e lo stato di attesa di pagamento
-di una prenotazione non corrisponde all'integrazione con un sistema di pagamento reale.
+La versione del progetto descritta in questo documento è un prototipo di nucleo applicativo, sviluppato in Java, 
+che implementa le funzionalità principali del dominio, servizi applicativi e repository JDBC per gestire la persistenza dei dati 
+in un database PostgreSQL.
+Le funzionalità sono eseguibili attraverso i servizi e i test automatici. Non è attualmente presente un'interfaccia grafica,
+un'API web o una CLI definitiva. La verifica delle credenziali dell'utente non crea una sessione applicativa, non è previsto dunque un
+invio di token di sessione. Lo stato di attesa del pagamento di una prenotazione non corrisponde a un'effettiva integrazione del sistema di un pagamento 
+reale, rappresenta semplicemente uno stato della prenotazione. 
 Questi confini guidano l'analisi dei requisiti e la discussione dei risultati.
 
 \section{Tecnologie e strumenti}
-\bozza{Descrivere ruolo e motivazione di Java, Maven, PostgreSQL, JDBC, Flyway,
-HikariCP, JUnit, Mockito e JaCoCo; verificare versioni nel pom.xml.
-Documentare editor, strumenti per diagrammi e ambiente effettivamente usati dal gruppo.}
+Il progetto è sviluppato in Java, con Maven come sistema di build e gestione delle dipendenze. 
+La persistenza dei dati è gestita con un database PostgreSQL, la cui evoluzione è versionata con migrazioni Flyway. 
+La connessione al database è gestita con JDBC, con HikariCP come connection pool. 
+I test automatici sono sviluppati con JUnit e Mockito, con misurazione della copertura del codice tramite JaCoCo.
+Il versionamento del progetto è gestito con Git, con repository remoto su GitHub\footnote{\url{https://github.com/MeruemMeurel/Venue_Event_Organiser}}..
+\input{tabelle/tecnologie}
 
 \section{Organizzazione della relazione}
-\bozza{Completare una volta stabilizzato l'indice, richiamando lo scopo dei capitoli successivi.}
+La relazione presenta nel Capitolo~\ref{cap:requisiti} gli attori,
+i requisiti e i casi d'uso del sistema.
+Il Capitolo~\ref{cap:dominio} descrive il modello del dominio
+e i principali cicli di vita, mentre il
+Capitolo~\ref{cap:architettura} illustra l'architettura
+e le responsabilità dei componenti.
+La progettazione della base di dati è approfondita nel
+Capitolo~\ref{cap:database}; i flussi implementativi più significativi
+sono discussi nel Capitolo~\ref{cap:implementazione}.
+Il Capitolo~\ref{cap:test} presenta la strategia di test
+e i risultati delle verifiche.
+Infine, i Capitoli~\ref{cap:processo} e~\ref{cap:conclusioni}
+documentano il processo di sviluppo, l'uso dell'intelligenza artificiale,
+i limiti del progetto e i possibili sviluppi futuri.
+L'Appendice~\ref{cap:tracciabilita} raccoglie i collegamenti
+tra casi d'uso, regole e test, mentre l'Appendice~\ref{cap:mockup} mostra invece un mockup puramente illustrativo dell'interfaccia graifica, che non è stata implementata nella versione corrente del progetto.

@@ -1,0 +1,36 @@
+% !TEX root = ../main.tex
+% Fonte completa: docs/use-cases/UC-10-gestire-lista-invitati.md
+% Scheda compatta; per i test sono riportate le classi, non tutti i metodi.
+\clearpage
+\subsection{UC-10 - Gestire la lista degli invitati}
+\label{uc:UC-10-gestire-lista-invitati}
+\begingroup
+\fontsize{8.8}{10.0}\selectfont
+\setlength{\tabcolsep}{5pt}
+\setlength{\extrarowheight}{1pt}
+\arrayrulecolor{lineeUC}
+\setlength{\arrayrulewidth}{0.3pt}
+\renewcommand{\arraystretch}{1.12}
+\setlength{\parskip}{0pt}
+\noindent\begin{tabularx}{\textwidth}{>{\columncolor{etichetteUC}\raggedright\arraybackslash\sffamily\bfseries\color{black!75}}p{2.5cm}>{\raggedright\arraybackslash}X}
+\hline
+ID e livello & UC-10 -- User goal \\[2pt] \hline
+Attori & \textbf{Principale:} Administrator / Organiser assegnato; \textbf{secondari:} Invited Guest \\[2pt] \hline
+Descrizione & Un attore autorizzato inserisce, aggiorna, conferma, cancella o rimuove invitati da un evento privato.\par\textbf{Trigger:} L'attore apre la lista invitati di un evento. \\[2pt] \hline
+Precondizioni & \textbf{1.} L'evento esiste, non è \texttt{CANCELLED} ed è \texttt{PRIVATE\_\allowbreak{}GUEST\_\allowbreak{}LIST}. \par \textbf{2.} L'attore è Administrator oppure Organiser assegnato. \\[2pt] \hline
+Postcondizioni & \textbf{1.} La lista riflette l'operazione richiesta. \par \textbf{2.} Un nuovo invitato nasce sempre \texttt{INVITED}. \par \textbf{3.} Evento e stato non possono essere alterati indirettamente tramite l'aggiornamento anagrafico. \\[2pt] \hline
+Garanzia minima & Una richiesta non autorizzata o una transizione non valida non modifica la lista. \\[2pt] \hline
+Flusso principale & \begin{minipage}[t]{\linewidth}\begin{enumerate}[leftmargin=1.4em,nosep,label=\arabic*.]
+\item L'attore seleziona un evento privato.
+\item Il sistema blocca l'evento e verifica l'autorizzazione.
+\item L'attore fornisce nome e cognome del nuovo invitato.
+\item Il sistema valida i dati e forza lo stato \texttt{INVITED}.
+\item Il sistema persiste l'invitato.
+\item Il sistema conferma l'operazione.
+\end{enumerate}\vspace{3pt}\end{minipage} \\[2pt] \hline
+Flussi alternativi & \textbf{2a. Evento non idoneo} \par (1) Il sistema rileva un evento inesistente, pubblico, con altra visibilità oppure cancellato. (2) L'operazione viene rifiutata. \par\smallskip \textbf{2b. Attore non autorizzato} \par (1) Il sistema rileva che l'attore non è Administrator né Organiser assegnato. (2) L'operazione viene negata. \par\smallskip \textbf{3a. Aggiornamento dei dati dell'invitato} \par (1) L'attore modifica i dati anagrafici di un invitato esistente. (2) Il sistema conserva evento e stato memorizzati e aggiorna soltanto i dati ammessi. \par\smallskip \textbf{3b. Conferma o cancellazione dell'invito} \par (1) L'attore richiede una transizione di stato. (2) Il sistema blocca invitato ed evento e verifica la transizione. (3) Sono consentite \texttt{INVITED} \ensuremath{\rightarrow} \texttt{CONFIRMED}, \texttt{INVITED} \ensuremath{\rightarrow} \texttt{CANCELLED} e \texttt{CONFIRMED} \ensuremath{\rightarrow} \texttt{CANCELLED}. (4) Il sistema persiste il nuovo stato. \par\smallskip \textbf{3c. Rimozione dell'invitato} \par (1) L'attore richiede la rimozione. (2) Il sistema verifica nuovamente autorizzazione ed evento, quindi elimina l'invitato. \par\smallskip \textbf{3d. Dati o transizione non validi} \par (1) Il sistema rileva dati obbligatori mancanti, una duplicazione di stato o una riattivazione da \texttt{CANCELLED}. (2) L'operazione viene rifiutata senza modifiche. \\[2pt] \hline
+Regole &\par\smallskip\textbullet{} \textbf{BR-25:} gli invitati appartengono soltanto a eventi \texttt{PRIVATE\_\allowbreak{}GUEST\_\allowbreak{}LIST} e iniziano in stato \texttt{INVITED}.\par\smallskip\textbullet{} L'Organiser può gestire esclusivamente gli eventi a lui assegnati; l'Administrator può gestirli tutti. \\[2pt] \hline
+Test & \texttt{Request\allowbreak{}And\allowbreak{}Guest\allowbreak{}Workflow\allowbreak{}Test}; \texttt{Event\allowbreak{}Guest\allowbreak{}Service\allowbreak{}Validation\allowbreak{}Test}; \texttt{Status\allowbreak{}Transition\allowbreak{}Test}. \\[2pt] \hline
+Osservazioni & L'Invited Guest è un soggetto interessato, ma non un attore software: non usa direttamente il sistema. Administrator o Organiser registrano il suo riscontro. \\[2pt] \hline
+\end{tabularx}\par
+\endgroup

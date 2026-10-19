@@ -1,13 +1,58 @@
 % !TEX root = ../main.tex
 \chapter{Requisiti e casi d'uso}
 \label{cap:requisiti}
+In questo capitolo sono descritti gli attori del sistema, il confine di esso stesso e i casi d'uso principali, con l'obiettivo di chiarire le funzionalità del sistema e le interazioni con gli utenti.
+
 \section{Attori e confine del sistema}
-\bozza{Descrivere Visitor, User, Organiser e Administrator mantenendo le distinzioni di docs/USE-CASES.md.}
+Gli attori del sistema sono gli utenti che interagiscono con esso. Gli attori principali sono:
+\begin{itemize}
+    \item \textbf{Visitor}: un utente non registrato che può registrare un nuovo account fornendo i dati anagrafici necessari e credenziali 
+    valide oppure autenticarsi a un account esistente.
+    \item \textbf{Utente registrato}: un utente non amministratore che ha creato un account nel sistema e può:
+    \begin{itemize}
+        \item Consultare venue, risorse e eventi;
+        \item Modificare o eliminare il proprio account dopo la verifica della password;
+        \item Cambiare la propria password;
+        \item Presentare e gestire richieste di evento;
+        \item Prenotare biglietti per eventi pubblici e pubblicati;
+        \item Gestire le proprie prenotazioni, visualizzando lo stato della prenotazione e la possibilità di annullarla;
+        \item Pubblicare e gestire recensioni su eventi a cui ha partecipato;
+        \item Essere assegnato come organiser per un evento specifico;
+    \end{itemize}
+    \item \textbf{Organiser}: un utente registrato che assume il ruolo di organizzatore per un evento specifico, non rappresenta una tipologia 
+    permanente di utente. L'organiser può, solamente per gli eventi a cui è stato assegnato, modificarne i dati, la programmazione 
+    e le proprietà, oltre a eseguire le transizioni di stato permesse dal ciclo di vita dell'evento. L'organiser non può 
+    creare eventi, nè assegnare o rimuovere altri organiser, tali sono operazioni riservate agli amministratori.
+    \item \textbf{Amministratore}: un utente registrato con privilegi di amministrazione, che può:
+    \begin{itemize}
+        \item Creare e gestire venue e risorse;
+        \item Creare eventi e risultarne il \textit{creator};
+        \item Gestire qualsiasi evento;
+        \item Assegnare e rimuovere organiser per qualsiasi evento;
+        \item Prendere in carico, accettare o rifiutare richieste di evento;
+        \item Moderare gli account ordinari degli utenti registrati;
+        \item Confermare, cancellare o eliminare qualsiasi prenotazione
+        \item Creare e consultare report di moderazione
+    \end{itemize}
+\end{itemize}
+    
+\textbf{Invited guest} è un caso particolare: si tratta di una persona inserita nella lista invitati di un evento privato. Essa non coincide necessariamente con 
+un utente registrato, e non interagisce direttamente con il sistema, non si tratta dunque di un attore effettivo. La conferma o la cancellazione della propria partecipazione all'evento viene registrata 
+direttamente dall'organiser o dall'amministratore, che possono anche modificare i dati anagrafici dell'invitato.
+
+
+
 \section{Catalogo dei casi d'uso}
-\bozza{Integrare i diagrammi approvati e un catalogo sintetico con ID stabili.}
+\input{tabelle/catalogo-uc}
+UC-16 è una funzione di supporto: verifica l'identità dell'utente per consentire
+l'accesso alle funzionalità applicative, senza concludere un obiettivo del dominio
+come presentare una richiesta o ottenere una prenotazione.
+Mantiene un identificatore e una rappresentazione autonoma nel diagramma del Visitor.
+La versione corrente verifica credenziali e stato dell'account e restituisce lo User;
+non crea sessioni né token.
+\clearpage
 \section{Template dei casi d'uso significativi}
-\bozza{Selezionare i template da approfondire: precondizioni, postcondizioni,
-flusso principale, alternative e regole; conservare i numeri dei passi.}
+\input{sezioni/02-template}
+\clearpage
 \section{Regole di business e requisiti di qualità}
-\bozza{Distinguere regole funzionali, obiettivi di qualità ed evidenze disponibili.
-Collegare UC, regole e test senza inventare requisiti o prestazioni misurate.}
+\input{tabelle/business-rules}

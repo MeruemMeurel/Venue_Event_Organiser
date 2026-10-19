@@ -1,0 +1,29 @@
+% !TEX root = ../main.tex
+\begin{table}[htbp]
+\centering
+\small
+\caption{Tecnologie principali e versioni dichiarate nella configurazione del progetto.}
+\label{tab:tecnologie}
+\begin{tabularx}{\textwidth}{@{}p{0.30\textwidth}p{0.15\textwidth}X@{}}
+\toprule
+\textbf{Tecnologia} & \textbf{Versione} & \textbf{Ruolo nel progetto} \\
+\midrule
+Java & 17 & Livello di compatibilità del codice compilato. \\
+Maven & Non fissata & Build, gestione delle dipendenze ed esecuzione dei plugin. \\
+PostgreSQL & 16 & DBMS configurato per l'ambiente Docker Compose. \\
+Driver JDBC PostgreSQL & 42.7.7 & Accesso al database dalle implementazioni dei repository. \\
+HikariCP & 5.1.0 & Gestione del pool di connessioni al database. \\
+Flyway & 9.22.3 & Applicazione delle migrazioni versionate dello schema. \\
+JUnit Jupiter & 5.10.2 & Definizione ed esecuzione dei test automatici. \\
+Mockito & 5.12.0 & Simulazione delle dipendenze nei test isolati. \\
+JaCoCo & 0.8.15 & Raccolta e generazione dei report di copertura del codice. \\
+\bottomrule
+\end{tabularx}
+\par\smallskip
+\begin{minipage}{\textwidth}
+\footnotesize
+Le versioni delle dipendenze e la release Java sono dichiarate in \texttt{pom.xml};
+la versione principale di PostgreSQL è specificata in \texttt{docker-compose.yml}.
+La release Java non identifica necessariamente la versione della JDK usata per la build.
+\end{minipage}
+\end{table}
