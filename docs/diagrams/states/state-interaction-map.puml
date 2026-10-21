@@ -1,0 +1,53 @@
+@startuml
+skinparam style strictuml
+skinparam shadowing false
+skinparam DefaultFontName "Helvetica"
+skinparam DefaultFontSize 12
+
+skinparam state {
+    BackgroundColor #F1F5F9
+    BorderColor #475569
+    ArrowColor #0F172A
+    ArrowThickness 1.5
+    FontStyle bold
+}
+
+state "Ciclo di Vita Richiesta (EventRequest)" as Request {
+    state PENDING
+    state ACCEPTED
+
+    PENDING --> ACCEPTED : "Approvazione\nAdmin"
+}
+
+state "Ciclo di Vita Evento (Event)" as Event {
+    state DRAFT
+    state PUBLISHED
+    state CANCELLED as EVENT_CANCELLED
+
+    DRAFT --> PUBLISHED : "Pubblicazione"
+    PUBLISHED --> Event_CANCELLED : "Annullamento"
+}
+
+state "Ciclo di Vita Prenotazione (Booking)" as Booking {
+    state PENDING_PAYMENT
+    state CONFIRMED
+    state CANCELLED as Booking_CANCELLED
+
+    PENDING_PAYMENT --> CONFIRMED : "Conferma Pagamento"
+    CONFIRMED --> Booking_CANCELLED : "Cancellazione"
+}
+
+state "Ciclo di Vita Account (User)" as Account {
+    state ACTIVE
+    state BANNED
+
+    ACTIVE --> BANNED : "Ban eseguito\nda Admin"
+}
+
+ACCEPTED ..right..> DRAFT : "1. Genera nuovo\nevento (BR-11)"
+
+Event_CANCELLED ..down..> Booking_CANCELLED : "2. Annulla a cascata\nprenotazioni attive (BR-18)"
+
+BANNED ..down..> Booking_CANCELLED : "3. Annulla a cascata\nprenotazioni future (BR-07)"
+
+@endum
