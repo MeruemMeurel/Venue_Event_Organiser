@@ -134,7 +134,13 @@ Gli identificatori seguenti devono rimanere invariati nei diagrammi, nei templat
 | UC-13 | Pubblicare una recensione | User | User goal | Media | Implementato |
 | UC-14 | Gestire le proprie recensioni | User | User goal | Media | Implementato |
 | UC-15 | Creare e consultare report | Administrator | User goal | Media | Implementato |
-| UC-16 | Autenticarsi | Visitor | User goal | Alta | Implementato |
+| UC-16 | Autenticarsi | Visitor | Function | Alta | Implementato |
+
+UC-16 è una funzione di supporto: verifica l'identità dell'utente per consentire
+l'accesso alle funzionalità applicative, senza concludere un obiettivo del dominio
+come presentare una richiesta o ottenere una prenotazione. Mantiene un identificatore
+e una rappresentazione autonoma nel diagramma del Visitor. La versione corrente
+verifica credenziali e stato dell'account e restituisce lo User; non crea sessioni né token.
 
 ## 6. Casi esclusi dal catalogo corrente
 

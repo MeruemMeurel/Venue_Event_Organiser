@@ -40,3 +40,22 @@ build/
 
 # Logs
 *.log
+
+# Appunti locali della relazione
+/.note-relazione/
+
+# File generati dalla compilazione LaTeX
+/relazione/build/
+/relazione/**/*.aux
+/relazione/**/*.bbl
+/relazione/**/*.bcf
+/relazione/**/*.blg
+/relazione/**/*.fdb_latexmk
+/relazione/**/*.fls
+/relazione/**/*.lof
+/relazione/**/*.lot
+/relazione/**/*.out
+/relazione/**/*.run.xml
+/relazione/**/*.synctex.gz
+/relazione/**/*.toc
+/relazione/main.pdf

@@ -3,7 +3,7 @@
 % Sfondo visibile solo in copertina; il marchio originale non viene modificato.
 \AddToHookNext{shipout/background}{%
   \begin{tikzpicture}[remember picture,overlay]
-    \node[opacity=0.20,inner sep=0pt] at (current page.center) {%
+    \node[opacity=1,inner sep=0pt] at (current page.center) {%
       \includegraphics[width=0.9\paperwidth]{identita/logo-unifi.jpg}%
     };
   \end{tikzpicture}%
@@ -12,16 +12,14 @@
 \centering
 {\Large Università degli Studi di Firenze\par}
 \vspace{0.4cm}
-{\large \scuolaAteneo\par}
 {\large \corsoLaurea\par}
 \vspace{1cm}
 {\large Ingegneria del Software\par}
-{\large Relazione del project work\par}
-\vfill
+\vspace{2cm}
 {\Huge\bfseries \titoloProgetto\par}
 \vspace{0.6cm}
 {\Large \sottotitoloProgetto\par}
-\vfill
+\vspace{8.5cm}
 {\large\textbf{Autori}\par}
 \vspace{0.3cm}
 {\large \autoriProgetto\par}

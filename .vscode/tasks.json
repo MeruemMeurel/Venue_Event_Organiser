@@ -6,7 +6,7 @@
       "type": "process",
       "command": "latexmk",
       "args": ["-pdf", "-interaction=nonstopmode", "-halt-on-error", "-synctex=1", "-outdir=build", "main.tex"],
-      "options": { "cwd": "${workspaceFolder}" },
+      "options": { "cwd": "${workspaceFolder}/relazione" },
       "group": { "kind": "build", "isDefault": true },
       "problemMatcher": []
     }
