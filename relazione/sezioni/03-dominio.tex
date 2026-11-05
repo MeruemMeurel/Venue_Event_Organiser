@@ -1,135 +1,144 @@
 % !TEX root = ../main.tex
 \chapter{Modello del dominio e cicli di vita}
 \label{cap:dominio}
+
 \section{Concetti e relazioni del dominio}
-In questo capitolo è presentato il modello del dominio, con le entità principali e le loro relazioni. Il modello è stato suddiviso in 3 sottodiagrammi per motivi di leggibilità, ma tutti i diagrammi rappresentano parti collegate dello stesso modello.
+
+Il dominio applicativo si basa su una serie di entità fondamentali e sulle relazioni che le interconnettono. Il modello complessivo è suddiviso in tre viste concettuali (per migliorare la leggibilità) che illustrano aspetti complementari del medesimo sistema. Le associazioni tra i componenti sono modellate prevalentemente tramite identificativi, poiché è preferita la divisione fra le entità rispetto ai riferimenti diretti.
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=\textwidth]{figure/dominio/domain-conceptual-map.png}
+  \caption{Mappa concettuale del dominio applicativo e delle sue entità.}
+  \label{fig:domain-conceptual-map}
+\end{figure}
 
 \subsection{Utenti, ruoli e moderazione}
 \label{sec:dominio-utenti}
-\texttt{User} rappresenta un account registrato, contiene i propri dati anagrafici, contatti, lo stato dell'account (\texttt{AccountStatus}, che può essere \texttt{ACTIVE} oppure \texttt{BANNED}) e il flag \texttt{isAdmin}. La password è gestita separatamente e non è visibile nel modello del dominio. Administrator e Organiser non sono classi distinte, ma ruoli assegnati a un \texttt{User}, tramite il flag \texttt{isAdmin} per l'amministratore e all'interno di un \texttt{Event} specifico per l'organizzatore (vedi sezione~\ref{sec:dominio-eventi}).
 
-La moderazione degli account è gestita dagli amministratori, che possono compilare dei \texttt{Report}, ciascun report collega un amministratore a uno \texttt{User} segnalato e facoltivamente a un \texttt{Event}. Il report è composto dalla severità (\texttt{ReportSeverity}), dalla data di creazione e da un commento. La severità può essere \texttt{LOW}, \texttt{MIDDLE} o \texttt{HIGH}. I ban e i report sono operazioni distinte, senza automatismi, i report possono essere consultati dagli amministratori, che possono poi decidere se cambiare lo stato dell'account segnalato in \texttt{BANNED} oppure lasciarlo \texttt{ACTIVE}.
 \begin{figure}[!htbp]
   \centering
-  \includegraphics[width=\textwidth,height=0.28\textheight,keepaspectratio]{dominio/domain-users.png}
-  \caption{Diagramma del dominio: utenti e moderazione.}
-  \label{fig:dominio-utenti}
+  \includegraphics[width=\textwidth]{figure/dominio/domain-users.png}
+  \caption{Modello delle entità utente e moderazione.}
+  \label{fig:domain-users}
 \end{figure}
-\FloatBarrier
-\par\medskip
 
-\clearpage
+La classe \texttt{User} rappresenta un account registrato e raccoglie i dati anagrafici e di contatto, il flag \texttt{isAdmin} e lo stato dell'account, rappresentato da \texttt{AccountStatus}. Gli stati previsti sono \texttt{ACTIVE} (valore di default) e \texttt{BANNED}. Le credenziali non fanno parte del modello \texttt{User} poiché sono gestite separatamente dai componenti dedicati all'autenticazione.
+
+Ogni istanza di \texttt{User} può assumere il ruolo di utente standard, amministratore e organizzatore. Il ruolo di amministratore è indicato dal flag \texttt{isAdmin}, mentre quello di Organiser deriva dall'assegnazione a uno specifico evento attraverso il campo \texttt{organiser\_id} (presente in \texttt{Event}); il ruolo di organizzatore non è quindi permanente per l'account.
+
+La moderazione è gestita tramite la classe \texttt{Report}, che collega un amministratore (autore del report) a un utente segnalato e può essere associata facoltativamente a un evento. Ogni report contiene la data di creazione, un commento e la severità, rappresentata da \texttt{ReportSeverity}. I livelli di severità previsti sono \texttt{LOW}, \texttt{MIDDLE} (valore di default) e \texttt{HIGH}. La segnalazione e il ban sono operazioni distinte: la creazione di un report non modifica automaticamente lo stato dell'account, la cui disabilitazione può avvenire tramite un'operazione successiva.
+
 \subsection{Venue e risorse}
 \label{sec:dominio-risorse}
-Una \texttt{Venue} rappresenta un luogo fisico in cui è possibile organizzare eventi. Possiede un nome, una descrizione e un indirizzo (\texttt{Address} che raggruppa i dati dell'indirizzo).
-Una \texttt{Resource} è invece un qualche tipo di risorsa, collegata a una venue o meno, che può opzionalmente essere associata a una richiesta o a un evento.
-\texttt{Resource} è una classe astratta, da cui derivano tre sottoclassi concrete:
-\begin{itemize}
-  \item \texttt{Space}, che rappresenta uno spazio fisico, come una sala o un palco, appartenente a una venue;
-  \item \texttt{Equipment}, che rappresenta un'attrezzatura, come un proiettore o un microfono. Può appartenere a una venue oppure essere globale, cioè non legata a una venue specifica. Per le attrezzature è possibile definire una quantità totale disponibile;
-  \item \texttt{Service}, che rappresenta un servizio, come il catering o la sicurezza. I servizi sono globali, ovvero non legati a una venue particolare.
-\end{itemize}
-Una venue può disporre di zero o più spazi e attrezzature. Ogni spazio appartiene a una sola venue, mentre un'attrezzatura può essere associata a zero o una venue.
+
+Una \texttt{Venue} rappresenta il luogo fisico in cui possono svolgersi gli eventi. È composta da un nome, una descrizione e un indirizzo strutturato, rappresentato dal Value Object immutabile \texttt{Address}. I campi dell'indirizzo comprendono via, numero civico, città, codice postale e paese; le informazioni aggiuntive sono facoltative.
+
+La classe astratta \texttt{Resource} raccoglie gli attributi comuni alle risorse, quali identificativo, nome e descrizione. Da essa derivano tre tipologie concrete: \texttt{Space}, che rappresenta uno spazio fisico; \texttt{Equipment}, che descrive un'attrezzatura e ne può indicare la quantità complessiva disponibile; \texttt{Service}, che rappresenta un servizio disponibile. \texttt{Equipment} e \texttt{Service} possono essere legate a una venue specifica oppure essere globali; \texttt{Space}, invece, appartiene necessariamente a una venue specifica.
+
 \begin{figure}[!htbp]
   \centering
-  \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{dominio/domain-venues.png}
-  \caption{Diagramma del dominio: venue e risorse.}
-  \label{fig:dominio-risorse}
+  \includegraphics[width=\textwidth]{figure/dominio/domain-venues.png}
+  \caption{Modello delle venue e delle risorse.}
+  \label{fig:domain-venues}
 \end{figure}
-\FloatBarrier
-\par\medskip
 
-\subsection{Richieste di evento}
-\label{sec:dominio-richieste}
-Un utente ordinario può inviare una \texttt{EventRequest} per richiedere la creazione di un evento in una venue. L'identificativo di tale utente è salvato nel campo \texttt{requester\_id}. La richiesta contiene i dati dell'evento che si vorrebbe organizzare, quali nome, descrizione, data e ora di inizio e di fine, e \texttt{EventRequestStatus} (che può assumere come valori \texttt{PENDING}, \texttt{ACCEPTED}, \texttt{REJECTED} o \texttt{CANCELLED}). Il campo \texttt{handler\_id} indica l'amministratore che ha preso in
-carico la richiesta dell'evento. L'accettazione di una richiesta non crea automaticamente un evento, ma indica solamente che la richiesta è stata accettata ed è in fase di valutazione interna. È previsto un campo \texttt{quote} che rappresenta la cifra proposta nel preventivo per la realizzazione dell'evento.
-Una richiesta evento deve essere collegata necessariamente a una \texttt{venue}. La richiesta evento deve includere la data e ora di inizio e di fine dell'evento (rispettivamente \texttt{begin\_datetime} e \texttt{end\_datetime}).
-\bozza{Descrivere richiedente, venue e handler facoltativo; chiarire che
-l'accettazione di una richiesta non crea automaticamente un evento.}
-\par\medskip
-
-\subsection{Eventi, prenotazioni, invitati e recensioni}
+\subsection{Eventi, prenotazioni, richieste di evento, ospiti e recensioni}
 \label{sec:dominio-eventi}
-\bozza{Descrivere creator e organiser, visibilità dell'evento, Booking e Ticket;
-distinguere gli invitati privati dagli utenti registrati e spiegare Review.
-}
-\begin{landscape}
-\begin{figure}[p]
+
+\begin{figure}[!htbp]
   \centering
-  \includegraphics[width=\linewidth,height=0.86\textheight,keepaspectratio]{dominio/domain-events-bookings.png}
-  \caption{Diagramma del dominio: richieste, eventi, prenotazioni,
-  invitati e recensioni.}
-  \label{fig:dominio-eventi}
+  \includegraphics[width=\textwidth]{figure/dominio/domain-events-bookings.png}
+  \caption{Modello di eventi e prenotazioni.}
+  \label{fig:domain-events-bookings}
 \end{figure}
-\end{landscape}
-\par\medskip
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=\textwidth]{figure/dominio/domain-events-guests-requests.png}
+  \caption{Modello di richieste di evento e ospiti.}
+  \label{fig:domain-events-guests-requests}
+\end{figure}
+
+Un \texttt{Event} è associato a una venue e a un utente amministratore che ne rappresenta il creatore. Può inoltre avere un organizzatore assegnato. Il modello contiene i dati descrittivi e temporali dell'evento, la capienza, il prezzo del biglietto, la visibilità, lo stato del ciclo di vita (rappresentati rispettivamente da \texttt{EventVisibility} e \texttt{EventStatus}), il prezzo e il poster. Gli ultimi due sono facoltativi e un prezzo nullo è trattato come prezzo pari a zero. La visibilità distingue gli eventi tra \texttt{PUBLIC} (valore di default) e \texttt{PRIVATE\_GUEST\_LIST}, mentre gli stati previsti degli eventi sono \texttt{DRAFT} (valore di default), \texttt{CONFIRMED}, \texttt{PUBLISHED} e \texttt{CANCELLED}.
+
+Un \texttt{Booking} collega un utente a un evento e memorizza la data di creazione, lo stato e il prezzo totale. Una prenotazione contiene uno o più \texttt{Ticket}, ciascuno nominativo e associato alla prenotazione; il servizio assegna al biglietto la data e l'ora di inizio dell'evento. Il prezzo complessivo è calcolato moltiplicando il prezzo unitario per il numero dei biglietti.
+
+Un utente ordinario può presentare una \texttt{EventRequest} per proporre la realizzazione di un evento in una venue specifica. La richiesta contiene l'ID dell'utente richiedente e della venue; il nome, la descrizione e l'intervallo temporale dell'evento proposto; il relativo stato della richiesta, rappresentato da \texttt{EventRequestStatus}. Può inoltre contenere un amministratore incaricato della gestione della richiesta, un preventivo e una data di chiusura. La richiesta deve riferirsi a una venue esistente e avere un intervallo temporale valido. Lo stato della richiesta può essere \texttt{PENDING} (valore di default), \texttt{ACCEPTED}, \texttt{REJECTED} o \texttt{CANCELLED}.
+
+L'accettazione indica che la proposta è stata valutata positivamente e può essere accompagnata da un preventivo non negativo. Non comporta la creazione automatica di un \texttt{Event}: la richiesta e l'evento sono entità distinte e la creazione dell'evento resta un'operazione separata.
+
+La classe \texttt{EventGuest} rappresenta un ospite speciale (una guest star) assegnato a uno specifico evento tramite il campo \texttt{event\_id} (presente in \texttt{EventGuest}). Contiene i dati anagrafici dell'ospite (nome, cognome e la data di nascita opzionale), una nota descrittiva facoltativa e lo stato dell'invito, rappresentato da \texttt{EventGuestStatus}. Lo stato può essere \texttt{INVITED} (valore di default), \texttt{CONFIRMED} e \texttt{CANCELLED}.
+
+Una \texttt{Review} riguarda la recensione di un utente a un evento e contiene l'ID dell'utente autore, l'ID dell'evento recensito, la valutazione (compresa tra 1 e 5), un commento facoltativo e la data di creazione. La recensione è ammessa solo dopo la conclusione dell'evento e se l'utente possiede una prenotazione confermata; ciascun utente può recensire lo stesso evento una sola volta.
 
 \section{Cicli di vita e invarianti}
-% Diagrammi originali in docs/diagrams/states/, senza modifiche al contenuto.
-\bozza{Introdurre stati, transizioni, guardie ed effetti; richiamare gli ID delle
-regole pertinenti senza ricopiare i template dei casi d'uso.}
 
-\subsection{Ciclo di vita dell'evento}
-\bozza{Spiegare creazione in DRAFT, conferma, condizioni di pubblicazione e
-cancellazione atomica di prenotazioni e inviti. La gestione richiede Administrator
-o Organiser assegnato; CANCELLED non consente riattivazione.}
-\begin{figure}[!htbp]
-  \centering
-  \includegraphics[width=\textwidth,height=0.64\textheight,keepaspectratio]{stati/state-event.png}
-  \caption{Diagramma del ciclo di vita dell'evento.}
-  \label{fig:stati-evento}
-\end{figure}
-\FloatBarrier
-\par\medskip
-
-\subsection{Ciclo di vita della richiesta}
-\bozza{Descrivere assegnazione dell'handler senza cambio di stato e tre possibili
-chiusure da PENDING; tutte valorizzano closedAt. ACCEPTED non equivale a un evento creato.}
-\begin{figure}[!htbp]
-  \centering
-  \includegraphics[width=\textwidth,height=0.64\textheight,keepaspectratio]{stati/state-request.png}
-  \caption{Diagramma del ciclo di vita della richiesta; le chiusure assegnano closedAt.}
-  \label{fig:stati-richiesta}
-\end{figure}
-\FloatBarrier
-\par\medskip
-
-\subsection{Ciclo di vita della prenotazione}
-\bozza{Spiegare PENDING\_PAYMENT, conferma e cancellazione; distinguere lo stato
-applicativo dall'integrazione con pagamenti reali. Conferma, cancellazione ed
-eliminazione richiedono il proprietario o un Administrator.}
-\begin{figure}[!htbp]
-  \centering
-  \includegraphics[width=\textwidth,height=0.64\textheight,keepaspectratio]{stati/state-booking.png}
-  \caption{Diagramma del ciclo di vita della prenotazione.}
-  \label{fig:stati-prenotazione}
-\end{figure}
-\FloatBarrier
-\par\medskip
-
-\subsection{Ciclo di vita dell'invitato}
-\bozza{Descrivere INVITED, CONFIRMED e CANCELLED; le operazioni sono registrate
-da Administrator o Organiser assegnato. Ricordare l'annullamento degli inviti
-attivi quando si cancella l'evento.}
-\begin{figure}[!htbp]
-  \centering
-  \includegraphics[width=\textwidth,height=0.64\textheight,keepaspectratio]{stati/state-guest.png}
-  \caption{Diagramma del ciclo di vita dell'invitato.}
-  \label{fig:stati-invitato}
-\end{figure}
-\FloatBarrier
-\par\medskip
+Gli stati descrivono le fasi di vita delle varie entità e le transizioni ammesse sono controllate dai servizi applicativi che ne garantiscono la validità. Un'entità in uno stato terminale non è necessariamente eliminata dal database: la cancellazione logica tramite stato e l'eliminazione fisica del record sono operazioni distinte. Le regole di business che governano le transizioni tra stati sono richiamate tramite i relativi identificativi.
 
 \subsection{Ciclo di vita dell'account}
-\bozza{Spiegare ACTIVE, ban e riattivazione; il ban impedisce nuove prenotazioni
-senza annullare quelle esistenti. Distinguere lo stato BANNED dall'eliminazione
-fisica dell'account.}
+
+\begin{figure}[!htbp]
+   \centering
+  \includegraphics[width=\textwidth]{figure/stati/state-account.png}
+  \caption{Diagramma degli stati dell'account (inclusi ban, riattivazione ed eliminazione).}
+  \label{fig:state-account}
+\end{figure}
+
+La registrazione crea sempre un account ordinario nello stato \texttt{ACTIVE}. Un amministratore può bannare o riattivare un utente ordinario dopo aver verificato le proprie credenziali; non può effettuare queste operazioni sul proprio account o su quello di un altro amministratore. Il ban impedisce nuove prenotazioni, ma non annulla automaticamente quelle esistenti.
+
+Lo stato \texttt{BANNED} è distinto dall'eliminazione fisica dell'account: un utente può essere eliminato dopo la verifica della propria password, sia se attivo sia se bannato.
+
+\subsection{Ciclo di vita dell'evento}
+
 \begin{figure}[!htbp]
   \centering
-  \includegraphics[width=\textwidth,height=0.64\textheight,keepaspectratio]{stati/state-account.png}
-  \caption{Diagramma del ciclo di vita dell'account; il nodo finale indica
-  l'eliminazione del record.}
-  \label{fig:stati-account}
+   \includegraphics[width=\textwidth]{figure/stati/state-event.png}
+  \caption{Diagramma degli stati e delle transizioni dell'evento.}
+  \label{fig:state-event}
 \end{figure}
-\FloatBarrier
-\par\medskip
+
+Un nuovo evento viene creato nello stato \texttt{DRAFT}, indipendentemente dallo stato eventualmente fornito in ingresso. Da \texttt{DRAFT} può passare a \texttt{CONFIRMED} oppure essere cancellato; da \texttt{CONFIRMED} può essere pubblicato o cancellato; da \texttt{PUBLISHED} può passare a \texttt{CANCELLED}. Non è prevista la riattivazione di un evento cancellato.
+
+La conferma e la pubblicazione richiedono un amministratore oppure l'Organiser assegnato. La pubblicazione è consentita soltanto per un evento confermato che abbia un inizio futuro, una venue esistente e una capienza positiva; al momento della pubblicazione viene registrato anche il relativo timestamp. La capienza non può essere ridotta al di sotto del numero di biglietti già emessi.
+
+La cancellazione aggiorna lo stato dell'evento e annulla, nella stessa transazione, le prenotazioni e gli inviti attivi a esso collegati. Tale operazione non corrisponde a un rimborso automatico.
+
+\subsection{Ciclo di vita della prenotazione}
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=\textwidth]{figure/stati/state-booking.png}
+  \caption{Diagramma degli stati e delle transizioni della prenotazione.}
+  \label{fig:state-booking}
+\end{figure}
+
+La prenotazione viene creata nello stato \texttt{PENDING\_PAYMENT} e può passare a \texttt{CONFIRMED} o \texttt{CANCELLED}; una prenotazione confermata può successivamente essere cancellata. La conferma, la cancellazione e l'eliminazione richiedono il proprietario della prenotazione o un amministratore. Lo stato \texttt{PENDING\_PAYMENT} rappresenta una fase applicativa e non implica l'integrazione con un sistema di pagamento reale.
+
+La creazione è ammessa per eventi con stato \texttt{PUBLISHED}, visibilità \texttt{PUBLIC} e non ancora iniziati; gli account bannati non possono effettuare prenotazioni. Il servizio blocca l'evento prima di conteggiare i biglietti già presenti e verificare la capienza, quindi inserisce la prenotazione e i biglietti nella stessa transazione. Questo vincolo riduce il rischio che prenotazioni concorrenti superino la capienza disponibile.
+
+\subsection{Ciclo di vita della richiesta}
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=\textwidth]{figure/stati/state-request.png}
+  \caption{Diagramma degli stati e delle transizioni della richiesta di evento.}
+  \label{fig:state-request}
+\end{figure}
+
+La creazione imposta la richiesta nello stato \texttt{PENDING}, senza handler, preventivo o data di chiusura. Un amministratore può assegnare un handler mentre la richiesta è pendente; l'assegnazione non comporta una transizione di stato. Solo l'handler assegnato può accettare o rifiutare la richiesta, mentre il richiedente può cancellare la propria richiesta pendente.
+
+Le transizioni di chiusura da \texttt{PENDING} sono \texttt{ACCEPTED}, \texttt{REJECTED} e \texttt{CANCELLED}; ciascuna assegna un valore a \texttt{closedAt}. Per l'accettazione sono richiesti un handler assegnato e un preventivo valido. Gli stati conclusivi non prevedono ulteriori transizioni. L'accettazione non crea un evento, ma registra l'esito della valutazione della proposta.
+
+\subsection{Ciclo di vita dell'ospite dell'evento}
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=\textwidth]{figure/stati/state-guest.png}
+  \caption{Diagramma degli stati e delle transizioni dell'invitato.}
+  \label{fig:state-guest}
+\end{figure}
+
+La gestione delle guest star (o ospiti speciali) legate a un evento è riservata esclusivamente a un amministratore o all'Organiser assegnato all'evento stesso. Essi possono associare e rimuovere ospiti, aggiornarne i dati anagrafici e le note interne, e gestirne lo stato nel corso del tempo.
+
+Al momento della creazione, a ciascun \texttt{EventGuest} viene assegnato lo stato iniziale \texttt{INVITED}. Le transizioni ammesse prevedono il passaggio da \texttt{INVITED} verso \texttt{CONFIRMED} o \texttt{CANCELLED}, e da \texttt{CONFIRMED} a \texttt{CANCELLED}. Qualora l'evento di riferimento venga cancellato, tutti gli \texttt{EventGuest} attivi ad esso associati vengono portati nello stato \texttt{CANCELLED} all'interno della medesima transazione. Una volta impostato uno stato terminale, la riattivazione non è consentita tramite transizione di stato, mentre la rimozione fisica del record rimane un'operazione separata.
