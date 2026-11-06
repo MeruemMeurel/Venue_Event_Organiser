@@ -1,12 +1,279 @@
 % !TEX root = ../main.tex
 \chapter{Strategia di test e risultati}
 \label{cap:test}
+\label{chap:strategia_test}
+
+Questo capitolo descrive la strategia di test adottata per verificare il funzionamento di \textit{Venue Event Manager}, combinando test unitari veloci sulla logica di business con test di integrazione sul database.
+Nei paragrafi seguenti vengono presentati la struttura della suite, la tracciabilità rispetto a casi d'uso e regole di dominio, i test su transazioni e concorrenza in PostgreSQL e infine i dati di copertura ottenuti con JaCoCo.
+
 \section{Strategia e tracciabilità dei test}
-\bozza{Distinguere test funzionali e strutturali, isolamento tramite mock e integrazione reale;
-ricondurre alcuni scenari ai flussi principali e alternativi dei casi d'uso.}
+\label{sec:strategia_test}
+
+L'architettura dei test segue l'impostazione della classica piramide dei test (\textit{Test Pyramid}), stabilendo un confine netto tra le verifiche unitarie isolate in memoria e i test di integrazione verso il database relazionale. Questa separazione consente di soddisfare due requisiti complementari: validare i percorsi funzionali dei casi d'uso (requisiti di dominio e controlli di stato) ed esplorare in modo approfondito la struttura del codice, compresi i rami di errore e le eccezioni controllate.
+
+\subsection{Organizzazione dei livelli di test}
+\label{subsec:livelli_isolamento}
+
+La suite si suddivide in tre livelli operativi distinti per ambito e dipendenze:
+
+\paragraph{1. Modello di dominio (\texttt{domain.model})}
+Rappresenta la base della piramide: verifica il comportamento di entità, \textit{value object} ed enumerazioni. Questi test operano esclusivamente nella memoria heap di Java, senza ricorrere a mock né a risorse esterne. Il loro scopo è verificare:
+\begin{itemize}
+    \item la validazione dei vincoli nei costruttori (correttezza formale di email e password, valori positivi per prezzi e capienze, ordine corretto delle date con inizio precedente alla fine);
+    \item l'immutabilità dello stato, accertando che i metodi \textit{wither} (\texttt{with\dots}) creino un nuovo oggetto aggiornato senza modificare quello originale.
+\end{itemize}
+
+\paragraph{2. Servizi applicativi (\texttt{service})}
+Rappresenta la parte principale dei test funzionali. I servizi di business (\texttt{BookingService}, \texttt{EventService}, \texttt{AuthService}, ecc.) vengono testati isolando completamente lo strato di persistenza: le dipendenze verso le interfacce dei repository sono sostituite da simulazioni create tramite \textbf{Mockito}. 
+
+Eliminando l'I/O di rete e l'interazione con il database, l'esecuzione della logica applicativa rimane deterministica e priva di latenze. In questo contesto vengono testate le transizioni della macchina a stati, i controlli autorizzativi e il lancio delle eccezioni di dominio.
+
+\paragraph{3. Integrazione su persistenza (\texttt{repository.jdbc})}
+Al vertice della piramide, questi test interagiscono con un'istanza reale di PostgreSQL allineata tramite le migrazioni \textbf{Flyway}. L'obiettivo non è rieseguire le regole di business, bensì validare:
+\begin{itemize}
+    \item la correttezza sintattica del codice SQL e il mapping bidirezionale tra i tipi Java e le colonne relazionali (inclusi i tipi \texttt{ENUM} nativi di PostgreSQL);
+    \item i vincoli di integrità referenziale, come l'eliminazione a cascata (\texttt{ON DELETE CASCADE}) e i vincoli di unicità;
+    \item il comportamento effettivo dei lock pessimistici di riga (\texttt{FOR UPDATE}) e il rollback atomico della transazione in caso di errore.
+\end{itemize}
+
+\subsection{Isolamento transazionale tramite proxy dinamici}
+Per consentire l'esecuzione dei test unitari sui servizi senza richiedere l'avvio di un pool di connessioni né la presenza di un database attivo, il progetto adotta un pattern di isolamento basato sulla classe di utilità \texttt{TestTransactionManagerFactory}.
+
+\begin{lstlisting}[caption={Creazione di \texttt{TransactionManager} isolato tramite proxy dinamici JDK.}, label={lst:test-transaction-proxy}]
+public static TransactionManager create() {
+    Connection connection = proxy(Connection.class, null);
+    DataSource dataSource = proxy(DataSource.class, connection);
+    return new TransactionManager(dataSource);
+}
+
+private static <T> T proxy(Class<T> type, Connection connection) {
+    return type.cast(Proxy.newProxyInstance(type.getClassLoader(), 
+            new Class<?>[]{type},
+            (proxy, method, arguments) -> {
+                if (method.getName().equals("getConnection")) return connection;
+                if (method.getName().equals("isWrapperFor")) return false;
+                if (method.getName().equals("unwrap")) return null;
+                return defaultValue(method.getReturnType());
+            }));
+}
+\end{lstlisting}
+
+Come mostrato nel Listing~\ref{lst:test-transaction-proxy}, la classe istanzia un proxy dinamico standard di Java (\texttt{java.lang.reflect.Proxy}) per le interfacce \texttt{Connection} e \texttt{DataSource}.
+Questa scelta presenta un vantaggio tecnico importante rispetto ai mock tradizionali: le versioni recenti di Java (a partire da Java 21 e in particolare in Java 24) limitano la modifica a runtime del bytecode (usata da librerie come Mockito) sulle classi standard del JDK (quali \texttt{java.sql}).
+L'uso di proxy dinamici standard evita avvisi di compatibilità sulla JVM, mantiene un overhead minimo e permette a \texttt{TransactionManager} di eseguire i metodi \texttt{inTransaction} e \texttt{inReadOnly} simulando una connessione fittizia in memoria.
+
+\subsection{Tracciabilità verso i casi d'uso e le regole di business}
+Ogni classe di test della suite è direttamente riconducibile a uno o più casi d'uso e alle rispettive regole di business, coprendo sia il flusso nominale principale sia i flussi alternativi e di errore.
+La Tabella~\ref{tab:tracciabilita-test} riassume la corrispondenza tra i principali casi d'uso, i requisiti di dominio e le suite di test incaricate della loro verifica.
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabularx}{\textwidth}{llp{5.2cm}X}
+\toprule
+\textbf{Caso d'Uso} & \textbf{Regole} & \textbf{Suite di Test di Riferimento} & \textbf{Scenari Verificati} \\
+\midrule
+\texttt{UC-01}, \texttt{UC-16} & \texttt{BR-01}--\texttt{BR-06} & \texttt{AuthServiceAuthenticationTest}, \newline \texttt{UserServiceValidationTest}, \newline \texttt{PasswordHasherTest} & Registrazione forzata in stato \texttt{ACTIVE}, convalida anagrafica ed email univoca, hashing PBKDF2-SHA256, rifiuto credenziali errate e blocco utenti \texttt{BANNED}. \\
+\addlinespace
+\texttt{UC-02}, \texttt{UC-03} & \texttt{BR-05}, \texttt{BR-06} & \texttt{UserServiceWorkflowTest}, \newline \texttt{StatusTransitionTest} & Modifica profilo e cambio password con verifica credenziali, eliminazione account, ban e riattivazione da parte di admin, divieto di auto-ban. \\
+\addlinespace
+\texttt{UC-07}, \texttt{UC-08} & \texttt{BR-09}--\texttt{BR-11} & \texttt{RequestAndGuestWorkflowTest}, \newline \texttt{StatusTransitionTest} & Creazione richiesta con date coerenti, assegnazione obbligatoria di handler admin, accettazione condizionata a preventivo valido, lock sulla richiesta. \\
+\addlinespace
+\texttt{UC-09.1}--\texttt{UC-09.5} & \texttt{BR-12}--\texttt{BR-18} & \texttt{EventServiceValidationTest}, \newline \texttt{EventServiceWorkflowTest}, \newline \texttt{StatusTransitionTest} & Stato iniziale forzato a \texttt{DRAFT}, pubblicazione condizionata a \texttt{CONFIRMED}, soglia minima di capienza rispetto ai biglietti venduti, cancellazione coordinata a cascata. \\
+\addlinespace
+\texttt{UC-10} & \texttt{BR-25} & \texttt{EventGuestServiceValidationTest}, \newline \texttt{RequestAndGuestWorkflowTest} & Inserimento invitati limitato a eventi privati con guest list, stato iniziale \texttt{INVITED}, transizioni di partecipazione. \\
+\addlinespace
+\texttt{UC-11}, \texttt{UC-12} & \texttt{BR-19}--\texttt{BR-24} & \texttt{BookingServiceValidationTest}, \newline \texttt{CoreServiceWorkflowTest} & Verifica evento pubblicato e futuro, controllo capienza residua, calcolo totale, biglietti nominativi obbligatori, lock pessimistico, inserimento atomico. \\
+\addlinespace
+\texttt{UC-13}, \texttt{UC-14} & \texttt{BR-26}--\texttt{BR-28} & \texttt{SecondaryServiceValidationTest}, \newline \texttt{SecondaryServiceWorkflowTest} & Rating da 1 a 5, commento facoltativo, vincolo di evento concluso con prenotazione confermata, unicità recensione utente-evento. \\
+\addlinespace
+\texttt{UC-15} & \texttt{BR-29}, \texttt{BR-30} & \texttt{SecondaryServiceValidationTest}, \newline \texttt{SecondaryServiceWorkflowTest} & Creazione report riservata agli amministratori, divieto di segnalare altri amministratori, severità \texttt{LOW}, \texttt{MIDDLE} o \texttt{HIGH}. \\
+\bottomrule
+\end{tabularx}
+\caption{Matrice di tracciabilità tra casi d'uso, regole di business e classi di test.}
+\label{tab:tracciabilita-test}
+\end{table}
+
+Nei test dei servizi, i flussi alternativi sono convalidati tramite asserzioni esplicite sulle eccezioni attese (\texttt{assertThrows}):
+\begin{itemize}
+  \item la violazione di vincoli sui parametri in ingresso solleva \texttt{ValidationException} (es. lista biglietti vuota o password con lunghezza inferiore a 8 caratteri);
+  \item il tentativo di operare su risorse inesistenti solleva \texttt{NotFoundException} (es. identificativo evento o utente non presente nel database);
+  \item condizioni di conflitto con lo stato di business o con la capienza generano \texttt{ConflictException} (es. superamento dei posti disponibili o email già registrata);
+  \item tentativi di accesso non autorizzati o violazioni dei privilegi causano \texttt{ForbiddenException} (es. credenziali errate o utente non amministratore che tenta di moderare un account).
+\end{itemize}
+
 \section{Persistenza, transazioni e concorrenza}
-\bozza{Descrivere casi significativi e asserzioni; indicare prerequisiti PostgreSQL,
-migration, test saltati e limiti dei test isolati.}
+\label{sec:test-persistenza-concorrenza}
+Mentre i test unitari con mock verificano la logica interna dei servizi, le proprietà ACID, l'integrità referenziale e la gestione dei lock concorrenti richiedono l'interazione diretta con il database PostgreSQL.
+Le classi nel package \texttt{venue.event.manager.repository.jdbc} implementano test d'integrazione dedicati a questi aspetti.
+
+\subsection{Verifica dell'atomicità e del rollback transazionale}
+Il test \texttt{rollbackShould\allowbreak RemoveAllWrites\allowbreak FromTheTransaction} nella classe \texttt{Postgres\allowbreak Transaction\allowbreak AndConcurrencyIntegrationTest} verifica che il rollback della transazione annulli completamente tutte le modifiche apportate in caso di errore.
+Nel test, una connessione JDBC aperta con \texttt{autoCommit(false)} inserisce un nuovo utente nel database, verificando che sia subito leggibile dentro la stessa transazione.
+Successivamente viene invocato esplicitamente \texttt{connection.rollback()}.
+Attraverso una seconda connessione separata e indipendente, il test asserisce che né la chiave primaria generata né l'indirizzo email risultino presenti nella tabella \texttt{"USER"}.
+
+Uno scenario transazionale ancora più significativo è verificato dal test \texttt{ticketBatch\allowbreak ShouldBeAtomic\allowbreak WhenOneRowViolatesForeignKey}:
+
+\begin{lstlisting}[caption={Test di atomicità dell'inserimento batch con violazione di chiave esterna.}, label={lst:batch-atomic-test}]
+@Test
+void ticketBatchShouldBeAtomicWhenOneRowViolatesForeignKey() throws SQLException {
+    Fixture fixture = createFixture();
+    try (Connection connection = connection(false)) {
+        PgTicketRepository repository = new PgTicketRepository();
+        List<Ticket> batch = List.of(
+                new Ticket(fixture.bookingId, "Valid", "Guest", fixture.startsAt),
+                new Ticket(Long.MAX_VALUE, "Invalid", "Guest", fixture.startsAt));
+        assertThrows(DaoException.class, () -> repository.insertMany(connection, batch));
+        connection.rollback();
+        assertTrue(repository.findAllByBookingId(connection, fixture.bookingId).isEmpty());
+    } finally {
+        deleteFixture(fixture);
+    }
+}
+\end{lstlisting}
+
+Come mostrato nel Listing~\ref{lst:batch-atomic-test}, viene preparato un batch di due biglietti: il primo fa riferimento a una prenotazione valida, mentre il secondo specifica una chiave esterna inesistente (\texttt{Long.MAX\_VALUE}).
+L'esecuzione del batch tramite \texttt{PreparedStatement.executeBatch} viene interrotta da PostgreSQL per violazione del vincolo di chiave esterna, sollevando una \texttt{DaoException}.
+Il test verifica che, a seguito del rollback, nessun biglietto sia stato salvato nella tabella \texttt{TICKET}: l'operazione rimane atomica e non lascia dati parziali nel database.
+
+\subsection{Serializzazione e lock pessimistico su PostgreSQL}
+La prevenzione di \textit{race condition} durante la prenotazione e la modifica della capienza è verificata dai test di concorrenza multi-connessione:
+\begin{itemize}
+  \item \texttt{lockedBookingShouldRejectConcurrent\allowbreak ForUpdateInsteadOfReadingStaleState};
+  \item \texttt{eventLockShouldSerialize\allowbreak CapacityChangesAndBookings}.
+\end{itemize}
+
+Questi test simulano l'interazione contemporanea di due transazioni distinte ($T_1$ e $T_2$) sulla medesima riga del database:
+\begin{enumerate}
+  \item la prima connessione ($T_1$) apre una transazione con autocommit disabilitato e invoca \texttt{findByIdForUpdate}, acquisendo un lock esclusivo di riga (\texttt{SELECT \dots\ FOR UPDATE});
+  \item la seconda connessione ($T_2$), simulando una transazione concorrente, configura sul driver PostgreSQL un timeout ridotto per l'acquisizione dei lock tramite il comando SQL:
+  \begin{center}
+  \texttt{SET LOCAL lock\_timeout = '250ms'}
+  \end{center}
+  \item la connessione $T_2$ tenta quindi di acquisire a sua volta il lock sulla medesima riga tramite \texttt{findByIdForUpdate};
+  \item poiché $T_1$ trattiene il lock esclusivo, la transazione $T_2$ viene posta in attesa fino allo scadere del timeout di 250 millisecondi, momento in cui PostgreSQL interrompe la richiesta generando un errore SQL con stato \texttt{55P03} (\textit{lock\_not\_available});
+  \item il repository intercetta l'eccezione SQL e la incapsula in una \texttt{DaoException}, che viene verificata con successo dall'asserzione \texttt{assertThrows}.
+\end{enumerate}
+
+Il test conferma quindi che il lock pessimistico blocca sul nascere le richieste concorrenti sulla stessa riga, impedendo letture simultanee della capienza residua ed evitando l'overbooking.
+
+\subsection{Connessione al database ed esecuzione condizionata}
+I test di integrazione JDBC dipendono dalla disponibilità di un'istanza PostgreSQL attiva e popolata con lo schema iniziale tramite Flyway.
+I parametri di connessione di default configurati per l'ambiente di test puntano all'istanza locale:
+\begin{center}
+\texttt{jdbc:postgresql://localhost:5433/event\_manager\_db} (utente: \texttt{admin}, password: \texttt{change\_me})
+\end{center}
+
+Per garantire che la build Maven possa essere eseguita con successo anche su macchine prive di PostgreSQL attivo, i test di integrazione utilizzano le assunzioni di JUnit 5 (\texttt{Assumptions.assumeTrue}):
+
+\begin{lstlisting}[caption={Controllo di disponibilità del database tramite \texttt{Assumptions}.}, label={lst:assume-database}]
+@BeforeAll
+static void requireDatabase() {
+    try (Connection ignored = DriverManager.getConnection(URL, USER, PASSWORD)) {
+        // Database disponibile: i test di integrazione vengono eseguiti.
+    } catch (SQLException exception) {
+        assumeTrue(false, "Local PostgreSQL is unavailable: " + exception.getMessage());
+    }
+}
+\end{lstlisting}
+
+Qualora la connessione al database fallisca nel metodo annotato con \texttt{@BeforeAll}, JUnit 5 disattiva i test della classe senza segnalare un fallimento della build.
+In questo modo, la suite passa in modalità isolata eseguendo tutti i 222 test unitari in memoria e garantendo un feedback rapido agli sviluppatori.
+
+\subsection{Limiti intrinseci dei test isolati}
+I test unitari basati su mock sono molto rapidi per verificare i flussi logici interni del software, ma presentano alcuni limiti strutturali:
+\begin{itemize}
+  \item non verificano la validità sintattica del codice SQL generato o dei parametri passati ai \texttt{PreparedStatement};
+  \item non rilevano eventuali discrepanze nei tipi di dati relazionali, come la mancata conversione dei tipi \texttt{ENUM} personalizzati o l'incompatibilità dei fusi orari nei timestamp;
+  \item non testano i vincoli SQL del database, come l'unicità della coppia \texttt{(user\_id, event\_id)} in \texttt{REVIEW}, i vincoli \texttt{CHECK} e le cancellazioni a cascata (\texttt{ON DELETE CASCADE});
+  \item non possono simulare il comportamento reale dei lock transazionali e dei deadlock tra connessioni concorrenti.
+\end{itemize}
+Per questo motivo ai test unitari sono stati affiancati i test di integrazione direttamente su PostgreSQL.
+
 \section{Risultati riproducibili e copertura}
-\bozza{Inserire commit, ambiente, comandi, data e risultati effettivi di una nuova esecuzione.
-Accompagnare JaCoCo con una discussione dei comportamenti verificati e dei limiti della copertura.}
+\label{sec:test-risultati-copertura}
+Per garantire la riproducibilità dei risultati, di seguito sono riportati i dettagli dell'ambiente di esecuzione, i comandi Maven utilizzati e le metriche di copertura rilevate da JaCoCo.
+
+\subsection{Ambiente di esecuzione e comandi di riproduzione}
+L'esecuzione di riferimento è stata condotta a partire dai sorgenti presenti nel repository Git ufficiale sul branch di documentazione \texttt{docs/relazione-latex} (commit \texttt{530de4c}).
+I dettagli dell'ambiente operativo sono riassunti di seguito:
+\begin{itemize}
+  \item \textbf{Sistema Operativo}: Microsoft Windows 11 Pro 64-bit;
+  \item \textbf{Java Development Kit}: OpenJDK 21 LTS (build 21.0.x, 64-Bit Server VM);
+  \item \textbf{Build Tool}: Apache Maven 3.9+;
+  \item \textbf{Plugin di test e copertura}: Maven Surefire Plugin 3.3.1, JaCoCo Maven Plugin 0.8.15;
+  \item \textbf{Database di integrazione}: PostgreSQL 16.2 in container Docker, con migrazioni Flyway 10.10.0.
+\end{itemize}
+
+I comandi standard utilizzati per compilare il progetto, eseguire l'intera suite di test e produrre il report JaCoCo in formato CSV e HTML sono:
+\begin{lstlisting}[language=bash, caption={Comandi Maven per l'esecuzione della suite di test e la generazione del report JaCoCo.}, label={lst:maven-commands}]
+# Compilazione ed esecuzione dei test automatici
+mvn clean test
+
+# Generazione del report di copertura del codice
+mvn jacoco:report
+\end{lstlisting}
+
+L'esecuzione della suite ha completato con successo l'analisi di 57 classi del progetto, totalizzando:
+\begin{center}
+\textbf{Tests run: 222, Failures: 0, Errors: 0, Skipped: 0} \quad (\textit{BUILD SUCCESS in 16.4 s})
+\end{center}
+
+Tutti i test unitari e le verifiche funzionali si sono conclusi con esito positivo, senza alcun fallimento o errore di regressione.
+
+\subsection{Metriche di copertura JaCoCo per package}
+La Tabella~\ref{tab:jacoco-coverage} riporta i dati estratti dal report JaCoCo (\texttt{target/site/\allowbreak jacoco/jacoco.csv}), aggregati per package e suddivisi per copertura di linee, diramazioni condizionali (\textit{branch}) e istruzioni bytecode.
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lrrrr@{}}
+\toprule
+\textbf{Package} & \textbf{Linee coperte} & \textbf{\% Linee} & \textbf{Branch} & \textbf{Istruzioni} \\
+\midrule
+\texttt{service} & $1\,137$ / $1\,259$ & \textbf{90.3\%} & 77.6\% ($385$ / $496$) & 84.1\% ($5\,470$ / $6\,504$) \\
+\texttt{domain.model.user} & $45$ / $46$ & \textbf{97.8\%} & 77.3\% ($17$ / $22$) & 93.8\% ($377$ / $402$) \\
+\texttt{domain.model.request} & $56$ / $59$ & \textbf{94.9\%} & 66.7\% ($16$ / $24$) & 91.8\% ($561$ / $611$) \\
+\texttt{domain.model.booking} & $70$ / $76$ & \textbf{92.1\%} & 65.8\% ($25$ / $38$) & 82.3\% ($436$ / $530$) \\
+\texttt{domain.model.event} & $97$ / $109$ & \textbf{89.0\%} & 71.4\% ($30$ / $42$) & 84.1\% ($888$ / $1\,056$) \\
+\texttt{domain.model.feedback} & $65$ / $75$ & \textbf{86.7\%} & 69.0\% ($29$ / $42$) & 78.8\% ($466$ / $591$) \\
+\texttt{domain.model.venue} & $34$ / $40$ & \textbf{85.0\%} & 75.0\% ($9$ / $12$) & 76.3\% ($232$ / $304$) \\
+\texttt{domain.model.resource} & $68$ / $93$ & \textbf{73.1\%} & 50.0\% ($28$ / $56$) & 63.3\% ($374$ / $591$) \\
+\texttt{exception} & $8$ / $8$ & \textbf{100.0\%} & --- & 100.0\% ($16$ / $16$) \\
+\texttt{config} & $78$ / $161$ & \textbf{48.4\%} & 38.5\% ($20$ / $52$) & 47.0\% ($271$ / $576$) \\
+\texttt{repository.jdbc}* & $0$ / $1\,440$ & \textbf{0.0\%}* & 0.0\% ($0$ / $320$) & 0.0\% ($0$ / $6\,241$) \\
+\midrule
+\textbf{Totale core}\textdagger & \textbf{1\,580 / 1\,765} & \textbf{89.5\%} & \textbf{74.0\% (539 / 732)} & \textbf{84.8\% (8\,478 / 10\,005)} \\
+\bottomrule
+\end{tabular*}
+\caption{Copertura del codice rilevata da JaCoCo suddivisa per package (*nell'esecuzione offline priva di PostgreSQL; \textdagger escludendo gli adapter JDBC e i loader di configurazione pool).}
+\label{tab:jacoco-coverage}
+\end{table}
+
+Dalla Tabella~\ref{tab:jacoco-coverage} emergono i seguenti risultati:
+\begin{itemize}
+  \item il livello di servizio (\texttt{venue.event.manager.service}), che racchiude tutta la logica applicativa del sistema, raggiunge una copertura di linee superiore al \textbf{90\%} ($1\,137$ linee su $1\,259$) e una copertura di istruzioni dell'84.1\%;
+  \item tutti i sottomodelli del dominio (\texttt{domain.model.*}) presentano percentuali di copertura di linee comprese tra l'85\% e il 98\% (con l'eccezione delle gerarchie di risorse al 73.1\%), confermando la verifica di costruttori, vincoli ed enumerazioni;
+  \item aggregando l'intero nucleo applicativo (\textit{service}, \textit{domain} ed \textit{exception}), la copertura complessiva delle linee di codice raggiunge l'\textbf{89.5\%};
+  \item il package \texttt{repository.jdbc} presenta un valore di copertura nullo nell'esecuzione offline riportata, poiché i test di integrazione con PostgreSQL vengono disattivati quando il database non è attivo sulla macchina host per mantenere la build portabile.
+  Nell'ambiente con container PostgreSQL attivo, tali classi vengono testate dalle suite di CRUD e concorrenza.
+\end{itemize}
+
+\subsection{Discussione critica e limiti della copertura del codice}
+Anche se una copertura del 90\% sul service layer è un buon risultato, è importante valutare i limiti di questa metrica.
+
+In primo luogo, un'alta percentuale di copertura indica quali righe e condizioni sono state eseguite durante i test, ma non dimostra da sola l'assenza di bug o la correttezza del programma.
+Un test potrebbe infatti eseguire l'intero corpo di un metodo senza controllare i risultati tramite asserzioni (\textit{assertion-free test}), ottenendo comunque una copertura del 100\%.
+Nel progetto \textit{Venue Event Manager} questo problema è stato evitato attraverso:
+\begin{itemize}
+  \item l'uso di asserzioni multiple (\texttt{assertAll}) che verificano insieme lo stato, gli identificativi e i calcoli di prezzo degli oggetti restituiti;
+  \item l'uso di \texttt{ArgumentCaptor} di Mockito per intercettare gli oggetti passati ai repository e verificare che i campi valorizzati (come date o chiavi esterne) rispettino le regole di business;
+  \item verifiche esplicite con \texttt{assertThrows} per ogni condizione di errore o eccezione prevista dalle specifiche.
+\end{itemize}
+
+In secondo luogo, la copertura del codice non rileva i problemi legati alla concorrenza.
+Due istruzioni possono essere coperte al 100\% da un test sequenziale a singolo thread senza che ciò garantisca l'assenza di errori quando più richieste arrivano insieme.
+Proprio per superare questo limite, il sistema usa il lock pessimistico a livello SQL (\texttt{SELECT \dots\ FOR UPDATE}) e affianca alle metriche di JaCoCo i test di concorrenza multi-connessione con lock timeout descritti nella Sezione~\ref{sec:test-persistenza-concorrenza}.
+
+Infine, le diramazioni non coperte nei servizi (circa il 22\% dei branch) riguardano soprattutto controlli difensivi su casi di errore secondari (ad esempio blocchi \texttt{catch} su errori del pool JDBC o controlli su valori nulli già filtrati dal dominio), che sono stati tralasciati nei test unitari per mantenere la suite semplice e leggibile.
