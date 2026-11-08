@@ -389,7 +389,7 @@ Con PostgreSQL spento vengono eseguiti 206 test isolati. Con PostgreSQL disponib
 
 ## 15. Uso dell'intelligenza artificiale
 
-La relazione deve dichiarare in modo trasparente che strumenti di IA generativa, in particolare ChatGPT e Codex, sono stati usati come supporto per:
+La relazione deve dichiarare in modo trasparente che strumenti di IA generativa sono stati usati come supporto per:
 
 - audit della struttura e della logica del progetto;
 - individuazione di vulnerabilità, TODO e regole mancanti;

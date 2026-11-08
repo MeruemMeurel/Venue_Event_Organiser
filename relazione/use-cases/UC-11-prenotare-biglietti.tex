@@ -1,0 +1,42 @@
+% !TEX root = ../main.tex
+% Fonte completa: docs/use-cases/UC-11-prenotare-biglietti.md
+% Scheda compatta; per i test sono riportate le classi, non tutti i metodi.
+\clearpage
+\subsection{UC-11 - Prenotare biglietti}
+\label{uc:UC-11-prenotare-biglietti}
+\begingroup
+\fontsize{8.3}{9.1}\selectfont
+\setlength{\tabcolsep}{5pt}
+\setlength{\extrarowheight}{1pt}
+\arrayrulecolor{lineeUC}
+\setlength{\arrayrulewidth}{0.3pt}
+\renewcommand{\arraystretch}{1}
+\setlength{\parskip}{0pt}
+\noindent\begin{tabularx}{\textwidth}{>{\columncolor{etichetteUC}\raggedright\arraybackslash\sffamily\bfseries\color{black!75}}p{2.5cm}>{\raggedright\arraybackslash}X}
+\hline
+ID e livello & UC-11 -- User goal \\[1pt] \hline
+Attori & \textbf{Principale:} User; \textbf{secondari:} Nessuno \\[1pt] \hline
+Descrizione & Uno User richiede uno o più biglietti nominativi per un evento pubblico, pubblicato e non ancora iniziato. Il sistema verifica utente, evento, dati dei biglietti e capienza residua, quindi crea atomicamente la prenotazione e i relativi biglietti.\par\textbf{Trigger:} Lo User richiede di prenotare uno o più biglietti per un evento selezionato. \\[1pt] \hline
+Precondizioni & \textbf{1.} Lo User dispone di un account registrato e identificabile dal sistema. \enspace \textbf{2.} L'evento selezionato esiste. \enspace \textbf{3.} Lo User fornisce almeno un biglietto con nome e cognome dell'intestatario. Le condizioni relative allo stato dell'account, alla prenotabilità dell'evento e alla capienza vengono nuovamente verificate dal sistema durante l'operazione, perché possono cambiare nel tempo. \\[1pt] \hline
+Postcondizioni & \textbf{1.} È persistita una nuova prenotazione associata allo User e all'evento. \enspace \textbf{2.} La prenotazione si trova nello stato \texttt{PENDING\_\allowbreak{}PAYMENT}. \enspace \textbf{3.} Il prezzo totale equivale al numero di biglietti moltiplicato per il prezzo unitario dell'evento; per un evento gratuito il totale è zero. \enspace \textbf{4.} Tutti i biglietti richiesti sono persistiti e associati alla nuova prenotazione. \enspace \textbf{5.} Ogni biglietto riporta come orario di inizio quello dell'evento. \\[1pt] \hline
+Garanzia minima & Se l'operazione non può essere completata, non viene persistita alcuna prenotazione parziale e non viene inserito alcun biglietto. Tutte le scritture appartengono alla stessa transazione. \\[1pt] \hline
+Flusso principale & \begin{minipage}[t]{\linewidth}\begin{enumerate}[leftmargin=1.4em,nosep,label=\arabic*.]
+\item Lo User seleziona un evento e richiede uno o più biglietti nominativi.
+\item Il sistema verifica che la lista dei biglietti non sia nulla o vuota e che ogni biglietto contenga nome e cognome validi.
+\item Il sistema verifica che lo User esista e che il suo account non sia \texttt{BANNED}.
+\item Il sistema carica e blocca l'evento per impedire che prenotazioni concorrenti modifichino contemporaneamente la disponibilità considerata.
+\item Il sistema verifica che l'evento sia \texttt{PUBLISHED}, abbia visibilità \texttt{PUBLIC} e non sia ancora iniziato.
+\item Il sistema conta i biglietti già emessi per l'evento.
+\item Il sistema verifica che la capienza residua sia sufficiente per tutti i biglietti richiesti.
+\item Il sistema calcola il prezzo totale della prenotazione.
+\item Il sistema crea la prenotazione nello stato \texttt{PENDING\_\allowbreak{}PAYMENT} e la persiste.
+\item Il sistema associa ogni biglietto alla nuova prenotazione e gli assegna l'orario iniziale dell'evento.
+\item Il sistema persiste tutti i biglietti richiesti.
+\item Il sistema conferma la transazione e restituisce la prenotazione creata.
+\end{enumerate}\vspace{3pt}\end{minipage} \\[1pt] \hline
+Flussi alternativi & \textbf{2a. Lista dei biglietti assente o vuota} \par (1) Il sistema rifiuta la richiesta come non valida. (2) Il caso d'uso termina senza modificare i dati persistiti. \par\vspace{1pt} \textbf{2b. Dati di un biglietto non validi} \par (1) Il sistema rileva un biglietto nullo, già associato a una prenotazione oppure privo di nome o cognome validi. (2) Il sistema rifiuta l'intera richiesta. (3) Il caso d'uso termina senza modificare i dati persistiti. \par\vspace{1pt} \textbf{3a. User inesistente} \par (1) Il sistema segnala che lo User non esiste. (2) L'evento non viene bloccato e il caso d'uso termina. \par\vspace{1pt} \textbf{3b. User bannato} \par (1) Il sistema nega l'operazione. (2) L'evento non viene bloccato e il caso d'uso termina. \par\vspace{1pt} \textbf{4a. Evento inesistente} \par (1) Il sistema segnala che l'evento non esiste. (2) Il caso d'uso termina senza modificare i dati persistiti. \par\vspace{1pt} \textbf{5a. Evento non prenotabile} \par (1) Il sistema rileva che l'evento non è \texttt{PUBLISHED}, non è \texttt{PUBLIC} oppure è già iniziato. (2) Il sistema rifiuta la richiesta. (3) Il caso d'uso termina senza modificare i dati persistiti. \par\vspace{1pt} \textbf{7a. Capienza insufficiente} \par (1) Il sistema rileva che i posti residui non sono sufficienti per tutti i biglietti richiesti. (2) Il sistema rifiuta l'intera richiesta: non è prevista una prenotazione parziale. (3) Il caso d'uso termina senza inserire booking o ticket. \par\vspace{1pt} \textbf{9a-11a. Errore durante la persistenza} \par (1) Il sistema annulla la transazione. (2) L'eventuale prenotazione e gli eventuali biglietti inseriti durante il tentativo non restano persistiti. (3) Il caso d'uso termina con un errore. \\[1pt] \hline
+Regole & \textbullet{} \textbf{BR-07:} un utente \texttt{BANNED} non può prenotare eventi. \textbullet{} \textbf{BR-19:} sono prenotabili soltanto eventi \texttt{PUBLISHED}, \texttt{PUBLIC} e non ancora iniziati. \textbullet{} \textbf{BR-20:} una prenotazione deve contenere almeno un biglietto valido e nominativo. \textbullet{} \textbf{BR-21:} il prezzo totale è \texttt{numero biglietti \ensuremath{\times} prezzo unitario}; un prezzo nullo equivale a zero. \textbullet{} \textbf{BR-22:} il controllo della capienza e la scrittura di booking e ticket avvengono nella stessa transazione. \textbullet{} \textbf{BR-23:} l'evento viene letto con lock prima del conteggio dei biglietti per impedire overbooking concorrente. \textbullet{} \textbf{BR-24:} ogni ticket viene associato alla prenotazione appena creata e riceve l'orario iniziale dell'evento. \\[1pt] \hline
+Test & \texttt{Booking\allowbreak{}Service\allowbreak{}Validation\allowbreak{}Test}; \texttt{Core\allowbreak{}Service\allowbreak{}Workflow\allowbreak{}Test}. \\[1pt] \hline
+Osservazioni & Lo stato \texttt{PENDING\_\allowbreak{}PAYMENT} rappresenta soltanto una fase del ciclo applicativo della prenotazione. Il sistema non integra un gateway di pagamento: la successiva conferma appartiene a UC-12.1 e non al presente caso d'uso. \\[1pt] \hline
+\end{tabularx}\par
+\endgroup

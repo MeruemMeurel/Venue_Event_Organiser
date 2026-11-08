@@ -1,0 +1,36 @@
+% !TEX root = ../main.tex
+% Fonte completa: docs/use-cases/UC-09-3-pubblicare-evento.md
+% Scheda compatta; per i test sono riportate le classi, non tutti i metodi.
+\clearpage
+\subsection{UC-09.3 - Pubblicare un evento}
+\label{uc:UC-09-3-pubblicare-evento}
+\begingroup
+\fontsize{9.2}{10.6}\selectfont
+\setlength{\tabcolsep}{5pt}
+\setlength{\extrarowheight}{2pt}
+\arrayrulecolor{lineeUC}
+\setlength{\arrayrulewidth}{0.3pt}
+\renewcommand{\arraystretch}{1.12}
+\setlength{\parskip}{0pt}
+\noindent\begin{tabularx}{\textwidth}{>{\columncolor{etichetteUC}\raggedright\arraybackslash\sffamily\bfseries\color{black!75}}p{2.5cm}>{\raggedright\arraybackslash}X}
+\hline
+ID e livello & UC-09.3 -- User goal \\[2pt] \hline
+Attori & \textbf{Principale:} Administrator / Organiser assegnato; \textbf{secondari:} Nessuno \\[2pt] \hline
+Descrizione & Un attore autorizzato rende visibile e prenotabile un evento confermato e valido.\par\textbf{Trigger:} L'attore richiede la pubblicazione di un evento. \\[2pt] \hline
+Precondizioni & \textbf{1.} L'evento esiste ed è \texttt{CONFIRMED}. \par \textbf{2.} L'attore è Administrator oppure Organiser assegnato all'evento. \\[2pt] \hline
+Postcondizioni & \textbf{1.} L'evento è \texttt{PUBLISHED}. \par \textbf{2.} \texttt{published\allowbreak{}At} contiene l'istante della pubblicazione. \\[2pt] \hline
+Garanzia minima & Se autorizzazione, stato o dati non sono validi, evento e data di pubblicazione rimangono invariati. \\[2pt] \hline
+Flusso principale & \begin{minipage}[t]{\linewidth}\begin{enumerate}[leftmargin=1.4em,nosep,label=\arabic*.]
+\item L'attore seleziona un evento confermato e ne richiede la pubblicazione.
+\item Il sistema blocca l'evento e identifica l'attore.
+\item Il sistema verifica che l'attore sia Administrator o Organiser assegnato.
+\item Il sistema verifica la transizione \texttt{CONFIRMED} \ensuremath{\rightarrow} \texttt{PUBLISHED}.
+\item Il sistema verifica che l'inizio sia futuro, la capienza positiva e la venue esistente.
+\item Il sistema imposta stato e istante di pubblicazione.
+\item Il sistema conferma la transazione.
+\end{enumerate}\vspace{3pt}\end{minipage} \\[2pt] \hline
+Flussi alternativi & \textbf{2a. Evento o attore inesistente} \par (1) Il sistema segnala l'elemento mancante. (2) Il caso d'uso termina senza modifiche. \par\smallskip \textbf{3a. Attore non autorizzato} \par (1) Il sistema rileva che lo User non è Administrator né Organiser assegnato. (2) La pubblicazione viene negata. \par\smallskip \textbf{4a. Stato incompatibile} \par (1) Il sistema rileva che l'evento non è \texttt{CONFIRMED}, oppure è già \texttt{PUBLISHED} o \texttt{CANCELLED}. (2) Il sistema rifiuta la transizione. \par\smallskip \textbf{5a. Evento non pubblicabile} \par (1) Il sistema rileva una data di inizio non futura, capienza non positiva o venue inesistente. (2) Il sistema rifiuta la pubblicazione. \\[2pt] \hline
+Regole &\par\smallskip\textbullet{} \textbf{BR-16:} un evento è pubblicabile solo se confermato, futuro, con capienza positiva e venue esistente.\par\smallskip\textbullet{} L'Administrator può gestire ogni evento; l'Organiser soltanto quelli a lui assegnati. \\[2pt] \hline
+Test & \texttt{Event\allowbreak{}Service\allowbreak{}Workflow\allowbreak{}Test}; \texttt{Status\allowbreak{}Transition\allowbreak{}Test}. \\[2pt] \hline
+\end{tabularx}\par
+\endgroup

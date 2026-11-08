@@ -1,0 +1,47 @@
+% !TEX root = ../main.tex
+\chapter{Conclusioni e sviluppi futuri}
+\label{cap:conclusioni}
+
+Il prototipo sviluppato si concentra sul nucleo di dominio, sulla persistenza dei dati e sulla gestione transazionale del sistema. In questo capitolo finale si confrontano i requisiti definiti inizialmente in fase di progettazione con quanto effettivamente implementato, evidenziando i limiti attuali e le possibili evoluzioni.
+
+\section{Risultati rispetto agli obiettivi}
+\label{sec:risultati-obiettivi}
+
+L'implementazione ha consentito di soddisfare i requisiti funzionali e architetturali definiti nel Capitolo~\ref{cap:requisiti}:
+
+\begin{itemize}
+    \item \textbf{Gestione del dominio e delle regole di business}: il backend gestisce l'intero ciclo di vita degli eventi, dalla presentazione e approvazione delle richieste per gli spazi, fino alla pubblicazione di eventi pubblici o privati protetti da codice di invito. La logica di prenotazione rispetta la capienza residua, i limiti temporali e la coerenza degli stati interni. Il modulo include inoltre la gestione delle risorse assegnabili e la generazione di report consuntivi su prenotazioni e ricavi.
+    \item \textbf{Concorrenza ed integrità transazionale}: come discusso nel Capitolo~\ref{cap:implementazione}, la criticità legata alle prenotazioni concorrenti di biglietti è stata affrontata a livello di database mediante un blocco pessimistico (\lstinline|SELECT ... FOR UPDATE|) incapsulato nel repository delle prenotazioni. Il pattern \lstinline|TransactionManager| con isolamento \lstinline|READ COMMITTED| su PostgreSQL assicura l'atomicità di ogni operazione, prevenendo anomalie di overbooking e corruzione dei dati.
+    \item \textbf{Sicurezza e separazione delle responsabilità}: l'architettura a livelli (Capitolo~\ref{cap:architettura}) separa nettamente le entità di dominio, l'accesso ai dati e i servizi applicativi. La sicurezza protegge le credenziali tramite l'algoritmo di hashing con salt BCrypt e applica controlli espliciti sul ruolo utente (\lstinline|ADMIN|, \lstinline|ORGANIZER|, \lstinline|CUSTOMER|) nei punti di ingresso dei servizi di business.
+    \item \textbf{Verifica e copertura automatizzata}: la correttezza del codice è supportata da una suite integrata di test unitari e di integrazione (Capitolo~\ref{cap:test}). L'ambiente di test con Testcontainers consente verifiche su un'istanza reale di PostgreSQL identica a quella di produzione. L'analisi con JaCoCo attesta l'87,8\% di copertura delle istruzioni e il 77,6\% dei branch logici.
+\end{itemize}
+
+Definire chiaramente il modello concettuale e i vincoli relazionali fin dall'inizio ha semplificato i servizi applicativi: gran parte dei controlli di consistenza è garantita direttamente dallo schema del database, evitando duplicazioni nel codice Java.
+
+\section{Limiti della versione realizzata}
+\label{sec:limiti}
+
+L'aver concentrato il lavoro sulla logica di dominio e sulla persistenza comporta alcuni limiti espliciti rispetto a un'applicazione completa:
+
+\begin{itemize}
+    \item \textbf{Assenza di un'interfaccia utente grafica}: il prototipo è costituito unicamente dallo strato di backend e dalla logica applicativa, privo di controller web o di un'interfaccia grafica interattiva. I wireframe e i flussi documentati nell'Appendice~\ref{cap:mockup} costituiscono una proposta di progettazione della user experience a supporto dei casi d'uso, non implementata nel prototipo software.
+    \item \textbf{Gestione dello stato di sessione e token}: l'autenticazione (\lstinline|AuthService|) verifica la validità delle credenziali tramite hash BCrypt e restituisce l'entità \lstinline|User|. Il sistema non gestisce lo stato di sessione (tramite cookie HTTP o contesti server-side) né emette token crittografici (come JSON Web Token); la gestione dello stato rimane delegata al chiamante.
+    \item \textbf{Simulazione del flusso di pagamento}: all'interno del ciclo di vita della prenotazione (Capitolo~\ref{cap:dominio}), lo stato \lstinline|PENDING_PAYMENT| modella la transizione formale verso l'acquisto del biglietto, ma non è collegato a gateway reali (quali Stripe o PayPal). La transizione a \lstinline|CONFIRMED| o \lstinline|CANCELLED| avviene tramite invocazioni dirette dei metodi di servizio e non mediante webhook o callback asincrone di provider bancari.
+    \item \textbf{Assenza di notifiche e comunicazioni esterne}: il sistema non include servizi per la spedizione di comunicazioni verso l'esterno. Eventi rilevanti --- come la conferma di una prenotazione, l'emissione del codice di invito per un evento privato o l'approvazione di una richiesta di spazio --- aggiornano lo stato persistente nel database ma non innescano l'invio di email transazionali, notifiche push o la generazione di biglietti digitali in formato PDF con codici QR.
+\end{itemize}
+
+\section{Estensioni e sviluppi futuri}
+\label{sec:sviluppi-futuri}
+
+La separazione a livelli adottata rende il prototipo facilmente estendibile verso un'architettura web distribuita. I principali sviluppi futuri riguardano:
+
+\begin{itemize}
+    \item \textbf{Esposizione di API Web RESTful}: incapsulamento dei servizi applicativi mediante controller HTTP (ad esempio adottando Spring Boot o framework leggeri quali Javalin). Lo strato esporrà risorse in formato JSON con una gestione standardizzata dei codici di stato HTTP per le eccezioni di validazione, autorizzazione o conflitto concorrente.
+    \item \textbf{Autenticazione tramite token e client Web/Mobile}: transizione verso un modello di sicurezza basato su JSON Web Token (JWT) o su protocolli come OAuth2 e OpenID Connect. L'emissione di token crittografici permetterà l'interfacciamento sicuro con client moderni, consentendo la realizzazione di una Single Page Application (in React o Vue) o di un'applicazione mobile a partire dai percorsi delineati nei mockup dell'Appendice~\ref{cap:mockup}.
+    \item \textbf{Integrazione con gateway di pagamento reali}: collegamento con provider terzi (quali Stripe o PayPal) attraverso l'adozione di webhook asincroni. La transizione della prenotazione dallo stato \lstinline|PENDING_PAYMENT| a \lstinline|CONFIRMED| verrebbe innescata dalla notifica formale di accredito del fornitore, mentre un processo periodico provvederà al rilascio dei biglietti e al passaggio a \lstinline|CANCELLED| in caso di mancato pagamento entro un tempo limite.
+    \pagebreak
+    \item \textbf{Architettura a eventi e notifiche asincrone}: adozione di un broker di messaggi (come RabbitMQ o Apache Kafka) per disaccoppiare le operazioni collaterali dal flusso principale della richiesta. Il broker permetterà di gestire in background l'invio di email di conferma e inviti per eventi privati, oltre alla generazione di ricevute e biglietti digitali in formato PDF provvisti di codici QR univoci per la convalida agli ingressi.
+    \item \textbf{Caching e scalabilità delle letture}: introduzione di una memoria cache distribuita (quale Redis) per velocizzare le consultazioni ad alta frequenza del catalogo degli eventi pubblici e delle disponibilità delle venue, riservando le transazioni con blocco pessimistico sul database relazionale unicamente alle fasi di effettivo acquisto e modifica dei dati.
+\end{itemize}
+
+Il progetto ha validato gli aspetti più complessi del sistema: la gestione della concorrenza sui posti e la consistenza delle transazioni sul database. Questa base solida consente di implementare le estensioni esterne (interfacce web, pagamenti e notifiche) senza dover ripensare il nucleo di dominio.

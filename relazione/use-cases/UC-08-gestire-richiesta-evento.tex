@@ -1,0 +1,36 @@
+% !TEX root = ../main.tex
+% Fonte completa: docs/use-cases/UC-08-gestire-richiesta-evento.md
+% Scheda compatta; per i test sono riportate le classi, non tutti i metodi.
+\clearpage
+\subsection{UC-08 - Gestire una richiesta di evento}
+\label{uc:UC-08-gestire-richiesta-evento}
+\begingroup
+\fontsize{9.2}{10.6}\selectfont
+\setlength{\tabcolsep}{5pt}
+\setlength{\extrarowheight}{2pt}
+\arrayrulecolor{lineeUC}
+\setlength{\arrayrulewidth}{0.3pt}
+\renewcommand{\arraystretch}{1.12}
+\setlength{\parskip}{0pt}
+\noindent\begin{tabularx}{\textwidth}{>{\columncolor{etichetteUC}\raggedright\arraybackslash\sffamily\bfseries\color{black!75}}p{2.5cm}>{\raggedright\arraybackslash}X}
+\hline
+ID e livello & UC-08 -- User goal \\[2pt] \hline
+Attori & \textbf{Principale:} Administrator; \textbf{secondari:} User richiedente \\[2pt] \hline
+Descrizione & Un Administrator prende in carico una richiesta pendente e la accetta o la rifiuta; il richiedente può cancellarla finché è pendente.\par\textbf{Trigger:} Un Administrator seleziona una richiesta \texttt{PENDING} da gestire. \\[2pt] \hline
+Precondizioni & \textbf{1.} La richiesta esiste ed è \texttt{PENDING}. \par \textbf{2.} Per l'accettazione è stato assegnato un handler Administrator. \\[2pt] \hline
+Postcondizioni & \textbf{1.} La richiesta è \texttt{ACCEPTED}, \texttt{REJECTED} oppure \texttt{CANCELLED}. \par \textbf{2.} Una richiesta accettata contiene un preventivo non negativo. \par \textbf{3.} La data di chiusura è assegnata dal sistema. \\[2pt] \hline
+Garanzia minima & In caso di errore la richiesta conserva stato, handler, preventivo e data di chiusura precedenti. \\[2pt] \hline
+Flusso principale & \begin{minipage}[t]{\linewidth}\begin{enumerate}[leftmargin=1.4em,nosep,label=\arabic*.]
+\item L'Administrator seleziona una richiesta pendente.
+\item Il sistema blocca la richiesta per evitare aggiornamenti concorrenti.
+\item Il sistema verifica l'identità amministrativa del chiamante; l'Administrator assegna un handler Administrator, se non già presente.
+\item L'Administrator sceglie di accettare la richiesta e indica il preventivo.
+\item Il sistema verifica stato, handler e preventivo.
+\item Il sistema imposta lo stato \texttt{ACCEPTED} e la data di chiusura corrente.
+\item Il sistema persiste e conferma la transazione.
+\end{enumerate}\vspace{3pt}\end{minipage} \\[2pt] \hline
+Flussi alternativi & \textbf{3a. Handler inesistente o non Administrator} \par (1) Il sistema rifiuta l'assegnazione. (2) La richiesta rimane invariata. \par\smallskip \textbf{4a. Rifiuto della richiesta} \par (1) L'handler assegnato sceglie di rifiutare la richiesta pendente. (2) Il sistema imposta \texttt{REJECTED} e la data di chiusura corrente. (3) Il flusso riprende dal passo 7. \par\smallskip \textbf{4b. Cancellazione da parte del richiedente} \par (1) Il sistema verifica che il chiamante coincida con il richiedente, che cancella la propria richiesta ancora pendente. (2) Il sistema imposta \texttt{CANCELLED} e la data di chiusura corrente. (3) Il flusso riprende dal passo 7. \par\smallskip \textbf{5a. Preventivo non valido} \par (1) Il sistema rileva un preventivo assente o negativo. (2) L'accettazione viene rifiutata. \par\smallskip \textbf{5b. Richiesta già chiusa} \par (1) Il sistema rileva che la richiesta non è più \texttt{PENDING}. (2) La nuova transizione viene rifiutata come conflitto. \\[2pt] \hline
+Regole &\par\smallskip\textbullet{} \textbf{BR-10:} soltanto uno User Administrator può essere assegnato come handler.\par\smallskip\textbullet{} \textbf{BR-11:} l'accettazione richiede stato \texttt{PENDING}, handler assegnato e preventivo non negativo.\par\smallskip\textbullet{} Le transizioni terminali sono \texttt{ACCEPTED}, \texttt{REJECTED} e \texttt{CANCELLED}. \\[2pt] \hline
+Test & \texttt{Request\allowbreak{}And\allowbreak{}Guest\allowbreak{}Workflow\allowbreak{}Test}.\par Accettazione e rifiuto sono riservati all'handler assegnato, non a un Administrator qualsiasi. La cancellazione e le modifiche descrittive restano invece riservate al richiedente finché la richiesta è \texttt{PENDING}. \\[2pt] \hline
+\end{tabularx}\par
+\endgroup

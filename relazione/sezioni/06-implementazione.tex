@@ -1,0 +1,189 @@
+% !TEX root = ../main.tex
+\chapter{Flussi implementativi principali}
+\label{cap:implementazione}
+Questo capitolo descrive l'implementazione dei flussi principali tra il service layer e il database: la gestione della concorrenza nelle prenotazioni, la sicurezza delle password e i controlli di autorizzazione.
+Sono stati scelti questi flussi perché sono i più delicati per concorrenza, sicurezza e consistenza dei dati. Gli altri flussi, come la gestione delle richieste di evento o delle recensioni, seguono lo stesso schema e sono verificati dai test descritti nel Capitolo~\ref{cap:test}.
+
+\section{Prenotazione, atomicità e concorrenza}
+\label{sec:prenotazione-concorrenza}
+Il caso d'uso \textbf{UC-11} (Prenotare biglietti, Sezione~\ref{uc:UC-11-prenotare-biglietti}) impone due requisiti principali: impedire l'overbooking rispetto alla capienza dell'evento e registrare in modo atomico la prenotazione e i biglietti nominativi associati.
+
+\subsection{Gestione della transazione e lock pessimistico}
+\label{sec:gestione-transazione-lock}
+
+La gestione del flusso è delegata a \texttt{BookingService.book}. Prima di aprire la comunicazione verso il database, il servizio valida l'input con \texttt{validateManyTickets}: vengono scartate le richieste senza biglietti, con biglietti già assegnati o con dati mancanti (\textbf{BR-20}).
+Superato questo controllo, il lavoro passa a \texttt{TransactionManager.inTransaction}, che esegue tutte le operazioni sulla stessa connessione JDBC con \texttt{autoCommit} disabilitato. In caso di errore le modifiche vengono annullate con un \textit{rollback}; se invece si guasta la connessione o fallisce il commit, viene sollevata una \texttt{TransactionException}.
+
+All'interno della transazione il servizio verifica prima che l'utente esista e non sia bannato (\texttt{validateUserExists}, \textbf{BR-07}). Poi, per evitare \textit{race condition} sul conteggio dei posti disponibili, acquisisce un lock pessimistico sulla riga dell'evento (Listing~\ref{lst:booking-lock}).
+
+\begin{lstlisting}[caption={Acquisizione del lock pessimistico sull'evento e controllo della capienza.}, label={lst:booking-lock}]
+Event event = eventRepository.findByIdForUpdate(conn, eventId)
+        .orElseThrow(() -> new NotFoundException("No event with such id exists"));
+
+validateEventToBook(event);
+
+int alreadyReserved = ticketRepository.countTicketsForEvent(conn, eventId);
+if (tickets.size() + alreadyReserved > event.getCapacity()) {
+    throw new ConflictException("Not enough available places remaining for event: " + eventId);
+}
+\end{lstlisting}
+
+Il metodo \texttt{findByIdForUpdate} esegue una query \texttt{SELECT \dots\ FOR UPDATE} e blocca in modo esclusivo la riga dell'evento nella tabella \texttt{EVENT} (\textbf{BR-23}). Le altre transazioni che chiedono un lock o un aggiornamento sulla stessa riga restano in attesa fino al \texttt{COMMIT} o al \texttt{ROLLBACK} di chi detiene il lock. Le semplici letture \texttt{SELECT}, invece, non vengono bloccate grazie al meccanismo MVCC di PostgreSQL.
+
+Con il lock acquisito, il metodo verifica stato di pubblicazione, visibilità pubblica e data di inizio (\texttt{validateEventToBook}, \textbf{BR-19}), quindi conta con \texttt{countTicketsForEvent} i biglietti delle prenotazioni attive (\texttt{PENDING\_PAYMENT} o \texttt{CONFIRMED}). Se i posti richiesti superano quelli disponibili (\textbf{BR-22}) viene lanciata una \texttt{ConflictException}, che interrompe l'operazione e porta al rollback della transazione.
+
+\subsection{Persistenza atomica e inserimento in batch}
+\label{sec:creazione-batch-biglietti}
+
+Verificata la disponibilità dei posti, il prezzo totale si ottiene moltiplicando il prezzo unitario per il numero di biglietti (\textbf{BR-21}); se il prezzo dell'evento è nullo, vale zero (evento gratuito, \textbf{BR-15}). La \texttt{Booking} viene poi creata in stato \texttt{PENDING\_PAYMENT} e inserita nel database per ottenere l'ID generato automaticamente (Listing~\ref{lst:booking-insert}).
+
+\begin{lstlisting}[caption={Creazione della prenotazione e inserimento in batch dei biglietti nominativi.}, label={lst:booking-insert}]
+BigDecimal ticketPrice = event.getTicketPrice() != null
+        ? event.getTicketPrice() : BigDecimal.ZERO;
+
+Booking booking = new Booking(
+        userId,
+        eventId,
+        LocalDateTime.now(),
+        BookingStatus.PENDING_PAYMENT,
+        ticketPrice.multiply(BigDecimal.valueOf(tickets.size()))
+);
+
+booking = booking.withId(bookingRepository.insert(conn, booking));
+long bookingId = booking.getId();
+
+List<Ticket> ticketsToInsert = tickets.stream()
+        .map(ticket -> ticket
+                .withBookingId(bookingId)
+                .withStartsAt(event.getBeginDatetime()))
+        .toList();
+
+ticketRepository.insertMany(conn, ticketsToInsert);
+return booking;
+\end{lstlisting}
+
+A ciascun biglietto vengono associati, tramite metodi \textit{wither}, il \texttt{bookingId} appena generato e la data-ora di inizio dell'evento (\textbf{BR-24}).
+
+L'inserimento dei biglietti è affidato a \texttt{PgTicketRepository.insertMany}, che accumula i parametri in un unico \texttt{PreparedStatement} e li invia con un solo comando batch (\texttt{executeBatch}). In questo modo si riducono i round-trip di rete verso PostgreSQL.
+
+Tutto il blocco si trova in un'unica transazione. Se una scrittura fallisce, il repository trasforma la \texttt{SQLException} in una \texttt{DaoException}; \texttt{TransactionManager} esegue allora il \texttt{rollback} e propaga l'eccezione. Non può quindi restare salvata una prenotazione senza biglietti o con biglietti inseriti solo in parte.
+
+\section{Registrazione, autenticazione e sicurezza delle credenziali}
+\label{sec:autenticazione-sicurezza}
+
+Il modulo di autenticazione è gestito da \texttt{AuthService}, che delega derivazione e verifica delle password alla classe \texttt{PasswordHasher}. La password è salvata esclusivamente nella colonna \texttt{password} della tabella \texttt{"USER"}, sotto forma di hash PBKDF2 con salt (\textbf{BR-04}).
+
+\subsection{Algoritmo di hashing e parametri di sicurezza}
+\label{sec:parametri-hashing}
+
+Per proteggere le credenziali il sistema usa \texttt{PBKDF2WithHmacSHA256}, una funzione di \textit{key derivation} raccomandata da OWASP e già disponibile nel JDK. Ripetendo il calcolo per molte iterazioni, rende più costosi gli attacchi a dizionario e a forza bruta.
+
+La configurazione impiega $210\,000$ iterazioni, un salt casuale da 16 byte (128 bit) generato tramite \texttt{SecureRandom} per prevenire attacchi basati su \textit{rainbow tables} e un output derivato di 256 bit (32 byte). Il valore salvato adotta un formato compatto con delimitatore \texttt{\$}:
+\begin{center}
+\texttt{pbkdf2-sha256\$210000\$<salt-base64>\$<hash-base64>}
+\end{center}
+
+Il formato riporta anche l'algoritmo e il numero di iterazioni, così da poterli cambiare in futuro. Per ora, però, \texttt{PasswordHasher.parse} accetta solo \texttt{pbkdf2-sha256} con $210\,000$ iterazioni: un valore malformato non può quindi imporre un numero arbitrario di iterazioni e un carico CPU eccessivo.
+
+\begin{lstlisting}[caption={Derivazione dell'hash crittografico e verifica a tempo costante.}, label={lst:password-hasher}]
+public String hash(String password) {
+    // ... controllo su password nulla o vuota (omesso)
+    byte[] salt = new byte[SALT_LENGTH_BYTES];
+    secureRandom.nextBytes(salt);
+    byte[] derivedHash = deriveHash(password, salt, ITERATIONS);
+
+    return FORMAT_ID + "$" + ITERATIONS + "$" 
+            + Base64.getEncoder().encodeToString(salt) + "$" 
+            + Base64.getEncoder().encodeToString(derivedHash);
+}
+
+public boolean verify(String password, String encodedPassword) {
+    // ... controllo su password nulla o vuota (omesso)
+    ParsedHash parsedHash = parse(encodedPassword);
+    if (parsedHash == null) {
+        return false;
+    }
+    byte[] candidateHash = deriveHash(
+            password, parsedHash.salt, parsedHash.iterations);
+    return MessageDigest.isEqual(parsedHash.hash, candidateHash);
+}
+\end{lstlisting}
+
+Oltre ai controlli su input nullo o vuoto, omessi nel listato, due dettagli rafforzano il meccanismo:
+
+\begin{itemize}
+    \item \textbf{Confronto a tempo costante}: per confrontare l'hash salvato con quello calcolato, \texttt{verify} non usa l'uguaglianza tra stringhe o array ma \texttt{MessageDigest.isEqual} (Listing~\ref{lst:password-hasher}). Il confronto impiega sempre lo stesso tempo, qualunque sia la posizione del primo byte diverso, e non offre quindi appigli a un \textit{timing attack}.
+    \item \textbf{Azzeramento della password in memoria}: in \texttt{deriveHash} la password viene copiata in un array \texttt{char[]} dentro un oggetto \texttt{PBEKeySpec}. Un blocco \texttt{finally} invoca \texttt{keySpec.clearPassword()}, che sovrascrive subito l'array invece di lasciarlo nell'heap fino al passaggio del Garbage Collector. La \texttt{String} ricevuta in ingresso resta invece in memoria, perché in Java è immutabile; l'azzeramento riduce comunque i dati esposti in caso di \textit{memory dump}.
+\end{itemize}
+
+\subsection{Registrazione, verifica e ciclo di vita delle password}
+\label{sec:autenticazione-applicativa}
+
+In fase di registrazione (\textbf{UC-01}), \texttt{UserService.insert} forza il ruolo non amministrativo e lo stato \texttt{ACTIVE} (\textbf{BR-01}), quindi delega ad \texttt{AuthService.hashPassword} la verifica di policy (\textbf{BR-03}) e il calcolo dell'hash prima di aprire la transazione di salvataggio.
+
+L'autenticazione (\textbf{UC-16}) è gestita da \texttt{AuthService.authenticate(username, password)} in una transazione di sola lettura (\texttt{inReadOnly}). Username o password nulli o vuoti vengono scartati subito con una \texttt{ValidationException}. Se lo username non esiste oppure la password è errata, il servizio solleva la stessa \texttt{ForbiddenException} con lo stesso messaggio, così la risposta non rivela quali username sono registrati. I tempi di risposta però non sono identici: quando lo username non esiste, la derivazione PBKDF2 non viene eseguita e la risposta arriva prima. Solo dopo una password corretta il servizio controlla che l'account non sia \texttt{BANNED} (\textbf{BR-05}) e, in quel caso, risponde con un messaggio specifico. La versione corrente restituisce l'oggetto \texttt{User} autenticato; non crea sessioni né token.
+
+Come in fase di registrazione, anche nel cambio password (\texttt{AuthService.changePassword}) la verifica di lunghezza (8--30 caratteri, \textbf{BR-03}) e il calcolo del nuovo hash avvengono prima di aprire la transazione. Le $210\,000$ iterazioni di PBKDF2 richiedono un tempo di CPU non trascurabile: eseguirle in transazione terrebbe occupata una connessione del pool JDBC senza alcuno scambio con PostgreSQL. Dentro la transazione restano così solo la verifica della vecchia password, che richiede comunque una derivazione sull'hash salvato, e il salvataggio del nuovo hash. Le connessioni restano impegnate per meno tempo e si riduce il rischio di esaurire il pool (\textit{connection pool starvation}).
+
+\section{Autorizzazioni e operazioni collegate}
+\label{sec:autorizzazioni-operazioni}
+
+I controlli di accesso si trovano direttamente nei metodi dei servizi applicativi, senza framework di sicurezza esterni: in questo modo sono visibili nel codice e si possono verificare con semplici unit test. Ogni controllo combina due criteri: il ruolo dell'utente (amministratore o utente ordinario) e la titolarità della risorsa (organiser dell'evento o autore della prenotazione).
+
+\subsection{Verifica della titolarità e ruoli operativi}
+\label{sec:titolarita-ruoli}
+
+I controlli su ruolo e titolarità sono affidati a metodi ausiliari che confrontano l'identificativo dell'utente (\texttt{actorId}) con i dati del record:
+
+\begin{itemize}
+    \item \texttt{requireEventManager(\allowbreak{}conn,\allowbreak{} eventId,\allowbreak{} actorId)}, in \texttt{EventService}, carica l'evento con lock e concede l'autorizzazione solo se l'attore è amministratore (\texttt{actor.isAdmin()}) oppure è l'organiser assegnato (\texttt{event.getOrganiserId()}). \texttt{EventGuestService} usa un metodo omonimo con la stessa regola, che però riceve l'evento già letto dal chiamante (\texttt{conn, event, actorId}).
+    \item \texttt{requireBookingManager(conn, bookingId, actorId)}, in \texttt{BookingService}, consente conferma, cancellazione ed eliminazione solo all'utente che ha effettuato la prenotazione (\texttt{booking.getUserId()}) o a un amministratore.
+\end{itemize}
+
+Questi controlli vengono eseguiti all'inizio dei metodi di servizio, quindi i vincoli dei casi d'uso (\textbf{UC-09.2}--\textbf{UC-09.5}, \textbf{UC-10} e \textbf{UC-12}) sono verificati prima di qualsiasi scrittura sul database. Se l'attore non ha i permessi viene sollevata una \texttt{ForbiddenException}; se l'attore o la risorsa non esistono, una \texttt{NotFoundException}. In entrambi i casi il flusso si interrompe prima di ogni modifica.
+
+\subsection{Cancellazione coordinata e consistenza a cascata}
+\label{sec:cancellazione-evento}
+
+L'annullamento di un evento (\texttt{EventService.cancelEvent}, caso d'uso \textbf{UC-09.5}, vincolo \textbf{BR-18}) aggiorna lo stato su più tabelle collegate. Non basta modificare la tabella \texttt{EVENT}: nella stessa transazione vanno annullate anche le prenotazioni ancora attive (\texttt{PENDING\_PAYMENT} o \texttt{CONFIRMED}) e gli inviti ancora validi (\texttt{INVITED} o \texttt{CONFIRMED}).
+
+\par\smallskip\noindent\begin{minipage}{\linewidth}
+\begin{lstlisting}[caption={Cancellazione coordinata di un evento e propagazione dello stato.}, label={lst:cancel-event}]
+public void cancelEvent(long actorId, long eventId) {
+    transactionManager.inTransaction(conn -> {
+        Event event = requireEventManager(conn, eventId, actorId);
+        validateEventStatusTransition(event.getStatus(), EventStatus.CANCELLED);
+        bookingRepository.cancelActiveByEventId(conn, eventId);
+        eventGuestRepository.cancelActiveByEventId(conn, eventId);
+        eventRepository.updateStatus(conn, event.getId(), EventStatus.CANCELLED);
+        return null;
+    });
+}
+\end{lstlisting}
+\end{minipage}\par\medskip
+
+Nella stessa transazione scrivono tre repository (Listing~\ref{lst:cancel-event}). Dopo aver bloccato l'evento con \texttt{FOR UPDATE} e verificato i permessi, \texttt{validateEventStatusTransition} respinge gli eventi già \texttt{CANCELLED} prima di toccare le tabelle collegate. Altrimenti i metodi \texttt{cancelActiveByEventId} aggiornano con un solo \texttt{UPDATE} i record ancora attivi e solo alla fine l'evento viene marcato come annullato. Se qualcosa fallisce prima del commit, il rollback riporta tutte le tabelle allo stato iniziale.
+
+\subsection{Validazione dinamica e vincoli di capienza}
+\label{sec:modifica-capienza}
+
+Non tutti i controlli di integrità possono essere espressi con vincoli SQL. Il vincolo \texttt{CHECK (capacity > 0)} garantisce che la capienza sia positiva, ma PostgreSQL non ammette sottoquery in una clausola \texttt{CHECK}: non è quindi possibile confrontare la capienza con il numero di biglietti (\texttt{COUNT}).
+
+La verifica che la capienza non scenda sotto i biglietti già emessi spetta quindi al livello applicativo (\texttt{EventService.changeCapacity}, \textbf{UC-09.4}, \textbf{BR-17}). Il metodo lavora in transazione per serializzare modifiche della capienza e prenotazioni concorrenti (Listing~\ref{lst:change-capacity}).
+
+\begin{lstlisting}[caption={Verifica della soglia minima di capienza durante l'aggiornamento dell'evento.}, label={lst:change-capacity}]
+public void changeCapacity(long actorId, long eventId, int capacity) {
+    transactionManager.inTransaction(conn -> {
+        Event event = requireEventManager(conn, eventId, actorId);
+        if (capacity < ticketRepository.countTicketsForEvent(conn, eventId)) {
+            throw new ForbiddenException("Capacity is less than number of tickets");
+        }
+        Event updatedEvent = event.withCapacity(capacity);
+        validate(conn, updatedEvent);
+        eventRepository.update(conn, updatedEvent);
+        return null;
+    });
+}
+\end{lstlisting}
+
+Oltre a verificare i permessi, \texttt{requireEventManager} legge l'evento con \texttt{findByIdForUpdate}: il lock impedisce che prenotazioni concorrenti cambino il conteggio dei biglietti durante l'operazione. Se la capienza richiesta è inferiore ai biglietti emessi viene sollevata una \texttt{ForbiddenException}, e per questo anche un valore negativo si ferma già qui. Altrimenti \texttt{validate} controlla la nuova istanza creata con \texttt{withCapacity} (incluso \texttt{capacity > 0}) prima di \texttt{update}.
