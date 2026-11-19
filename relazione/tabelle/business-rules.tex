@@ -1,0 +1,62 @@
+% !TEX root = ../main.tex
+% Fonte: docs/SPECIFICHE_CONDIVISE.md, sezione 8.
+\begingroup
+\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.12}
+\begin{longtable}{@{}>{\raggedright\arraybackslash\bfseries}p{1.4cm}>{\raggedright\arraybackslash}p{\dimexpr\textwidth-1.4cm-2\tabcolsep\relax}@{}}
+\caption{Regole di business.}\label{tab:business-rules}\\
+\toprule
+\textbf{ID} & \textbf{Regola} \\
+\midrule
+\endfirsthead
+\multicolumn{2}{@{}l}{\small Regole di business (continua)}\\
+\toprule
+\textbf{ID} & \textbf{Regola} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{2}{r@{}}{\small Continua nella pagina successiva}\\
+\endfoot
+\bottomrule
+\endlastfoot
+\rowcolor{etichetteUC}
+\multicolumn{2}{@{}l}{\rule{0pt}{2.6ex}\textbf{Utenti e sicurezza}} \\*[3pt]
+\strut\label{br:BR-01}BR-01 & la registrazione crea sempre un utente ordinario \texttt{ACTIVE}; valori admin o banned forniti in input vengono ignorati. \\[4pt]
+\strut\label{br:BR-02}BR-02 & username, nome, cognome, email e data di nascita devono essere validi; l'email deve essere univoca. \\[4pt]
+\strut\label{br:BR-03}BR-03 & una password deve contenere tra 8 e 30 caratteri. \\[4pt]
+\strut\label{br:BR-04}BR-04 & le password vengono persistite esclusivamente come hash PBKDF2 con salt casuale. \\[4pt]
+\strut\label{br:BR-05}BR-05 & autenticazione, modifica profilo, eliminazione account, cambio password e moderazione richiedono la verifica delle credenziali appropriate; gli account \texttt{BANNED} non possono autenticarsi. \\[4pt]
+\strut\label{br:BR-06}BR-06 & un admin non può bannare sé stesso o un altro admin. \\[4pt]
+\strut\label{br:BR-07}BR-07 & un utente \texttt{BANNED} non può prenotare eventi. \\[4pt]
+\rowcolor{etichetteUC}
+\multicolumn{2}{@{}l}{\rule{0pt}{2.6ex}\textbf{Venue, richieste ed eventi}} \\*[3pt]
+\strut\label{br:BR-08}BR-08 & una venue richiede nome e indirizzo strutturato completo; \texttt{additional\_info} è facoltativo. \\[4pt]
+\strut\label{br:BR-09}BR-09 & una richiesta richiede requester ordinario, venue esistente, nome e intervallo temporale valido. \\[4pt]
+\strut\label{br:BR-10}BR-10 & soltanto un admin può essere assegnato come handler. \\[4pt]
+\strut\label{br:BR-11}BR-11 & una richiesta può essere accettata solo se ancora \texttt{PENDING}, con handler assegnato e preventivo non negativo. \\[4pt]
+\strut\label{br:BR-12}BR-12 & un evento nuovo viene forzato a \texttt{DRAFT}, indipendentemente dallo stato ricevuto in input. \\[4pt]
+\strut\label{br:BR-13}BR-13 & un evento richiede venue e creator esistenti, data finale successiva a quella iniziale e capienza positiva. \\[4pt]
+\strut\label{br:BR-14}BR-14 & il creator deve essere un admin; l'organiser, quando presente, deve essere un utente ordinario. \\[4pt]
+\strut\label{br:BR-15}BR-15 & organiser e poster sono facoltativi; il prezzo può essere nullo, interpretato come evento gratuito. \\[4pt]
+\strut\label{br:BR-16}BR-16 & per pubblicare sono necessari stato \texttt{CONFIRMED}, dati validi, venue valida, capienza valida e coerenza temporale. \\[4pt]
+\strut\label{br:BR-17}BR-17 & la capienza non può essere ridotta sotto il numero di biglietti già emessi. \\[4pt]
+\strut\label{br:BR-18}BR-18 & cancellare un evento annulla nella stessa transazione prenotazioni e inviti attivi. \\[4pt]
+\rowcolor{etichetteUC}
+\multicolumn{2}{@{}l}{\rule{0pt}{2.6ex}\textbf{Prenotazioni e invitati}} \\*[3pt]
+\strut\label{br:BR-19}BR-19 & sono prenotabili soltanto eventi \texttt{PUBLISHED}, \texttt{PUBLIC} e non ancora iniziati. \\[4pt]
+\strut\label{br:BR-20}BR-20 & una prenotazione deve contenere almeno un biglietto valido e nominativo. \\[4pt]
+\strut\label{br:BR-21}BR-21 & il prezzo totale è \texttt{numero biglietti \ensuremath{\times} prezzo unitario}; un prezzo nullo equivale a zero. \\[4pt]
+\strut\label{br:BR-22}BR-22 & il controllo della capienza e la scrittura di booking e ticket avvengono nella stessa transazione. \\[4pt]
+\strut\label{br:BR-23}BR-23 & l'evento viene letto con lock prima del conteggio dei biglietti per impedire overbooking concorrente. \\[4pt]
+\strut\label{br:BR-24}BR-24 & ogni ticket viene associato alla prenotazione appena creata e riceve l'orario iniziale dell'evento. \\[4pt]
+\strut\label{br:BR-25}BR-25 & gli invitati appartengono soltanto a eventi privati con guest list; il loro stato iniziale è sempre \texttt{INVITED}. \\[4pt]
+\rowcolor{etichetteUC}
+\multicolumn{2}{@{}l}{\rule{0pt}{2.6ex}\textbf{Feedback e moderazione}} \\*[3pt]
+\strut\label{br:BR-26}BR-26 & una recensione ha rating compreso tra 1 e 5 e commento facoltativo fino a 1000 caratteri. \\[4pt]
+\strut\label{br:BR-27}BR-27 & si può recensire soltanto un evento concluso per cui l'utente possiede almeno una prenotazione \texttt{CONFIRMED}. \\[4pt]
+\strut\label{br:BR-28}BR-28 & un utente può recensire lo stesso evento una sola volta; il vincolo esiste sia nel service sia nel database. \\[4pt]
+\strut\label{br:BR-29}BR-29 & attualmente soltanto un admin può creare un report e il soggetto segnalato deve essere un utente non admin. \\[4pt]
+\strut\label{br:BR-30}BR-30 & un report può riferirsi facoltativamente a un evento e possiede severità \texttt{LOW}, \texttt{MIDDLE} o \texttt{HIGH}. \\[4pt]
+\end{longtable}
+\endgroup

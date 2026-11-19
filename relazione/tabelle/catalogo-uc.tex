@@ -1,0 +1,60 @@
+% !TEX root = ../main.tex
+% Fonte: docs/USE-CASES.md, sezione 5.
+\begingroup
+\small
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.18}
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{1.55cm}>{\raggedright\arraybackslash}p{5.15cm}>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{1.65cm}>{\raggedright\arraybackslash}p{1.4cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
+\caption{Catalogo dei casi d'uso.}\label{tab:catalogo-uc}\\
+\toprule
+\textbf{ID} & \textbf{Titolo} & \textbf{Attore principale} & \textbf{Livello} & \textbf{Priorità} & \textbf{Stato} \\
+\midrule
+\endfirsthead
+\multicolumn{6}{l}{\small Catalogo dei casi d\textquotesingle uso (continua)}\\
+\toprule
+\textbf{ID} & \textbf{Titolo} & \textbf{Attore principale} & \textbf{Livello} & \textbf{Priorità} & \textbf{Stato} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{6}{r}{\small Continua nella pagina successiva}\\
+\endfoot
+\bottomrule
+\endlastfoot
+UC-01 & Registrare un account & Visitor & User goal & Alta & Implementato \\
+UC-02 & Gestire il proprio account & User & Summary & Alta & Implementato \\
+UC-02.1 & Modificare il profilo & User & User goal & Alta & Implementato \\
+UC-02.2 & Cambiare password & User & User goal & Alta & Implementato \\
+UC-02.3 & Eliminare l'account & User & User goal & Media & Implementato \\
+UC-03 & Moderare un account & Administrator & Summary & Alta & Implementato \\
+UC-03.1 & Bannare un account & Administrator & User goal & Alta & Implementato \\
+UC-03.2 & Riattivare un account & Administrator & User goal & Media & Implementato \\
+UC-04 & Consultare venue, risorse ed eventi & User & Summary & Media & Implementato \\
+UC-05 & Gestire una venue & Administrator & Summary & Alta & Implementato \\
+UC-05.1 & Creare una venue & Administrator & User goal & Alta & Implementato \\
+UC-05.2 & Modificare una venue & Administrator & User goal & Alta & Implementato \\
+UC-05.3 & Eliminare una venue & Administrator & User goal & Media & Implementato \\
+UC-06 & Gestire le risorse di una venue & Administrator & Summary & Alta & Implementato \\
+UC-06.1 & Aggiungere una risorsa & Administrator & User goal & Alta & Implementato \\
+UC-06.2 & Modificare una risorsa & Administrator & User goal & Alta & Implementato \\
+UC-06.3 & Rimuovere una risorsa & Administrator & User goal & Media & Implementato \\
+UC-07 & Presentare una richiesta di evento & User & User goal & Alta & Implementato \\
+UC-08 & Gestire una richiesta di evento & Administrator & User goal & Alta & Implementato \\
+UC-09 & Gestire un evento & Administrator / Organiser & Summary & Alta & Implementato \\
+UC-09.1 & Creare un evento & Administrator & User goal & Alta & Implementato \\
+UC-09.2 & Confermare un evento & Administrator / Organiser & User goal & Alta & Implementato \\
+UC-09.3 & Pubblicare un evento & Administrator / Organiser & User goal & Alta & Implementato \\
+UC-09.4 & Modificare o riprogrammare un evento & Administrator / Organiser & User goal & Media & Implementato \\
+UC-09.5 & Cancellare un evento & Administrator / Organiser & User goal & Alta & Implementato \\
+UC-09.6 & Assegnare o rimuovere un organiser & Administrator & User goal & Media & Implementato \\
+UC-10 & Gestire la lista degli invitati & Administrator / Organiser & User goal & Media & Implementato \\
+UC-11 & Prenotare biglietti & User & User goal & Alta & Implementato \\
+UC-12 & Gestire una prenotazione & User / Administrator & Summary & Alta & Implementato \\
+UC-12.1 & Confermare una prenotazione & User / Administrator & User goal & Alta & Implementato \\
+UC-12.2 & Cancellare una prenotazione & User / Administrator & User goal & Alta & Implementato \\
+UC-12.3 & Eliminare una prenotazione & User / Administrator & User goal & Media & Implementato \\
+UC-13 & Pubblicare una recensione & User & User goal & Media & Implementato \\
+UC-14 & Gestire le proprie recensioni & User & User goal & Media & Implementato \\
+UC-15 & Creare e consultare report & Administrator & User goal & Media & Implementato \\
+UC-16 & Autenticarsi & Visitor & Function & Alta & Implementato \\
+\end{longtable}
+\endgroup

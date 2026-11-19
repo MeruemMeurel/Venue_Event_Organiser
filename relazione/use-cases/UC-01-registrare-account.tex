@@ -1,0 +1,36 @@
+% !TEX root = ../main.tex
+% Fonte completa: docs/use-cases/UC-01-registrare-account.md
+% Scheda compatta; per i test sono riportate le classi, non tutti i metodi.
+\subsection{UC-01 - Registrare un account}
+\label{uc:UC-01-registrare-account}
+\begingroup
+\fontsize{8.8}{10}\selectfont
+\setlength{\tabcolsep}{5pt}
+\setlength{\extrarowheight}{1pt}
+\arrayrulecolor{lineeUC}
+\setlength{\arrayrulewidth}{0.3pt}
+\renewcommand{\arraystretch}{1.08}
+\setlength{\parskip}{0pt}
+\noindent\begin{tabularx}{\textwidth}{>{\columncolor{etichetteUC}\raggedright\arraybackslash\sffamily\bfseries\color{black!75}}p{2.5cm}>{\raggedright\arraybackslash}X}
+\hline
+ID e livello & UC-01 -- User goal \\[2pt] \hline
+Attori & \textbf{Principale:} Visitor; \textbf{secondari:} Nessuno \\[2pt] \hline
+Descrizione & Un Visitor richiede la registrazione, fornisce i propri dati e una password, e il sistema crea un nuovo account User ordinario.\par\textbf{Trigger:} Il Visitor richiede di registrare un nuovo account. \\[2pt] \hline
+Precondizioni & \textbf{1.} Il Visitor non è autenticato. \enspace \textbf{2.} Il sistema è disponibile a ricevere la richiesta di registrazione. L'unicità dell'email e la validità dei dati non sono considerate precondizioni: vengono verificate durante il caso d'uso e, se non soddisfatte, producono un flusso alternativo. \\[2pt] \hline
+Postcondizioni & \textbf{1.} È persistito un nuovo account User associato ai dati forniti. \enspace \textbf{2.} Il nuovo account non possiede privilegi da Administrator. \enspace \textbf{3.} Il nuovo account si trova nello stato \texttt{ACTIVE}. \enspace \textbf{4.} La password è persistita esclusivamente come hash PBKDF2 con salt casuale e non in chiaro. \enspace \textbf{5.} Il sistema restituisce l'identificativo del nuovo User. \\[2pt] \hline
+Garanzia minima & Se la registrazione non può essere completata, non viene persistito alcun nuovo User e non viene memorizzata alcuna password. Eventuali valori amministrativi o di stato presenti nei dati ricevuti non permettono comunque di creare un Administrator o un account già \texttt{BANNED}. \\[2pt] \hline
+Flusso principale & \begin{minipage}[t]{\linewidth}\begin{enumerate}[leftmargin=1.4em,nosep,label=\arabic*.]
+\item Il Visitor richiede di registrare un nuovo account.
+\item Il Visitor fornisce username, nome, cognome, data di nascita, email, eventuale numero di telefono e password.
+\item Il sistema verifica la presenza e la validità formale dei dati forniti e della password.
+\item Il sistema verifica che l'indirizzo email non sia già associato a un altro User.
+\item Il sistema inizializza il nuovo account come User ordinario nello stato \texttt{ACTIVE}, ignorando eventuali valori amministrativi o di stato ricevuti.
+\item Il sistema genera dalla password una rappresentazione sicura PBKDF2 con salt casuale.
+\item Il sistema persiste atomicamente lo User e la credenziale codificata.
+\item Il sistema conferma la transazione e restituisce l'identificativo del nuovo User.
+\end{enumerate}\vspace{3pt}\end{minipage} \\[2pt] \hline
+Flussi alternativi & \textbf{2a. Dati obbligatori mancanti} \par (1) Il sistema rileva che lo User da registrare o uno dei dati obbligatori non è stato fornito. (2) Il sistema rifiuta la richiesta come non valida. (3) Il caso d'uso termina senza persistere alcun User o password. \par\vspace{1pt} \textbf{3a. Dati personali non validi} \par (1) Il sistema rileva almeno una delle seguenti condizioni: \textbullet{} username, nome o cognome vuoti oppure con lunghezza non valida; \textbullet{} email con formato non valido; \textbullet{} numero di telefono facoltativo presente ma con formato o lunghezza non validi; \textbullet{} data di nascita futura, assente o precedente al 1900. (2) Il sistema rifiuta la richiesta indicando che i dati non sono validi. (3) Il caso d'uso termina senza persistere alcun User o password. \par\vspace{1pt} \textbf{3b. Password non valida} \par (1) Il sistema rileva che la password è nulla, vuota oppure non contiene tra 8 e 30 caratteri. (2) Il sistema rifiuta la richiesta. (3) Il caso d'uso termina senza persistere alcun User o password. \par\vspace{1pt} \textbf{4a. Email già utilizzata} \par (1) Il sistema rileva che l'indirizzo email è già associato a un altro User. (2) Il sistema rifiuta la registrazione per evitare la duplicazione dell'account. (3) Il caso d'uso termina senza persistere alcun nuovo User o password. \par\vspace{1pt} \textbf{7a. Conflitto o errore durante la persistenza} \par (1) Il sistema rileva che i dati non possono essere persistiti, ad esempio per un username già utilizzato o per un errore del database. (2) Il sistema annulla la transazione. (3) Nessun User incompleto e nessuna credenziale rimangono persistiti. (4) Il caso d'uso termina con un errore. \\[2pt] \hline
+Regole & \textbullet{} \textbf{BR-01:} la registrazione crea sempre un utente ordinario \texttt{ACTIVE}; valori admin o banned forniti in input vengono ignorati. \textbullet{} \textbf{BR-02:} username, nome, cognome, email e data di nascita devono essere validi; l'email deve essere univoca. \textbullet{} \textbf{BR-03:} una password deve contenere tra 8 e 30 caratteri. \textbullet{} \textbf{BR-04:} le password vengono persistite esclusivamente come hash PBKDF2 con salt casuale. \\[2pt] \hline
+Test & \texttt{User\allowbreak{}Service\allowbreak{}Workflow\allowbreak{}Test}; \texttt{User\allowbreak{}Service\allowbreak{}Validation\allowbreak{}Test}; \texttt{Password\allowbreak{}Hasher\allowbreak{}Test}; \texttt{Password\allowbreak{}Credential\allowbreak{}Integration\allowbreak{}Test}.\par Il vincolo di lunghezza della password, pur essendo implementato in \texttt{Auth\allowbreak{}Service}, non dispone ancora di un test unitario dedicato ai limiti di 8 e 30 caratteri. \\[2pt] \hline
+\end{tabularx}\par
+\endgroup

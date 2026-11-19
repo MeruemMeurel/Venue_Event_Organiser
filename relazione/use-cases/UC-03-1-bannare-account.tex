@@ -1,0 +1,36 @@
+% !TEX root = ../main.tex
+% Fonte completa: docs/use-cases/UC-03-1-bannare-account.md
+% Scheda compatta; per i test sono riportate le classi, non tutti i metodi.
+\clearpage
+\subsection{UC-03.1 - Bannare un account}
+\label{uc:UC-03-1-bannare-account}
+\begingroup
+\fontsize{9.2}{10.6}\selectfont
+\setlength{\tabcolsep}{5pt}
+\setlength{\extrarowheight}{2pt}
+\arrayrulecolor{lineeUC}
+\setlength{\arrayrulewidth}{0.3pt}
+\renewcommand{\arraystretch}{1.12}
+\setlength{\parskip}{0pt}
+\noindent\begin{tabularx}{\textwidth}{>{\columncolor{etichetteUC}\raggedright\arraybackslash\sffamily\bfseries\color{black!75}}p{2.5cm}>{\raggedright\arraybackslash}X}
+\hline
+ID e livello & UC-03.1 -- User goal \\[2pt] \hline
+Attori & \textbf{Principale:} Administrator; \textbf{secondari:} User \\[2pt] \hline
+Descrizione & Un Administrator sospende un account ordinario attivo, impedendogli di utilizzare le operazioni non consentite agli utenti bannati.\par\textbf{Trigger:} L'Administrator richiede di bannare uno User. \\[2pt] \hline
+Precondizioni & \textbf{1.} Esiste un account Administrator identificabile dal sistema. \par \textbf{2.} Lo User da moderare esiste. \\[2pt] \hline
+Postcondizioni & \textbf{1.} Lo User si trova nello stato \texttt{BANNED}. \par \textbf{2.} Gli altri dati dello User rimangono invariati. \\[2pt] \hline
+Garanzia minima & Se autenticazione, autorizzazione o transizione falliscono, lo stato dello User rimane invariato. \\[2pt] \hline
+Flusso principale & \begin{minipage}[t]{\linewidth}\begin{enumerate}[leftmargin=1.4em,nosep,label=\arabic*.]
+\item L'Administrator seleziona uno User attivo e richiede di bannarlo.
+\item Il sistema verifica identificativo, password e ruolo dell'Administrator.
+\item Il sistema carica lo User indicato.
+\item Il sistema verifica che il bersaglio sia uno User ordinario diverso dall'attore.
+\item Il sistema verifica che lo User sia \texttt{ACTIVE}.
+\item Il sistema aggiorna atomicamente lo stato a \texttt{BANNED}.
+\item Il sistema conferma l'operazione.
+\end{enumerate}\vspace{3pt}\end{minipage} \\[2pt] \hline
+Flussi alternativi & \textbf{2a. Credenziali amministrative non valide} \par (1) Il sistema nega l'operazione. (2) Il caso d'uso termina senza modifiche. \par\smallskip \textbf{3a. User inesistente} \par (1) Il sistema segnala che lo User non esiste. (2) Il caso d'uso termina senza modifiche. \par\smallskip \textbf{4a. Auto-moderazione o bersaglio Administrator} \par (1) Il sistema rileva che l'attore coincide con il bersaglio oppure che il bersaglio è Administrator. (2) Il sistema nega l'operazione. \par\smallskip \textbf{5a. User già bannato} \par (1) Il sistema rileva che lo User è già \texttt{BANNED}. (2) Il sistema rifiuta la transizione come conflitto. \\[2pt] \hline
+Regole &\par\smallskip\textbullet{} \textbf{BR-05:} le operazioni amministrative richiedono identificativo e password validi di un Administrator.\par\smallskip\textbullet{} \textbf{BR-06:} un Administrator non può moderare se stesso né un altro Administrator. \\[2pt] \hline
+Test & \texttt{User\allowbreak{}Service\allowbreak{}Workflow\allowbreak{}Test}. \\[2pt] \hline
+\end{tabularx}\par
+\endgroup

@@ -1,0 +1,36 @@
+% !TEX root = ../main.tex
+% Fonte completa: docs/use-cases/UC-13-pubblicare-recensione.md
+% Scheda compatta; per i test sono riportate le classi, non tutti i metodi.
+\clearpage
+\subsection{UC-13 - Pubblicare una recensione}
+\label{uc:UC-13-pubblicare-recensione}
+\begingroup
+\fontsize{9.2}{10.6}\selectfont
+\setlength{\tabcolsep}{5pt}
+\setlength{\extrarowheight}{2pt}
+\arrayrulecolor{lineeUC}
+\setlength{\arrayrulewidth}{0.3pt}
+\renewcommand{\arraystretch}{1.12}
+\setlength{\parskip}{0pt}
+\noindent\begin{tabularx}{\textwidth}{>{\columncolor{etichetteUC}\raggedright\arraybackslash\sffamily\bfseries\color{black!75}}p{2.5cm}>{\raggedright\arraybackslash}X}
+\hline
+ID e livello & UC-13 -- User goal \\[2pt] \hline
+Attori & \textbf{Principale:} User; \textbf{secondari:} Nessuno \\[2pt] \hline
+Descrizione & Uno User che ha partecipato a un evento concluso pubblica una sola recensione con voto ed eventuale commento.\par\textbf{Trigger:} Lo User richiede di recensire un evento concluso. \\[2pt] \hline
+Precondizioni & \textbf{1.} Lo User possiede una prenotazione \texttt{CONFIRMED} per l'evento. \par \textbf{2.} L'evento esiste ed è terminato. \\[2pt] \hline
+Postcondizioni & \textbf{1.} È persistita una recensione associata allo User e all'evento. \par \textbf{2.} La data di creazione è assegnata dal sistema. \\[2pt] \hline
+Garanzia minima & Se un controllo fallisce non viene inserita alcuna recensione. \\[2pt] \hline
+Flusso principale & \begin{minipage}[t]{\linewidth}\begin{enumerate}[leftmargin=1.4em,nosep,label=\arabic*.]
+\item Lo User seleziona un evento terminato e fornisce voto ed eventuale commento.
+\item Il sistema verifica che l'attore coincida con l'autore indicato.
+\item Il sistema valida voto e commento.
+\item Il sistema verifica l'esistenza e la conclusione dell'evento.
+\item Il sistema verifica una prenotazione \texttt{CONFIRMED} dello User per l'evento.
+\item Il sistema verifica che lo User non abbia già recensito l'evento.
+\item Il sistema assegna la data corrente e persiste la recensione.
+\end{enumerate}\vspace{3pt}\end{minipage} \\[2pt] \hline
+Flussi alternativi & \textbf{2a. Attore diverso dall'autore} \par (1) Il sistema nega l'operazione. (2) Nessuna recensione viene inserita. \par\smallskip \textbf{3a. Voto o commento non validi} \par (1) Il sistema rileva un voto fuori dall'intervallo 1-5 o un commento superiore a 1000 caratteri. (2) La richiesta viene rifiutata. \par\smallskip \textbf{4a. Evento inesistente o non concluso} \par (1) Il sistema segnala l'evento mancante oppure non ancora terminato. (2) Il caso d'uso termina senza persistenza. \par\smallskip \textbf{5a. Partecipazione non dimostrata} \par (1) Il sistema non trova una prenotazione \texttt{CONFIRMED} per lo User e l'evento. (2) La pubblicazione viene negata. \par\smallskip \textbf{6a. Recensione già presente} \par (1) Il sistema rileva una recensione dello stesso User per lo stesso evento. (2) Il sistema rifiuta il duplicato come conflitto. \\[2pt] \hline
+Regole &\par\smallskip\textbullet{} \textbf{BR-26:} il voto deve essere compreso tra 1 e 5 e il commento non può superare 1000 caratteri.\par\smallskip\textbullet{} \textbf{BR-27:} può recensire soltanto chi possiede una prenotazione \texttt{CONFIRMED} per un evento concluso.\par\smallskip\textbullet{} Uno User può pubblicare una sola recensione per evento e soltanto a proprio nome. \\[2pt] \hline
+Test & \texttt{Secondary\allowbreak{}Service\allowbreak{}Workflow\allowbreak{}Test}; \texttt{Secondary\allowbreak{}Service\allowbreak{}Validation\allowbreak{}Test}; \texttt{Postgres\allowbreak{}Review\allowbreak{}Constraint\allowbreak{}Integration\allowbreak{}Test}. \\[2pt] \hline
+\end{tabularx}\par
+\endgroup

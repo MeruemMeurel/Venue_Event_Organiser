@@ -1,0 +1,35 @@
+% !TEX root = ../main.tex
+% Fonte completa: docs/use-cases/UC-07-presentare-richiesta-evento.md
+% Scheda compatta; per i test sono riportate le classi, non tutti i metodi.
+\clearpage
+\subsection{UC-07 - Presentare una richiesta di evento}
+\label{uc:UC-07-presentare-richiesta-evento}
+\begingroup
+\fontsize{9.2}{10.6}\selectfont
+\setlength{\tabcolsep}{5pt}
+\setlength{\extrarowheight}{2pt}
+\arrayrulecolor{lineeUC}
+\setlength{\arrayrulewidth}{0.3pt}
+\renewcommand{\arraystretch}{1.12}
+\setlength{\parskip}{0pt}
+\noindent\begin{tabularx}{\textwidth}{>{\columncolor{etichetteUC}\raggedright\arraybackslash\sffamily\bfseries\color{black!75}}p{2.5cm}>{\raggedright\arraybackslash}X}
+\hline
+ID e livello & UC-07 -- User goal \\[2pt] \hline
+Attori & \textbf{Principale:} User; \textbf{secondari:} Nessuno \\[2pt] \hline
+Descrizione & Uno User propone un evento indicando venue, nome, descrizione e intervallo temporale.\par\textbf{Trigger:} Lo User invia una nuova richiesta di evento. \\[2pt] \hline
+Precondizioni & \textbf{1.} Lo User è registrato. \par \textbf{2.} La venue desiderata esiste. \\[2pt] \hline
+Postcondizioni & \textbf{1.} La richiesta è persistita nello stato \texttt{PENDING}. \par \textbf{2.} La data di creazione è assegnata dal sistema. \par \textbf{3.} La richiesta non è ancora chiusa né necessariamente assegnata a un handler. \\[2pt] \hline
+Garanzia minima & Una richiesta non valida non viene persistita. \\[2pt] \hline
+Flusso principale & \begin{minipage}[t]{\linewidth}\begin{enumerate}[leftmargin=1.4em,nosep,label=\arabic*.]
+\item Lo User seleziona una venue e inserisce nome, descrizione e date dell'evento proposto.
+\item Il sistema verifica che il chiamante coincida con il richiedente, che questo esista e non sia Administrator.
+\item Il sistema verifica l'esistenza della venue.
+\item Il sistema valida nome, descrizione e intervallo temporale.
+\item Il sistema verifica lo stato iniziale \texttt{PENDING} e, se assente, assegna l'istante corrente come data di creazione.
+\item Il sistema persiste la richiesta e restituisce il suo identificativo.
+\end{enumerate}\vspace{3pt}\end{minipage} \\[2pt] \hline
+Flussi alternativi & \textbf{2a. Richiedente inesistente o non valido} \par (1) Il sistema rifiuta la richiesta. (2) Nessun dato viene persistito. \par\smallskip \textbf{2b. Richiedente Administrator} \par (1) Il sistema rileva che il richiedente non è uno User ordinario. (2) Il sistema rifiuta la richiesta. \par\smallskip \textbf{3a. Venue inesistente} \par (1) Il sistema segnala che la venue non esiste. (2) Il caso d'uso termina senza persistenza. \par\smallskip \textbf{4a. Dati descrittivi non validi} \par (1) Il sistema rileva un nome vuoto o non compreso tra 2 e 100 caratteri, oppure una descrizione superiore a 1000 caratteri. (2) Il sistema rifiuta la richiesta. \par\smallskip \textbf{4b. Intervallo temporale non valido} \par (1) Il sistema rileva una data mancante oppure un inizio non precedente alla fine. (2) Il sistema rifiuta la richiesta. \\[2pt] \hline
+Regole &\par\smallskip\textbullet{} \textbf{BR-09:} il richiedente deve essere uno User ordinario, la venue deve esistere e nome e date devono essere validi.\par\smallskip\textbullet{} Una nuova richiesta entra nel ciclo di vita in stato \texttt{PENDING}. \\[2pt] \hline
+Test & \texttt{Request\allowbreak{}And\allowbreak{}Guest\allowbreak{}Workflow\allowbreak{}Test}; \texttt{Secondary\allowbreak{}Service\allowbreak{}Validation\allowbreak{}Test}.\par Il sistema ignora eventuali handler, stato, preventivo e data di chiusura ricevuti in input, impedendo che la creazione aggiri il ciclo di vita della richiesta. \\[2pt] \hline
+\end{tabularx}\par
+\endgroup
