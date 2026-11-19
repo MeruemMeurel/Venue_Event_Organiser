@@ -17,60 +17,20 @@ skinparam ArrowFontStyle bold
 skinparam ArrowFontSize 11
 skinparam ArrowColor #444444
 
-class User <<Entity reference>>
-class Venue <<Entity reference>>
-
-package "domain.model.request" {
-    class EventRequest <<Entity - Immutable>> {
-        - id: Long
-        - requesterId: Long
-        - handlerId: Long [0..1]
-        - venueId: Long
-        - name: String
-        - description: String
-        - beginDateTime: LocalDateTime
-        - endDateTime: LocalDateTime
-        - status: EventRequestStatus
-        - createdAt: LocalDateTime
-        - closedAt: LocalDateTime
-        - quote: BigDecimal
-    }
-
-    enum EventRequestStatus {
-        PENDING
-        ACCEPTED
-        REJECTED
-        CANCELLED
-    }
-
-}
-
-package "domain.model.event" {
+package "event" {
     class Event <<Entity - Immutable>> {
         - id: Long
         - creatorId: Long
         - organiserId: Long
         - venueId: Long
         - name: String
-        - description: String
-        - beginDateTime: LocalDateTime
+        - startDateTime: LocalDateTime
         - endDateTime: LocalDateTime
-        - posterFilepath: String
         - capacity: int
-        - visibility: EventVisibility
-        - ticketPrice: BigDecimal
+        - price: BigDecimal
         - status: EventStatus
+        - visibility: EventVisibility
         - publishedAt: LocalDateTime
-    }
-
-    class EventGuest <<Entity - Immutable>> {
-        - id: Long
-        - eventId: Long
-        - firstname: String
-        - lastname: String
-        - birthday: LocalDate
-        - status: EventGuestStatus
-        - note: String
     }
 
     enum EventStatus {
@@ -80,24 +40,17 @@ package "domain.model.event" {
         CANCELLED
     }
 
-    enum EventGuestStatus {
-        INVITED
-        CONFIRMED
-        CANCELLED
-    }
-
     enum EventVisibility {
         PUBLIC
-        PRIVATE_GUEST_LIST
+        PRIVATE
     }
 }
 
-package "domain.model.booking" {
+package "booking" {
     class Booking <<Entity - Immutable>> {
         - id: Long
         - userId: Long
         - eventId: Long
-        - createdAt: LocalDateTime
         - totalPrice: BigDecimal
         - status: BookingStatus
     }
@@ -105,9 +58,8 @@ package "domain.model.booking" {
     class Ticket <<Entity - Immutable>> {
         - id: Long
         - bookingId: Long
-        - firstname: String
-        - lastname: String
-        - startsAt: LocalDateTime
+        - ticketHolderName: String
+        - eventStartDateTime: LocalDateTime
     }
 
     enum BookingStatus {
@@ -117,34 +69,20 @@ package "domain.model.booking" {
     }
 }
 
-package "domain.model.feedback" {
+package "feedback" {
     class Review <<Entity - Immutable>> {
         - id: Long
         - userId: Long
         - eventId: Long
         - rating: int
         - comment: String
-        - createdAt: LocalDateTime
     }
 }
 
-
-EventRequest "1  " --> "1  " EventRequestStatus : " la richiesta\n dell'evento è"
 Event "1 " --> "1   " EventStatus : " l'evento è"
-EventGuest "1  " --> "1  " EventGuestStatus : " l'ospite dell'evento è"
-Event "1" --> "1" EventVisibility : "ha visibilità"
+Event "1 " ---> "1   " EventVisibility : " la visibilità dell'evento è"
 Booking "1 " --> "1    " BookingStatus : "la prenotazione è"
 Booking "1   " *-- "1..* " Ticket : " contiene"
-Event "1   " o-- "0..* " EventGuest : " gestisce"
-
-EventRequest "0..*" --> "1" User : "richiesta da"
-EventRequest "0..*" --> "0..1" User : "gestita da"
-EventRequest "0..*" --> "1" Venue : "riguarda"
-Event "0..*" --> "1" Venue : "si svolge presso"
-Event "0..*" --> "1" User : "creato da Administrator"
-Event "0..*" --> "0..1" User : "assegnato a Organiser"
-Booking "0..*" --> "1" User : "effettuata da"
-Booking "0..*" --> "1" Event : "riguarda"
-Review "0..*" --> "1" User : "scritta da"
-Review "0..*" --> "1" Event : "riguarda"
-@endum
+Event "0..*    " <-left- " 1" Booking : "prenota                        "
+Event "    0..*" <-right- "1    " Review : " valuta"
+@enduml

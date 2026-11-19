@@ -1,0 +1,91 @@
+@startuml
+skinparam style strictuml
+skinparam classAttributeIconSize 0
+
+skinparam DefaultFontName "Helvetica"
+skinparam DefaultFontSize 12
+skinparam class {
+    BackgroundColor White
+    BorderColor #333333
+    ArrowColor #555555
+}
+skinparam nodesep 100
+skinparam ranksep 100
+
+skinparam ArrowThickness 1.2
+skinparam ArrowFontStyle bold
+skinparam ArrowFontSize 11
+skinparam ArrowColor #444444
+
+package "event" {
+    class Event <<Entity - Immutable>> {
+        - id: Long
+        - creatorId: Long
+        - organiserId: Long
+        - venueId: Long
+        - name: String
+        - startDateTime: LocalDateTime
+        - endDateTime: LocalDateTime
+        - capacity: int
+        - price: BigDecimal
+        - status: EventStatus
+        - visibility: EventVisibility
+        - publishedAt: LocalDateTime
+    }
+
+    enum EventStatus {
+        DRAFT
+        CONFIRMED
+        PUBLISHED
+        CANCELLED
+    }
+
+    enum EventVisibility {
+        PUBLIC
+        PRIVATE
+    }
+}
+
+package "eventGuest" {
+    class EventGuest <<Entity - Immutable>> {
+        - id: Long
+        - eventId: Long
+        - guestName: String
+        - status: EventGuestStatus
+    }
+
+    enum EventGuestStatus {
+        INVITED
+        CONFIRMED
+        CANCELLED
+    }
+}
+
+package "eventRequest"{
+    class EventRequest <<Entity - Immutable>> {
+        - id: Long
+        - requesterId: Long
+        - handlerId: Long
+        - venueId: Long
+        - name: String
+        - startDateTime: LocalDateTime
+        - endDateTime: LocalDateTime
+        - status: EventRequestStatus
+        - closedAt: LocalDateTime
+    }
+
+    enum EventRequestStatus {
+        PENDING
+        ACCEPTED
+        REJECTED
+        CANCELLED
+    }
+}
+
+Event "1 " --> "1   " EventStatus : " l'evento è"
+Event "1 " ---> "1   " EventVisibility : " la visibilità dell'evento è"
+EventRequest "1  " --> "1  " EventRequestStatus : " la richiesta\n dell'evento è"
+EventGuest "1  " --> "1  " EventGuestStatus : " l'ospite dell'\nevento è"
+Event "1 " o-left- "    0..* " EventGuest : "partecipa"
+Event "  1" <-right- "0..*    " EventRequest : "riguarda"
+@enduml
