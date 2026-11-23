@@ -83,7 +83,7 @@ UC-02, UC-03 & \textbf{BR-02, \mbox{BR-04--BR-06}} & \texttt{UserServiceValidati
 \addlinespace[3pt]
 UC-07, UC-08 & \textbf{\mbox{BR-09--BR-11}} & \texttt{SecondaryServiceValidationTest}, \newline \texttt{RequestAndGuestWorkflowTest}, \newline \texttt{PostgresTransaction\allowbreak{}AndConcurrency\allowbreak{}IntegrationTest} & Creazione richiesta con date coerenti, assegnazione di handler admin, accettazione con preventivo da parte dell'handler, chiusura, transizioni e lock sulla richiesta. \\
 \addlinespace[3pt]
-\mbox{UC-09.1}--\allowbreak{}\mbox{UC-09.6} & \textbf{\mbox{BR-12--BR-18}} & \texttt{EventServiceValidationTest}, \newline \texttt{EventServiceWorkflowTest}, \newline \texttt{StatusTransitionTest} & Stato iniziale forzato a \texttt{DRAFT}, assegnazione organiser, pubblicazione condizionata a \texttt{CONFIRMED}, soglia minima di capienza rispetto ai biglietti già emessi, cancellazione coordinata a cascata. \\
+\mbox{UC-09.1}--\allowbreak{}\mbox{UC-09.6} & \textbf{\mbox{BR-12--BR-18}} & \texttt{EventServiceValidationTest}, \newline \texttt{EventServiceWorkflowTest}, \newline \texttt{StatusTransitionTest} & Stato iniziale forzato a \texttt{DRAFT}, assegnazione organiser, pubblicazione condizionata a \texttt{CONFIRMED}, soglia minima di capienza rispetto ai biglietti delle prenotazioni \texttt{PENDING\_PAYMENT} o \texttt{CONFIRMED}, cancellazione coordinata a cascata. \\
 \addlinespace[3pt]
 UC-10 & \textbf{BR-25} & \texttt{EventGuestServiceValidationTest}, \newline \texttt{RequestAndGuestWorkflowTest}, \newline \texttt{StatusTransitionTest} & Inserimento invitati limitato a eventi privati con guest list, stato iniziale \texttt{INVITED}, transizioni di partecipazione. \\
 \addlinespace[3pt]
@@ -148,7 +148,7 @@ Il test verifica che, dopo il rollback, nessun biglietto resti memorizzato nella
 
 \subsection{Serializzazione e lock pessimistico su PostgreSQL}
 \label{sec:lock-pessimistico-postgres}
-La prevenzione delle \textit{race condition} su prenotazioni, capienza ed evoluzione delle richieste è verificata da tre test multi-connessione:
+La suite comprende tre test multi-connessione predisposti per verificare la contesa dei lock sulle righe delle prenotazioni, degli eventi e delle richieste:
 \begin{itemize}
   \item \texttt{lockedBookingShouldRejectConcurrent\allowbreak ForUpdateInsteadOfReadingStaleState};
   \item \texttt{eventLockShouldSerialize\allowbreak CapacityChangesAndBookings};
@@ -167,7 +167,10 @@ I test simulano due transazioni concorrenti ($T_1$ e $T_2$) sulla stessa riga de
   \item il repository intercetta l'errore SQL e lo incapsula in una \texttt{DaoException}, verificata tramite \texttt{assertThrows}.
 \end{enumerate}
 
-Questi test provano che un secondo lock \texttt{FOR UPDATE} su \texttt{BOOKING}, \texttt{EVENT} o \texttt{EVENT\_REQUEST} resta bloccato fino al termine della prima transazione. I servizi si basano su questa mutua esclusione per evitare letture obsolete prima del commit concorrente e scongiurare l'overbooking.
+I test verificano che, mentre una transazione mantiene il lock
+su una riga, un secondo tentativo di acquisire un lock
+\texttt{FOR UPDATE} sulla stessa riga termini con una
+\texttt{DaoException} allo scadere del timeout.
 
 \subsection{Connessione al database ed esecuzione condizionata}
 \label{sec:connessione-esecuzione-condizionata}
@@ -206,18 +209,28 @@ Di seguito vengono riportati l'ambiente di esecuzione, i comandi di riproduzione
 
 \subsection{Ambiente di esecuzione e comandi di riproduzione}
 \label{sec:ambiente-comandi}
-L'esecuzione di riferimento è stata condotta in modalità offline a partire dai sorgenti applicativi consolidati al commit \texttt{bc1b950}.
-L'ambiente operativo include:
+L'esecuzione di riferimento è stata effettuata il 21 novembre 2026
+sulla versione del progetto identificata dal commit
+\texttt{e66f797}, con il database PostgreSQL attivo.
+L'ambiente utilizzato comprende:
 \begin{itemize}
-  \item \textbf{Sistema Operativo}: Microsoft Windows 11 Pro 64-bit;
-  \item \textbf{Java Development Kit}: OpenJDK 17 (Microsoft Build 17.0.18, 64-Bit Server VM; target release 17);
-  \item \textbf{Build Tool}: Apache Maven 3.9.11;
-  \item \textbf{Plugin}: Maven Surefire Plugin 3.3.1, JaCoCo Maven Plugin 0.8.15;
-  \item \textbf{Database di integrazione}: PostgreSQL 16 in container Docker, con migrazioni Flyway 9.22.3.
+    \item \textbf{Sistema operativo}: Windows 11 a 64 bit;
+    \item \textbf{JDK}: JetBrains Runtime 25.0.4,
+          con target di compilazione Java 17;
+    \item \textbf{Build tool}: Apache Maven 3.9.16;
+    \item \textbf{Plugin}: Maven Surefire 3.3.1 e JaCoCo 0.8.15;
+    \item \textbf{Database}: PostgreSQL 16.16, eseguito localmente
+          tramite i binari Windows;
+    \item \textbf{Migrazioni}: Flyway 9.22.3,
+          con tutte le migration da \texttt{V1} a \texttt{V17}
+          applicate correttamente.
 \end{itemize}
 
 I comandi standard utilizzati per compilare il progetto, eseguire i test e produrre o rigenerare il report JaCoCo sono riportati nel Listing~\ref{lst:maven-commands}:
 \begin{lstlisting}[language=bash, caption={Comandi Maven per l'esecuzione della suite di test e la generazione del report JaCoCo.}, label={lst:maven-commands}]
+# Con PostgreSQL attivo: applicazione delle migration
+mvn flyway:migrate
+
 # Compilazione, esecuzione dei test e generazione del report JaCoCo
 mvn clean test
 
@@ -225,12 +238,17 @@ mvn clean test
 mvn jacoco:report
 \end{lstlisting}
 
-L'esecuzione offline (\texttt{mvn -o clean test}) analizza 57 classi compilate (comprese classi interne come \texttt{PasswordHasher.ParsedHash}), con il seguente esito:
+
+L'esecuzione del comando \texttt{mvn clean test} ha ottenuto il seguente risultato:
 \begin{center}
-\textbf{Tests run: 222, Failures: 0, Errors: 0, Skipped: 0} \quad (\textit{BUILD SUCCESS in 16.8 s})
+    \textbf{Tests run: 237, Failures: 0, Errors: 0, Skipped: 0}
 \end{center}
 
-Tutti i 222 test indipendenti dal database (155 sui servizi, 59 sul modello di dominio e 8 su configurazione e transazioni) hanno avuto esito positivo. Il contatore \texttt{Skipped} è zero perché le 5 classi d'integrazione PostgreSQL vengono interrotte nella fase \texttt{@BeforeAll} prima dell'avvio dei loro 15 metodi \texttt{@Test}, risultando nei report Surefire con \texttt{Tests run: 0}.
+Il tempo complessivo di build è stato di \textbf{23.028 secondi}, che comprendono: compilazione, esecuzione dei test e generazione del report JaCoCo sulle 57 classi analizzate da JaCoCo.
+
+È stato ottenuto un successo sia sui 222 test indipendenti dal database, sia sui 15 test di integrazione su PostgreSQL.
+L'effettiva esecuzione dei test di integrazione è stata verificata nei report XML prodotti da Maven Surefire.
+
 
 \subsection{Metriche di copertura JaCoCo per package}
 \label{sec:metriche-jacoco}
@@ -242,41 +260,147 @@ La Tabella~\ref{tab:jacoco-coverage} riporta i dati del report JaCoCo (\texttt{t
 \setlength{\tabcolsep}{3pt}
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lrrrr@{}}
 \toprule
-\textbf{Package} & \textbf{Linee coperte} & \textbf{\% Linee} & \textbf{Branch} & \textbf{Istruzioni} \\
+\textbf{Package} &
+\textbf{Linee coperte} &
+\textbf{\% Linee} &
+\textbf{Branch} &
+\textbf{Istruzioni} \\
 \midrule
-\texttt{service} & $1\,137$ / $1\,259$ & \textbf{90.3\%} & 77.6\% ($385$ / $496$) & 84.1\% ($5\,470$ / $6\,504$) \\
-\texttt{domain.model.user} & $45$ / $46$ & \textbf{97.8\%} & 77.3\% ($17$ / $22$) & 93.8\% ($377$ / $402$) \\
-\texttt{domain.model.request} & $56$ / $59$ & \textbf{94.9\%} & 66.7\% ($16$ / $24$) & 91.8\% ($561$ / $611$) \\
-\texttt{domain.model.booking} & $70$ / $76$ & \textbf{92.1\%} & 65.8\% ($25$ / $38$) & 82.3\% ($436$ / $530$) \\
-\texttt{domain.model.event} & $97$ / $109$ & \textbf{89.0\%} & 71.4\% ($30$ / $42$) & 84.1\% ($888$ / $1\,056$) \\
-\texttt{domain.model.feedback} & $65$ / $75$ & \textbf{86.7\%} & 69.0\% ($29$ / $42$) & 78.8\% ($466$ / $591$) \\
-\texttt{domain.model.venue} & $34$ / $40$ & \textbf{85.0\%} & 75.0\% ($9$ / $12$) & 76.3\% ($232$ / $304$) \\
-\texttt{domain.model.resource} & $68$ / $93$ & \textbf{73.1\%} & 50.0\% ($28$ / $56$) & 63.3\% ($374$ / $591$) \\
-\texttt{exception} & $8$ / $8$ & \textbf{100.0\%} & --- & 100.0\% ($16$ / $16$) \\
-\texttt{config} & $78$ / $161$ & \textbf{48.4\%} & 38.5\% ($20$ / $52$) & 47.0\% ($271$ / $576$) \\
-\texttt{repository.jdbc}* & $0$ / $1\,440$ & \textbf{0.0\%}* & 0.0\% ($0$ / $320$) & 0.0\% ($0$ / $6\,241$) \\
+
+\texttt{service}
+& $1\,153 / 1\,259$
+& \textbf{91.6\%}
+& 77.6\% ($385 / 496$)
+& 85.1\% ($5\,537 / 6\,504$) \\
+
+\texttt{domain.model.user}
+& $45 / 46$
+& \textbf{97.8\%}
+& 77.3\% ($17 / 22$)
+& 93.8\% ($377 / 402$) \\
+
+\texttt{domain.model.request}
+& $58 / 59$
+& \textbf{98.3\%}
+& 66.7\% ($16 / 24$)
+& 94.3\% ($576 / 611$) \\
+
+\texttt{domain.model.booking}
+& $71 / 76$
+& \textbf{93.4\%}
+& 65.8\% ($25 / 38$)
+& 84.7\% ($449 / 530$) \\
+
+\texttt{domain.model.event}
+& $102 / 109$
+& \textbf{93.6\%}
+& 71.4\% ($30 / 42$)
+& 85.9\% ($907 / 1\,056$) \\
+
+\texttt{domain.model.feedback}
+& $69 / 75$
+& \textbf{92.0\%}
+& 69.0\% ($29 / 42$)
+& 82.1\% ($485 / 591$) \\
+
+\texttt{domain.model.venue}
+& $34 / 40$
+& \textbf{85.0\%}
+& 75.0\% ($9 / 12$)
+& 76.3\% ($232 / 304$) \\
+
+\texttt{domain.model.resource}
+& $69 / 93$
+& \textbf{74.2\%}
+& 50.0\% ($28 / 56$)
+& 65.3\% ($386 / 591$) \\
+
+\texttt{exception}
+& $8 / 8$
+& \textbf{100.0\%}
+& ---
+& 100.0\% ($16 / 16$) \\
+
+\texttt{config}
+& $125 / 161$
+& \textbf{77.6\%}
+& 59.6\% ($31 / 52$)
+& 76.9\% ($443 / 576$) \\
+
+\texttt{repository.jdbc}
+& $1\,037 / 1\,440$
+& \textbf{72.0\%}
+& 61.9\% ($198 / 320$)
+& 71.3\% ($4\,452 / 6\,241$) \\
+
 \midrule
-\textbf{Totale core}\textdagger & \textbf{1\,580 / 1\,765} & \textbf{89.5\%} & \textbf{73.6\% (539 / 732)} & \textbf{83.2\% (8\,820 / 10\,605)} \\
+\textbf{Totale core}
+& $\mathbf{1\,609 / 1\,765}$
+& \textbf{91.2\%}
+& \textbf{73.6\%} ($539 / 732$)
+& \textbf{84.5\%} ($8\,965 / 10\,605$) \\
+
 \bottomrule
 \end{tabular*}
-\caption{Copertura JaCoCo per package (*rilevazione offline senza PostgreSQL; \textdagger esclude \texttt{config} e \texttt{repository.jdbc}).}
+\caption{Copertura JaCoCo per package nell'esecuzione
+del 21 novembre 2026 con PostgreSQL attivo.
+Il totale core comprende servizi, modelli del dominio
+ed eccezioni; esclude \texttt{config} e \texttt{repository.jdbc}.}
 \label{tab:jacoco-coverage}
 \end{table}
 
 I dati evidenziano i seguenti aspetti:
 \begin{itemize}
-  \item il package dei servizi applicativi (\texttt{venue.event.manager.service}) supera il \textbf{90\%} di copertura delle linee ($1\,137$ su $1\,259$) e l'84.1\% delle istruzioni bytecode;
-  \item i sottomodelli di dominio (\texttt{domain.model.*}) superano tutti l'85\% di linee coperte (con la sola gerarchia delle risorse al 73.1\%), convalidando costruttori, immutabilità ed enumerazioni;
-  \item aggregando l'intero nucleo applicativo (\textit{service}, \textit{domain} ed \textit{exception}), la copertura delle linee raggiunge l'\textbf{89.5\%};
-  \item il package \texttt{repository.jdbc} resta allo 0.0\% nella run offline perché le verifiche su PostgreSQL vengono interrotte nella fase \texttt{@BeforeAll} a database non disponibile; avviando il container Docker ed eseguendo le migrazioni Flyway, le classi JDBC vengono coperte dalle cinque suite di integrazione.
+    \item i servizi applicativi raggiungono il
+    \textbf{91.6\%} di copertura delle linee
+    ($1\,153$ su $1\,259$), il 77.6\% dei branch
+    e l'85.1\% delle istruzioni bytecode;
+
+    \item i sottomodelli di dominio raggiungono almeno
+    l'85\% di copertura delle linee, con l'eccezione
+    della gerarchia delle risorse, che si attesta al 74.2\%;
+
+    \item il nucleo applicativo, comprendente servizi,
+    modelli del dominio ed eccezioni, raggiunge il
+    \textbf{91.2\%} di copertura delle linee;
+
+    \item l'esecuzione dei test con PostgreSQL attivo
+    porta la copertura delle linee di
+    \texttt{repository.jdbc} al \textbf{72.0\%}
+    ($1\,037$ su $1\,440$).
 \end{itemize}
 
 \subsection{Discussione critica e limiti della copertura}
 \label{sec:limiti-copertura}
-La copertura del 90.3\% delle linee nei servizi documenta che gran parte del codice viene eseguita, ma la metrica presenta alcuni limiti pratici.
+La copertura del 91.6\% delle linee nei servizi documenta che gran parte del codice viene eseguita, ma la metrica presenta alcuni limiti pratici.
 
 Eseguire righe e rami non prova di per sé l'assenza di difetti: un test senza asserzioni incrementerebbe comunque la percentuale. Nel progetto questo aspetto è compensato da asserzioni puntuali sui valori restituiti (inclusi blocchi \texttt{assertAll} su prenotazioni e risorse), dall'uso di \texttt{ArgumentCaptor} per verificare gli oggetti inviati ai repository e da controlli espliciti con \texttt{assertThrows} su tutte le eccezioni previste.
 
-Inoltre, i test unitari sequenziali non evidenziano problemi di concorrenza. Per questa ragione le verifiche in memoria sono state affiancate dai test multi-connessione con lock timeout su PostgreSQL (§\ref{sec:test-persistenza-concorrenza}), confermando la mutua esclusione delle query \texttt{SELECT \dots\ FOR UPDATE}.
+Inoltre, i test unitari sequenziali non verificano
+il comportamento reale dei lock PostgreSQL.
+Per questo motivo la suite comprende test multi-connessione
+con timeout sull'acquisizione dei lock
+(Sezione~\ref{sec:lock-pessimistico-postgres}),
+eseguiti con successo nella rilevazione di riferimento.
+Questi test verificano la contesa dei lock sulle righe
+del database, ma non riproducono l'intero flusso
+di due prenotazioni concorrenti attraverso
+\texttt{BookingService}.
 
-Il restante 22.4\% di branch scoperti nei servizi (111 su 496 nella run offline) risiede principalmente nelle condizioni di validazione con clausole multiple (come i controlli anagrafici in \texttt{UserService}, le verifiche temporali in \texttt{EventRequestService}, i vincoli di eliminazione in \texttt{ResourceService} e le verifiche sulle password in \texttt{AuthService.validatePassword}, oltre a rami non esercitati in \texttt{ReportService.updateReport}). Altre parti non coperte nei servizi, come i costruttori pubblici collegati a \texttt{TransactionManager}, \texttt{BookingService.deleteBooking} e i lanci di \texttt{NotFoundException} nelle ricerche per chiave primaria, incidono invece sul conteggio delle linee non eseguite (122 su 1259) e non sul totale delle diramazioni.
+Nei servizi restano non coperti 111 branch su 496,
+pari al 22.4\% del totale.
+Questi rami riguardano principalmente condizioni di validazione
+con clausole multiple, come i controlli anagrafici in
+\texttt{UserService}, le verifiche temporali in
+\texttt{EventRequestService}, i vincoli di eliminazione in
+\texttt{ResourceService} e le verifiche sulle password in
+\texttt{AuthService.validatePassword}, oltre a rami non esercitati
+in \texttt{ReportService.updateReport}.
+
+Le linee non coperte nei servizi sono invece 106 su 1259.
+Tra le parti non esercitate figurano alcuni costruttori pubblici,
+\texttt{BookingService.deleteBooking} e i percorsi che sollevano
+\texttt{NotFoundException} nelle ricerche per chiave primaria.
+La copertura delle linee e quella dei branch descrivono aspetti
+distinti: eseguire una riga contenente una condizione
+non implica verificarne tutti gli esiti.

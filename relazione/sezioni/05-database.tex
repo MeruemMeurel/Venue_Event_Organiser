@@ -16,7 +16,7 @@ Le cardinalità concettuali del modello non sono sempre tradotte totalmente tram
 
 \begin{figure}[!htbp]
     \centering
-    \includegraphics[width=\textwidth]{../docs/diagrams/database/entity-relationship-model.svg}
+    \includegraphics[width=\textwidth]{database/entity-relationship-model.png}
     \caption{Diagramma Entità-Relazione concettuale della base di dati.}
     \label{fig:er-diagram}
 \end{figure}
@@ -69,7 +69,12 @@ Lo schema relazionale è costituito da 18 tabelle. La tabella seguente riassume 
 
 Le relazioni uno-a-molti sono rappresentate da chiavi esterne nella tabella che dipende dall'altra entità. Le relazioni molti-a-molti sono invece tradotte in tabelle associative dotate di chiavi esterne verso le entità partecipanti.
 
-Le tabelle associative degli spazi, dell'equipaggiamento e dei servizi definiscono chiavi primarie composte dalle due FK. La PK di \texttt{REQ\_EQUIPMENT} è estesa anche a \texttt{EVENT\_EQUIPMENT}, in modo da impedire duplicazioni della stessa attrezzatura all'interno di un medesimo evento.
+Le tabelle associative degli spazi, delle attrezzature e dei servizi
+definiscono chiavi primarie composte dalle due chiavi esterne.
+La migration \texttt{V17} introduce anche per
+\texttt{EVENT\_EQUIPMENT} la chiave primaria composta da
+\texttt{event\_id} ed \texttt{equipment\_id}, impedendo di associare
+più volte la stessa attrezzatura a un medesimo evento.
 
 L'indirizzo della venue è memorizzato tramite più colonne e non come tabella a sé: \texttt{street}, \texttt{street\_number}, \texttt{city}, \texttt{postal\_code}, \texttt{country} e \texttt{additional\_info}, con vincoli \texttt{NOT NULL} sui componenti essenziali dell'indirizzo.
 
@@ -85,7 +90,9 @@ L'unicità di username ed email è definita all'interno della tabella \texttt{US
 
 Gli stati di account, richiesta, evento, prenotazione, ospite e severità del report sono rappresentati anche tramite tipi enumerativi PostgreSQL. I tipi enum limitano l'insieme dei valori memorizzabili, ma non definiscono le transizioni di stato ammesse.
 
-Ulteriori regole di business sono demandate al livello applicativo. I service si occupano anche di verificare: che creator e handler siano amministratori e che l'organiser sia un utente ordinario; che una richiesta venga chiusa esclusivamente dall'handler assegnato; che una prenotazione riguardi un evento pubblicato, con visibilità pubblica e inizio futuro; che un account bannato non possa effettuare prenotazioni; che la creazione di una prenotazione richieda almeno un biglietto valido e verifichi la disponibilità dei posti nella stessa transazione, con precedente blocco dell'evento; che la pubblicazione di una recensione richieda che l'evento sia già concluso e che l'utente possieda una prenotazione confermata (garantito, oltre che dai service, anche dal vincolo presente sul database). Queste condizioni non sono interamente espresse da vincoli SQL e dipendono pertanto dai controlli eseguiti nei service.
+Ulteriori regole di business sono demandate al livello applicativo. I service si occupano anche di verificare: che creator e handler siano amministratori e che l'organiser sia un utente ordinario; che l'accettazione e il rifiuto di una richiesta pendente siano
+riservati all'handler assegnato, mentre la cancellazione sia
+riservata al richiedente; che una prenotazione riguardi un evento pubblicato, con visibilità pubblica e inizio futuro; che un account bannato non possa effettuare prenotazioni; che la creazione di una prenotazione richieda almeno un biglietto valido e verifichi la disponibilità dei posti nella stessa transazione, con precedente blocco dell'evento; che la pubblicazione di una recensione richieda che l'evento sia già concluso e che l'utente possieda una prenotazione confermata. Queste condizioni non sono interamente espresse da vincoli SQL e dipendono pertanto dai controlli eseguiti nei service.
 
 \begin{table}[!htbp]
     \centering
@@ -101,7 +108,7 @@ Ulteriori regole di business sono demandate al livello applicativo. I service si
         \textbf{Tipi \texttt{ENUM}:} dominio ristretto dei valori ammessi per stati e livelli di severità. \\
         \hline
         \textbf{Applicativo} \newline (Service Layer) &
-        \textbf{Ruoli e autorizzazioni:} verifica che creator e handler siano amministratori, che l'organiser sia un utente ordinario e che solo l'handler assegnato chiuda la richiesta. \newline
+        \textbf{Ruoli e autorizzazioni:} verifica che creator e handler siano amministratori e che l'organiser sia un utente ordinario; accettazione e rifiuto delle richieste pendenti riservati all'handler assegnato, cancellazione riservata al richiedente. \newline
         \textbf{Prenotazioni e concorrenza:} controllo che l'evento sia pubblicato, pubblico e futuro, che l'utente non sia bannato, presenza di almeno un biglietto valido e verifica della capienza in transazione con blocco preventivo dell'evento. \newline
         \textbf{Recensioni e transizioni:} verifica che l'evento sia concluso e l'utente abbia una prenotazione confermata; controllo delle transizioni di stato ammesse tra gli enum. \\
         \hline

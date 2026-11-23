@@ -112,7 +112,7 @@ public boolean verify(String password, String encodedPassword) {
 Oltre ai controlli su input nullo o vuoto, omessi nel listato, due dettagli rafforzano il meccanismo:
 
 \begin{itemize}
-    \item \textbf{Confronto a tempo costante}: per confrontare l'hash salvato con quello calcolato, \texttt{verify} non usa l'uguaglianza tra stringhe o array ma \texttt{MessageDigest.isEqual} (Listing~\ref{lst:password-hasher}). Il confronto impiega sempre lo stesso tempo, qualunque sia la posizione del primo byte diverso, e non offre quindi appigli a un \textit{timing attack}.
+    \item \textbf{Confronto a tempo costante}: per confrontare l'hash salvato con quello calcolato, \texttt{verify} non usa l'uguaglianza tra stringhe o array ma \texttt{MessageDigest.isEqual} (Listing~\ref{lst:password-hasher}). Il confronto impiega sempre lo stesso tempo, qualunque sia la posizione del primo byte diverso, evitando di interrompersi prima, riducendo la possibilità di ricavare informazioni da questa operazione.
     \item \textbf{Azzeramento della password in memoria}: in \texttt{deriveHash} la password viene copiata in un array \texttt{char[]} dentro un oggetto \texttt{PBEKeySpec}. Un blocco \texttt{finally} invoca \texttt{keySpec.clearPassword()}, che sovrascrive subito l'array invece di lasciarlo nell'heap fino al passaggio del Garbage Collector. La \texttt{String} ricevuta in ingresso resta invece in memoria, perché in Java è immutabile; l'azzeramento riduce comunque i dati esposti in caso di \textit{memory dump}.
 \end{itemize}
 
@@ -169,7 +169,7 @@ Nella stessa transazione scrivono tre repository (Listing~\ref{lst:cancel-event}
 
 Non tutti i controlli di integrità possono essere espressi con vincoli SQL. Il vincolo \texttt{CHECK (capacity > 0)} garantisce che la capienza sia positiva, ma PostgreSQL non ammette sottoquery in una clausola \texttt{CHECK}: non è quindi possibile confrontare la capienza con il numero di biglietti (\texttt{COUNT}).
 
-La verifica che la capienza non scenda sotto i biglietti già emessi spetta quindi al livello applicativo (\texttt{EventService.changeCapacity}, \textbf{UC-09.4}, \textbf{BR-17}). Il metodo lavora in transazione per serializzare modifiche della capienza e prenotazioni concorrenti (Listing~\ref{lst:change-capacity}).
+La verifica che la capienza non scenda sotto il numero di biglietti associati a prenotazioni \texttt{PENDING\_PAYMENT} o \texttt{CONFIRMED} spetta al livello applicativo (\texttt{EventService.changeCapacity}, \textbf{UC-09.4}, \textbf{BR-17}). Il metodo lavora in transazione per serializzare modifiche della capienza e prenotazioni concorrenti (Listing~\ref{lst:change-capacity}).
 
 \begin{lstlisting}[caption={Verifica della soglia minima di capienza durante l'aggiornamento dell'evento.}, label={lst:change-capacity}]
 public void changeCapacity(long actorId, long eventId, int capacity) {

@@ -6,7 +6,7 @@
 
 \begin{figure}[!htbp]
     \centering
-    \includegraphics[width=\textwidth]{../docs/diagrams/architecture/layered-architecture.svg}
+    \includegraphics[width=\textwidth]{architettura/layered-architecture.png}
     \caption{Diagramma introduttivo dell'architettura a livelli.}
     \label{fig:layered-architecture}
 \end{figure}
@@ -17,7 +17,7 @@ Il package \texttt{domain.model} contiene le classi e gli enum relativi agli ute
 
 \begin{figure}[!htbp]
     \centering
-    \includegraphics[width=\textwidth]{../docs/diagrams/architecture/package-dependencies.svg}
+    \includegraphics[width=\textwidth]{architettura/package-dependencies.png}
     \caption{Schema sintetico dei package Java e delle loro dipendenze.}
     \label{fig:package-dependencies}
 \end{figure}
@@ -34,14 +34,14 @@ Il \texttt{TransactionManager} è configurato per ottenere il \texttt{DataSource
 
 \begin{figure}[!htbp]
     \centering
-    \includegraphics[width=\textwidth]{../docs/diagrams/architecture/package-architecture.svg}
+    \includegraphics[width=\textwidth]{architettura/package-architecture.png}
     \caption{Schema dettagliato dei componenti e dell'accesso al database.}
     \label{fig:package-architecture}
 \end{figure}
 
 La configurazione del database è basata sulle variabili d'ambiente e sulle proprietà dell'app, in cui le prime hanno la precedenza sulle seconde. L'evoluzione dello schema è invece gestita da Flyway tramite script SQL versionati.
 
-\texttt{AuthService} si occupa di gestire le credenziali tramite \texttt{UserRepository}, \texttt{TransactionManager} e \texttt{PasswordHasher}. Il modello \texttt{User} gestisce l'autenticazione tramite credenziali salvate separatamente. La verifica delle credenziali non crea una sessione né restituisce un token applicativo.
+\texttt{AuthService} si occupa di gestire le credenziali tramite \texttt{UserRepository}, \texttt{TransactionManager} e \texttt{PasswordHasher}. Verifica le credenziali, memorizzate separatamente dai dati del modello \texttt{User}, e restituisce l'utente autenticato.
 
 \section{Pattern e idiomi adottati}
 
@@ -51,7 +51,7 @@ All'interno del dominio dei modelli è implementata l'immutabilità: i campi son
 
 I metodi \texttt{inTransaction} (per modifiche/azioni sui dati) e \texttt{inReadOnly} (per letture sui dati) del \texttt{TransactionManager} applicano il paradigma ''Execute Around Method'': ricevono una funzione che descrive il lavoro sulla connessione e lo racchiudono nella gestione di apertura, commit o rollback e ripristino dello stato della connessione. Questo rende uniforme la gestione delle transazioni e riduce la duplicazione di codice infrastrutturale nei service.
 
-Utilizziamo anche i pattern Singleton e Row Mapper. \texttt{DataSourceSingleton} e il \texttt{TransactionManager} condividono una singola istanza a livello applicativo, inizializzata solo alla prima invocazione (Lazy Initialization); \texttt{RowMapper<T>} associa una riga JDBC a una funzione (mapping del risultato di una query), utilizzabile anche tramite funzioni lambda, riducendo così la duplicazione nelle istanze condivise e nella conversione dei risultati JDBC.
+Utilizziamo anche i pattern Singleton e Row Mapper. \texttt{DataSourceSingleton} e il \texttt{TransactionManager} espongono ciascuno la propria istanza condivisa, inizializzata solo alla prima invocazione (Lazy Initialization); \texttt{RowMapper<T>} definisce la conversione di una riga del \texttt{ResultSet} in un oggetto del dominio e può essere implementato tramite una lambda.
 
 Le macchine a stati delle entità non seguono il GoF State pattern: gli stati sono rappresentati tramite i valori enum delle singole entità e le transizioni ammesse sono verificate tramite i service. In maniera analoga, i modelli non sono costruiti con un builder dedicato, ma tramite costruttori e metodi \texttt{with...}. \texttt{TransactionManager} gestisce il confine delle transazioni, ma non mantiene un registro degli oggetti modificati e non costituisce una Unit of Work completa. Per questi motivi, la descrizione dell'architettura non viene estesa a pattern non implementati.
 
