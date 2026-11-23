@@ -100,7 +100,7 @@ Lo stato \texttt{BANNED} è distinto dall'eliminazione fisica dell'account: un u
 
 Un nuovo evento viene creato nello stato \texttt{DRAFT}, indipendentemente dallo stato eventualmente fornito in ingresso. Da \texttt{DRAFT} può passare a \texttt{CONFIRMED} oppure essere cancellato; da \texttt{CONFIRMED} può essere pubblicato o cancellato; da \texttt{PUBLISHED} può passare a \texttt{CANCELLED}. Non è prevista la riattivazione di un evento cancellato.
 
-La conferma e la pubblicazione richiedono un amministratore oppure l'Organiser assegnato. La pubblicazione è consentita soltanto per un evento confermato che abbia un inizio futuro, una venue esistente e una capienza positiva; al momento della pubblicazione viene registrato anche il relativo timestamp. La capienza non può essere ridotta al di sotto del numero di biglietti associati a prenotazioni negli stati \texttt{PENDING\_PAYMENT} o \texttt{CONFIRMED}. I biglietti delle prenotazioni cancellate non occupano posti nel conteggio della disponibilità..
+La conferma e la pubblicazione richiedono un amministratore oppure l'Organiser assegnato. La pubblicazione è consentita soltanto per un evento confermato che abbia un inizio futuro, una venue esistente e una capienza positiva; al momento della pubblicazione viene registrato anche il relativo timestamp. La capienza non può essere ridotta al di sotto del numero di biglietti associati a prenotazioni negli stati \texttt{PENDING\_PAYMENT} o \texttt{CONFIRMED}. I biglietti delle prenotazioni cancellate non occupano posti nel conteggio della disponibilità.
 
 La cancellazione aggiorna lo stato dell'evento e annulla, nella stessa transazione, le prenotazioni e gli inviti attivi a esso collegati. Tale operazione non corrisponde a un rimborso automatico.
 
