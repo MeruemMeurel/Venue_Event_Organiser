@@ -40,7 +40,7 @@
 \strut\label{br:BR-14}BR-14 & il creator deve essere un admin; l'organiser, quando presente, deve essere un utente ordinario. \\[4pt]
 \strut\label{br:BR-15}BR-15 & organiser e poster sono facoltativi; il prezzo può essere nullo, interpretato come evento gratuito. \\[4pt]
 \strut\label{br:BR-16}BR-16 & per pubblicare sono necessari stato \texttt{CONFIRMED}, dati validi, venue valida, capienza valida e coerenza temporale. \\[4pt]
-\strut\label{br:BR-17}BR-17 & la capienza non può essere ridotta sotto il numero di biglietti già emessi. \\[4pt]
+\strut\label{br:BR-17}BR-17 & la capienza non può essere ridotta sotto il numero di biglietti associati a prenotazioni \texttt{PENDING\_PAYMENT} o \texttt{CONFIRMED}; le prenotazioni cancellate sono escluse dal conteggio. \\[4pt]
 \strut\label{br:BR-18}BR-18 & cancellare un evento annulla nella stessa transazione prenotazioni e inviti attivi. \\[4pt]
 \rowcolor{etichetteUC}
 \multicolumn{2}{@{}l}{\rule{0pt}{2.6ex}\textbf{Prenotazioni e invitati}} \\*[3pt]

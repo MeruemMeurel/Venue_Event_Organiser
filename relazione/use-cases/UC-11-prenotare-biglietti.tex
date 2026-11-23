@@ -26,7 +26,7 @@ Flusso principale & \begin{minipage}[t]{\linewidth}\begin{enumerate}[leftmargin=
 \item Il sistema verifica che lo User esista e che il suo account non sia \texttt{BANNED}.
 \item Il sistema carica e blocca l'evento per impedire che prenotazioni concorrenti modifichino contemporaneamente la disponibilità considerata.
 \item Il sistema verifica che l'evento sia \texttt{PUBLISHED}, abbia visibilità \texttt{PUBLIC} e non sia ancora iniziato.
-\item Il sistema conta i biglietti già emessi per l'evento.
+\item \item Il sistema conta i biglietti delle prenotazioni \texttt{PENDING\_PAYMENT} o \texttt{CONFIRMED} associate all'evento..
 \item Il sistema verifica che la capienza residua sia sufficiente per tutti i biglietti richiesti.
 \item Il sistema calcola il prezzo totale della prenotazione.
 \item Il sistema crea la prenotazione nello stato \texttt{PENDING\_\allowbreak{}PAYMENT} e la persiste.
